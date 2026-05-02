@@ -1,0 +1,42 @@
+<template lang="">
+    <div class="tsllight mt-5 mx-auto p-3 brds-3 position-relative" style="width:90%;min-height:320px">
+        <p class="mb-0" style="font-size: 14px;">{{name}}</p>
+        <div class="position-absolute" style="top:20px;right:30px;">
+            <div class="prim_bg float-start me-1" style="width:17px;height:17px;border:2px solid black;border-radius:20px;"></div>
+            <p class="m-0 float-start ms-1" style="font-size:14px;">{{item}}</p>
+        </div>
+        <div style="display: flex;">
+            <h1 class="mb-0" style="margin-right: 10px; font-size: 40px;">{{revenue}}</h1>
+            <svg xmlns="http://www.w3.org/2000/svg" width="33.034" height="39.335" viewBox="0 0 33.034 39.335">
+                <g id="Group_55971" data-name="Group 55971" transform="translate(-116.037 -38.035)">
+                    <path id="Shape" d="M0,35.335V0L14.175,14.18" transform="translate(132.067 40.035)" fill="none" stroke="#f2a18c" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="4"/>
+                    <path id="Shape-2" data-name="Shape" d="M0,14.18,14.175,0,0,14.18Z" transform="translate(118.037 40.035)" fill="none" stroke="#f2a18c" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="4"/>
+                </g>
+            </svg>
+        </div>
+        <LineChart v-if="labels!==null&&datasets!==null" :label="labels" :dataset="datasets" :height="150"/>
+    </div>
+</template>
+<script>
+import LineChart from '../overview/line-chart.vue';
+export default {
+    props: ['name', 'label', 'revenue', 'dataset', 'item'],
+    name: 'App',
+    components: {
+        LineChart
+    },
+    data() {
+        return {
+            labels: null,
+            datasets: null,
+        }
+    },
+    mounted() {
+        this.datasets = this.dataset.reverse();
+        this.labels = this.label;
+    }
+}
+</script>
+<style lang="">
+
+</style>

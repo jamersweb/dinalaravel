@@ -1,0 +1,25 @@
+https://www.fitbit.com/oauth2/authorize?response_type=code
+    &client_id=2382HV
+    &redirect_uri=https://localhost/
+    &scope=activity%20nutrition%20heartrate%20location%20nutrition%20profile%20settings%20sleep%20social%20weight
+
+
+
+auth code = 4a9eaceaa2ed39c4fa0c4de3a5fbffcf02520432
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+POST https://api.fitbit.com/oauth2/token
+
+basic_token = Client_ID:Client_Secret
+
+basic_token = 2382HV:27ddb18a31a88d821f242f883a6d60da   convert into base64url-encoding
+
+base64url-encoding : MjM4MkhWOjI3ZGRiMThhMzFhODhkODIxZjI0MmY4ODNhNmQ2MGRh
+
+
+Authorization: Basic MjM4MkhWOjI3ZGRiMThhMzFhODhkODIxZjI0MmY4ODNhNmQ2MGRh
+Content-Type: application/x-www-form-urlencoded
