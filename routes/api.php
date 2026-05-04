@@ -118,6 +118,24 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 	Route::get('master-workouts', [WorkoutController::class, 'allWorkoutsList']);
 	Route::get('workout-detail/{id}', [WorkoutController::class, 'detailedWorkout']);
 
+	// Read/catalog: logged-in users (no active subscription or consultation required)
+	Route::get('get-my-programs', [ProgramsController::class, 'getUserRegisteredPrograms']);
+	Route::get('get-tags', [TagsController::class, 'getTags']);
+	Route::get('get-all-tags', [ExerciseController::class, 'getTags']);
+	Route::get('get-all-exercises', [ExerciseController::class, 'getExercisesForUsers']);
+	Route::post('search-exercises', [ExerciseController::class, 'searchExercise']);
+	Route::get('exercise-alternates/{id}', [ExerciseController::class, 'exerciseAlternates']);
+	Route::get('discover-meals', [MealsController::class, 'discoverMeals']);
+	Route::get('get-meal-plans', [MealPlansController::class, 'getMealPlans']);
+	Route::get('get-foods', [FoodsController::class, 'getFoodsForMobile']);
+	Route::get('my-meals', [MealsController::class, 'myPastMeals']);
+	Route::get('meals-history', [MealsController::class, 'mealsHistory']);
+	Route::get('meal-comments/{id}', [MealsController::class, 'mealComments']);
+	Route::get('meal-detail/{id}', [MealsController::class, 'mealDetails']);
+	Route::get('my-workout-detail/{id}', [WorkoutController::class, 'myworkout']);
+	Route::get('program-detail/{id}', [ProgramSubTrackingController::class, 'getProgramDetail']);
+	Route::post('getUserNotification', [NotificationsController::class, 'getUserNotifications']);
+
 	// Sync RevenueCat subscription to backend when app has isPro but webhook hasn't synced (e.g. anonymous app_user_id)
 	Route::post('sync-revenuecat-subscription', [AuthController::class, 'syncRevenueCatSubscription']);
 
@@ -158,20 +176,16 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 
 		// programs (all-programs moved above - browsable without subscription)
 		Route::get('get-beginner-programs', [ProgramsController::class, 'showBeginnerPrograms']);
-		Route::get('get-my-programs', [ProgramsController::class, 'getUserRegisteredPrograms']);
 		Route::get('subscribe-program/{id}', [ProgramSubTrackingController::class, 'subscribeProgram']);
 		Route::get('pause-program/{id}', [ProgramSubTrackingController::class, 'pauseProgram']);
 		Route::get('start-program/{id}', [ProgramSubTrackingController::class, 'startProgram']);
 		Route::get('resume-program/{id}', [ProgramSubTrackingController::class, 'resumeProgram']);
 		Route::get('reset-program/{id}', [ProgramSubTrackingController::class, 'resetProgram']);
-		Route::get('program-detail/{id}', [ProgramSubTrackingController::class, 'getProgramDetail']);
 		Route::get('unsub-program/{id}', [ProgramSubTrackingController::class, 'unsubProgram']);
 		Route::post('workout-completed', [ProgramSubTrackingController::class, 'workoutCompleted']);
 		Route::post('exercise-completed', [ProgramSubTrackingController::class, 'exerciseCompleted']);
 
 		//notifications
-		Route::post('getUserNotification', [NotificationsController::class, 'getUserNotifications']);
-
 		//User Settings
 		Route::get('get-settings', [UserSettingsController::class, 'getSettings']);
 		Route::post('update-settings', [UserSettingsController::class, 'updateSettings']);
@@ -220,20 +234,11 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 		Route::get('full-month-tasks-last-30', [SchedulingController::class, 'last30DaysTasks']);
 		Route::get('delete-task/{id}', [SchedulingController::class, 'deleteScheduledTasks']);
 
-		//exercises 
-		Route::get('get-all-exercises', [ExerciseController::class, 'getExercisesForUsers'])->middleware('checkFullAccess');
-		Route::post('search-exercises', [ExerciseController::class, 'searchExercise'])->middleware('checkFullAccess');
-		Route::get('get-all-tags', [ExerciseController::class, 'getTags']);
-		// Get tags by category (for programs, meals, exercises, workouts)
-		Route::get('get-tags', [TagsController::class, 'getTags']);
-		Route::get('exercise-alternates/{id}', [ExerciseController::class, 'exerciseAlternates']);
+		//exercises (browse/search moved above; mutations stay subscription-gated)
 		Route::post('replace-exercise', [ExerciseController::class, 'replaceExercise']);
-
-		// Route::get('exercise-alternates/{id}', [ExerciseController::class, 'exerciseAlternates']);
 		Route::get('exercise-weight-progress', [ExerciseController::class, 'weightProgress']);
 
 		//workouts
-		Route::get('my-workout-detail/{id}', [WorkoutController::class, 'myworkout']);
 		Route::post('create-users-workout', [WorkoutController::class, 'createUserDefinedWorkouts'])->middleware('checkFullAccess');
 		// Route::post('submit-workout-feedback',[WorkoutController::class,'workoutFeedback']);
 
@@ -243,22 +248,14 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 		Route::get('habit-task-progress/{id}', [HabitsController::class, 'habitTaskProgress']);
 
 		//Meals
-		Route::get('discover-meals', [MealsController::class, 'discoverMeals']);
-		Route::get('get-foods', [FoodsController::class, 'getFoodsForMobile']);
 		Route::post('create-user-meal', [MealsController::class, 'createUserMeal']);
 		Route::post('get-meal-calories-by-date', [MealsController::class, 'getMealCaloriesByDate']);
 		Route::post('get-calories-for-graph', [MealsController::class, 'getCaloriesForGraph']);
 		Route::post('get-month-meals', [MealsController::class, 'getMonthMeals']);
-		Route::get('my-meals', [MealsController::class, 'myPastMeals']);
 		Route::post('create-comment', [MealsController::class, 'pasteComment']);
 		// Note: Tag filtering added to discoverMeals - use ?tags=tag1,tag2 query parameter
 
-		Route::get('meals-history', [MealsController::class, 'mealsHistory']);
-		Route::get('meal-comments/{id}', [MealsController::class, 'mealComments']);
-		Route::get('meal-detail/{id}', [MealsController::class, 'mealDetails']);
-
 		//Meal Plan
-		Route::get('get-meal-plans', [MealPlansController::class, 'getMealPlans']);
 		Route::get('subscribe-meal-plan/{id}', [MealPlansController::class, 'subscribePlan']);
 		Route::get('my-meal-plans', [MealPlansController::class, 'myMealPlans']);
 		Route::get('meal-plan-detail/{id}', [MealPlansController::class, 'planDetail']);
