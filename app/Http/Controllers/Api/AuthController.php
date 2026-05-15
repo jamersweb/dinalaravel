@@ -392,22 +392,28 @@ class AuthController extends Controller
                 'message' => $validate->errors()->all()[0]
             ]);
         }
-        $user = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 1)->first();
-        if ($user) {
+        $existingAccount = User::whereRaw('LOWER(email) = ?', [$email])->first();
+        if ($existingAccount && (int) $existingAccount->role !== 1) {
+            return response()->json([
+                'status' => false,
+                'message' => 'This email is registered for an admin or team account, not a mobile user account.'
+            ]);
+        }
+
+        if ($existingAccount) {
             $verificationCode = rand(1000, 9999);
-            $user->email_verification_code = $verificationCode;
-            $user->code_expire_time = Carbon::now()->addMinutes(5);
-            $user->update();
-            User::whereRaw('LOWER(email) = ?', [$email])->update(array('email_verification_code' => $verificationCode));
+            $existingAccount->email_verification_code = $verificationCode;
+            $existingAccount->code_expire_time = Carbon::now()->addMinutes(5);
+            $existingAccount->update();
             $data = [
-                'name' => $user->name,
+                'name' => $existingAccount->name,
                 'verification_code' => $verificationCode,
-                'email' => $user->email
+                'email' => $existingAccount->email
             ];
             Mail::to($data['email'])->send(new forgotPasswordUser($data));
             return response()->json([
                 'status' => true,
-                'message' => $this->userSelecetdLanguage($user->id) === 'en' ? config('responses.email_sent.en') : config('responses.email_sent.ar')
+                'message' => $this->userSelecetdLanguage($existingAccount->id) === 'en' ? config('responses.email_sent.en') : config('responses.email_sent.ar')
                 // 'message' => 'Email sent to provided email address'
             ]);
         } else {
@@ -432,7 +438,7 @@ class AuthController extends Controller
                 'message' => $validate->errors()->all()[0]
             ]);
         }
-        $isEmailExist = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 2)->first();
+        $isEmailExist = User::whereRaw('LOWER(email) = ?', [$email])->where('role', '!=', 1)->first();
         if ($isEmailExist) {
             $verificationCode = rand(1000, 9999);
             $isEmailExist->email_verification_code = $verificationCode;

@@ -141,7 +141,8 @@ Route::middleware(['auth:api', 'adminOnly'])->group(function () {
             'email' => 'required|email|exists:users,email'
         ]);
         
-        $user = User::where('email', $request->email)->where('role', 1)->first();
+        $email = strtolower(trim((string) $request->email));
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 1)->first();
         if ($user) {
             UserDetail::where('user_id', $user->id)->update(['subscription_status' => 'expired']);
             UserSub::where('user_id', $user->id)->where('status', 'active')->update(['status' => 'expired']);
