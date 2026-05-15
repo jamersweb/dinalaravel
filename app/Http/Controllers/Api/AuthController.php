@@ -410,7 +410,20 @@ class AuthController extends Controller
                 'verification_code' => $verificationCode,
                 'email' => $existingAccount->email
             ];
-            Mail::to($data['email'])->send(new forgotPasswordUser($data));
+            try {
+                Mail::to($data['email'])->send(new forgotPasswordUser($data));
+            } catch (\Throwable $e) {
+                Log::error('forgot password email failed', [
+                    'email' => $data['email'] ?? null,
+                    'message' => $e->getMessage(),
+                ]);
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Unable to send reset email right now. Please try again later.'
+                ]);
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => $this->userSelecetdLanguage($existingAccount->id) === 'en' ? config('responses.email_sent.en') : config('responses.email_sent.ar')
@@ -449,7 +462,20 @@ class AuthController extends Controller
                 'token' => base64_encode($verificationCode . ',' . $isEmailExist->email),
                 'email' => $isEmailExist->email
             ];
-            Mail::to($data['email'])->send(new ForgotPasswordAdmin($data));
+            try {
+                Mail::to($data['email'])->send(new ForgotPasswordAdmin($data));
+            } catch (\Throwable $e) {
+                Log::error('admin forgot password email failed', [
+                    'email' => $data['email'] ?? null,
+                    'message' => $e->getMessage(),
+                ]);
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Unable to send reset email right now. Please try again later.'
+                ]);
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'Confirmation email sent'
