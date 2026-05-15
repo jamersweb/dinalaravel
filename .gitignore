@@ -61,3 +61,8 @@ node_modules
 node_modules
 node_modules
 node_modules
+
+# Production uploads & Passport keys (keep on server; not in Git)
+/storage/fwd_media/
+/storage/oauth-private.key
+/storage/oauth-public.key

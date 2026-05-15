@@ -37,6 +37,7 @@ class AuthController extends Controller
 
     public function signup(Request $request)
     {
+        $email = strtolower(trim((string) $request->input('email', '')));
         $language = strtolower(trim((string) $request->input('language', 'en')));
         if (str_contains($language, '-')) {
             $language = explode('-', $language)[0] ?: 'en';
@@ -44,7 +45,7 @@ class AuthController extends Controller
         if (str_contains($language, '_')) {
             $language = explode('_', $language)[0] ?: 'en';
         }
-        $request->merge(['language' => $language]);
+        $request->merge(['email' => $email, 'language' => $language]);
 
         $validate = Validator::make($request->all(), [
             'email' => 'required|email',
@@ -61,18 +62,47 @@ class AuthController extends Controller
         if ($validate->fails())
             return $this->validationError($validate);
 
-        $exists = User::where('email', $request->email)->first();
+        $exists = User::whereRaw('LOWER(email) = ?', [$email])->first();
+        if ($exists && (int) $exists->role === 1 && is_null($exists->email_verified_at)) {
+            $verificationCode = rand(1000, 9999);
+            $exists->email_verification_code = $verificationCode;
+            $exists->code_expire_time = Carbon::now()->addMinutes(5);
+            $exists->fcm_token = $request->fcm_token;
+            $exists->save();
+
+            $data = [
+                'name' => $exists->name,
+                'verification_code' => $verificationCode,
+                'email' => $exists->email,
+            ];
+            try {
+                Mail::to($data['email'])->send(new signupEmail($data));
+            } catch (\Throwable $e) {
+                Log::error('signup verification resend failed', [
+                    'email' => $data['email'] ?? null,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Account already exists but is not verified. We sent a new verification code.'
+            ]);
+        }
+
         if ($exists)
             return response()->json([
                 'status' => false,
-                'message' => $request->language === 'en' ? config('responses.email_taken.en') : config('responses.email_taken.ar')
+                'message' => (int) $exists->role === 1
+                    ? 'Email already registered. Please sign in.'
+                    : 'This email is already registered for another account type.'
                 // 'message' => 'Email Is Already Taken.'
             ]);
         $user = new User();
         $user->api_token = 'xxxxxxxxxxxxx';
         $user->fcm_token = $request->fcm_token;
         $user->name = $request->firstname;
-        $user->email = $request->email;
+        $user->email = $email;
         $verificationCode = rand(1000, 9999);
         $user->email_verification_code = $verificationCode;
         $user->code_expire_time = Carbon::now()->addMinutes(5);
@@ -112,14 +142,14 @@ class AuthController extends Controller
         $notiReciever = User::where('role', 2)->pluck('id')->first();
         $notiSource = $user->id;
         $notiTitle = 'New User Created!';
-        $notiContent = $request->email . ' just created account.';
+        $notiContent = $email . ' just created account.';
         if ($notiReciever !== null) {
             $this->storeNotification($notiReciever, $notiTitle, null, $notiContent, null, $notiSource);
         }
         $data = [
             'name' => $request->firstname,
             'verification_code' => $verificationCode,
-            'email' => $request->email
+            'email' => $email
         ];
         AutomatedMessagesController::sendAutoMessage($user->id, 'signup');
         try {
@@ -139,6 +169,8 @@ class AuthController extends Controller
 
     public function emailVerification(Request $request)
     {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $request->merge(['email' => $email]);
         $validate = Validator::make($request->all(), [
             'email' => 'required|email',
             'token' => 'required|numeric'
@@ -149,7 +181,7 @@ class AuthController extends Controller
                 'message' => $validate->errors()->all()[0]
             ]);
         }
-        $userToken = User::where('email', $request->email)->where('role', 1)->first(['email_verification_code', 'code_expire_time', 'id']);
+        $userToken = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 1)->first(['email_verification_code', 'code_expire_time', 'id']);
         if ($userToken) {
             if ($userToken->email_verification_code == $request->token) {
                 if (Carbon::now() > $userToken->code_expire_time)
@@ -159,16 +191,16 @@ class AuthController extends Controller
                         // 'message' => 'Code Has Been Expired, Please Request a New One.'
                     ]);
                 $current_date_time = Carbon::now()->toDateTimeString();
-                $user = User::where('email', $request->email)->first();
+                $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
                 $user->update(array('email_verified_at' => $current_date_time));
                 $token = $user->createToken('MyApp');
                 $accessToken = $token->accessToken;
                 $token->token->expires_at = Carbon::now()->addWeeks(4);
                 $id = $token->token->id;
                 DB::table('oauth_access_tokens')->where('id', $id)->update(['expires_at' => $token->token->expires_at]);
-                User::where('email', $request->email)->update(array('api_token' => $accessToken));
-                User::where('email', $request->email)->update(array('email_verified_at' => $current_date_time));
-                $user = User::where('email', $request->email)->first();
+                User::whereRaw('LOWER(email) = ?', [$email])->update(array('api_token' => $accessToken));
+                User::whereRaw('LOWER(email) = ?', [$email])->update(array('email_verified_at' => $current_date_time));
+                $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
                 return response()->json([
                     'status' => 1,
                     'message' => 'Email Verified and Logged In',
@@ -213,21 +245,29 @@ class AuthController extends Controller
         $email = strtolower(trim($request->email));
         $password = $request->password; // Don't trim password for compatibility with existing hashes
 
-        $user = User::where('email', $email)->where('role', 1)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 1)->first();
 
-        if (is_null($user))
+        if (is_null($user)) {
+            $existingAccount = User::whereRaw('LOWER(email) = ?', [$email])->first();
+            if ($existingAccount) {
+                return response()->json([
+                    'status' => 0,
+                    'message' => 'This email is already registered, but not as a mobile user account.'
+                ]);
+            }
             return response()->json([
                 'status' => 0,
                 'message' => $request->language === 'en' ? config('responses.acount_not_exist.en') : config('responses.acount_not_exist.ar')
                 // 'message' => 'Account Does Not Exist.'
             ]);
+        }
         if ($user->status === 'deactive')
             return response()->json([
                 'status' => 0,
                 'message' => $request->language === 'en' ? config('responses.account_deactivate.en') : config('responses.account_deactivate.ar')
                 // 'message' => 'Your Account has been Deactivated by Administrator'
             ]);
-        if (Auth::attempt(['email' => $email, 'password' => $password])) {
+        if (Auth::attempt(['email' => $user->email, 'password' => $password])) {
             if ($user->email_verified_at == null) {
                 $verificationCode = rand(1000, 9999);
                 $user->email_verification_code = $verificationCode;
@@ -250,8 +290,8 @@ class AuthController extends Controller
                 $token->token->expires_at = Carbon::now()->addWeeks(4);
                 $id = $token->token->id;
                 DB::table('oauth_access_tokens')->where('id', $id)->update(['expires_at' => $token->token->expires_at]);
-                User::where('email', $email)->update(array('api_token' => $accessToken));
-                User::where('email', $email)->update(array('fcm_token' => $request->fcm_token));
+                User::whereRaw('LOWER(email) = ?', [$email])->update(array('api_token' => $accessToken));
+                User::whereRaw('LOWER(email) = ?', [$email])->update(array('fcm_token' => $request->fcm_token));
                 Auth::user()->update(array('api_token' => $accessToken));
 
                 $user = User::find(Auth::id());
@@ -295,12 +335,14 @@ class AuthController extends Controller
 
     function resendEmail(Request $request)
     {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $request->merge(['email' => $email]);
         $validate = Validator::make($request->all(), [
             'email' => 'required|email'
         ]);
         if ($validate->fails())
             return $this->validationError($validate);
-        $user = User::where('email', $request->email)->where('role', 1)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 1)->first();
         if (is_null($user))
             return response()->json([
                 'status' => false,
@@ -313,7 +355,7 @@ class AuthController extends Controller
         $data = [
             'name' => $user->name,
             'verification_code' => $verificationCode,
-            'email' => $request->email
+            'email' => $email
         ];
         Mail::to($data['email'])->send(new emailVerification($data));
         return response()->json([
@@ -338,6 +380,9 @@ class AuthController extends Controller
 
     public function forgotPassword(Request $request)
     {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $request->merge(['email' => $email]);
+
         $validate = Validator::make($request->all(), [
             'email' => 'required|email'
         ]);
@@ -347,17 +392,17 @@ class AuthController extends Controller
                 'message' => $validate->errors()->all()[0]
             ]);
         }
-        $user = User::where('email', $request->email)->where('role', 1)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 1)->first();
         if ($user) {
             $verificationCode = rand(1000, 9999);
             $user->email_verification_code = $verificationCode;
             $user->code_expire_time = Carbon::now()->addMinutes(5);
             $user->update();
-            User::where('email', $request->email)->update(array('email_verification_code' => $verificationCode));
+            User::whereRaw('LOWER(email) = ?', [$email])->update(array('email_verification_code' => $verificationCode));
             $data = [
                 'name' => $user->name,
                 'verification_code' => $verificationCode,
-                'email' => $request->email
+                'email' => $user->email
             ];
             Mail::to($data['email'])->send(new forgotPasswordUser($data));
             return response()->json([
@@ -375,6 +420,9 @@ class AuthController extends Controller
 
     public function forgotPasswordAdmin(Request $request)
     {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $request->merge(['email' => $email]);
+
         $validate = Validator::make($request->all(), [
             'email' => 'required|email'
         ]);
@@ -384,7 +432,7 @@ class AuthController extends Controller
                 'message' => $validate->errors()->all()[0]
             ]);
         }
-        $isEmailExist = User::where('email', $request->email)->where('role', 2)->first();
+        $isEmailExist = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 2)->first();
         if ($isEmailExist) {
             $verificationCode = rand(1000, 9999);
             $isEmailExist->email_verification_code = $verificationCode;
@@ -393,9 +441,9 @@ class AuthController extends Controller
             $data = [
                 'name' => $isEmailExist->firstname,
                 'token' => base64_encode($verificationCode . ',' . $isEmailExist->email),
-                'email' => $request->email
+                'email' => $isEmailExist->email
             ];
-            Mail::to($request->email)->send(new ForgotPasswordAdmin($data));
+            Mail::to($data['email'])->send(new ForgotPasswordAdmin($data));
             return response()->json([
                 'status' => true,
                 'message' => 'Confirmation email sent'
@@ -411,6 +459,9 @@ class AuthController extends Controller
 
     public function updatePassword(Request $request)
     {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $request->merge(['email' => $email]);
+
         $validate = Validator::make($request->all(), [
             'email' => 'required|email',
             'token' => 'required|numeric',
@@ -422,7 +473,7 @@ class AuthController extends Controller
                 'message' => $validate->errors()->all()[0]
             ]);
         }
-        $user = User::where('email', $request->email)->where('role', 1)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->where('role', 1)->first();
         if ($user) {
             if ($user->email_verification_code == $request->token) {
                 if (Carbon::now() > $user->code_expire_time)
@@ -466,8 +517,8 @@ class AuthController extends Controller
         $requestData = base64_decode($request->token);
         $requestDataArray = explode(",", $requestData);
         $verificationCode = $requestDataArray[0];
-        $verificationEmail = $requestDataArray[1];
-        $user = User::where('email', $verificationEmail)->first();
+        $verificationEmail = strtolower(trim((string) $requestDataArray[1]));
+        $user = User::whereRaw('LOWER(email) = ?', [$verificationEmail])->first();
         if ($user) {
             if ($user->email_verification_code == $verificationCode) {
                 if (Carbon::now() > $user->code_expire_time)
@@ -476,8 +527,8 @@ class AuthController extends Controller
                         'message' => 'The Reset Link is Expired',
                     ]);
                 $current_date_time = Carbon::now()->toDateTimeString();
-                User::where('email', $verificationEmail)->update(array('email_verified_at' => $current_date_time));
-                User::where('email', $verificationEmail)->update(array('password' => Hash::make($request->password)));
+                User::whereRaw('LOWER(email) = ?', [$verificationEmail])->update(array('email_verified_at' => $current_date_time));
+                User::whereRaw('LOWER(email) = ?', [$verificationEmail])->update(array('password' => Hash::make($request->password)));
                 return response()->json([
                     'status' => true,
                     'message' => 'Password update',
@@ -497,6 +548,9 @@ class AuthController extends Controller
     }
     public function verifyOTP(Request $request)
     {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $request->merge(['email' => $email]);
+
         $validate = Validator::make($request->all(), [
             'email' => 'required|email',
             'otp' => 'required|numeric'
@@ -507,7 +561,13 @@ class AuthController extends Controller
                 'message' => $validate->errors()->all()[0]
             ]);
         }
-        $x = User::where('email', $request->email)->first();
+        $x = User::whereRaw('LOWER(email) = ?', [$email])->first();
+        if (!$x) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Email Does Not Exist'
+            ]);
+        }
         if ($x->email_verification_code == $request->otp) {
             return response()->json([
                 'status' => true,
@@ -639,6 +699,9 @@ class AuthController extends Controller
 
     function adminLogin(Request $request)
     {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $request->merge(['email' => $email]);
+
         $validate = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
@@ -646,7 +709,7 @@ class AuthController extends Controller
         if ($validate->fails())
             return $this->validationError($validate);
 
-        $exists = User::where('email', $request->email)->first();
+        $exists = User::whereRaw('LOWER(email) = ?', [$email])->first();
         if (is_null($exists))
             return response()->json([
                 'status' => false,
@@ -658,7 +721,7 @@ class AuthController extends Controller
                 'message' => 'Invalid Email.'
             ]);
         else {
-            if (!(Auth::attempt(['email' => $request->email, 'password' => $request->password])))
+            if (!(Auth::attempt(['email' => $exists->email, 'password' => $request->password])))
                 return response()->json([
                     'status' => false,
                     'message' => 'Incorrect Password.'
@@ -671,7 +734,7 @@ class AuthController extends Controller
             DB::table('oauth_access_tokens')->where('id', $id)->update(['expires_at' => $token->token->expires_at]);
 
 
-            User::where('email', $request->email)->update(array('api_token' => $accessToken));
+            User::whereRaw('LOWER(email) = ?', [$email])->update(array('api_token' => $accessToken));
             Auth::user()->update(array('api_token' => $accessToken));
             // logout other devices
             // $currentDevice = DB::table('oauth_access_tokens')->where('user_id',$user->id)->orderBy('created_at','DESC')->pluck('id')->first();
