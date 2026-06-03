@@ -6,6 +6,7 @@ use App\Helpers\FileHandle;
 use App\Models\Concerns\AvailableInContentLocale;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Program extends Model
 {
@@ -35,10 +36,15 @@ class Program extends Model
     }
 
     function getImageAttribute($value){
-        if (strlen($value) === 11) {
+        if (empty($value)) return null;
+        if (is_string($value) && strlen($value) === 11) {
             return config('app.youtube_thumbnail_baseUrl_start').$value.config('app.youtube_thumbnail_baseUrl_end');
         }
-        if(empty($value)) return null;
+
+        if (Storage::disk('fwd_media')->exists('programs/' . basename($value))) {
+            return FileHandle::getURL($value, 2);
+        }
+
         return FileHandle::getURL($value,4);
     }
 

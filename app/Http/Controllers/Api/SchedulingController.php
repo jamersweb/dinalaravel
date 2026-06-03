@@ -74,6 +74,7 @@ class SchedulingController extends Controller
         $validate = Validator::make($request->all(),[
 			'type' => 'required|in:workout,activity,bodystat,meal,sleep,photos,steps,rest_hr,calories_burn,blood_pressure',
 			'date' => 'required|date',
+            'status' => 'nullable|integer|in:0,1',
 		]);
 		if($validate->fails())
         return response()->json([
@@ -107,8 +108,10 @@ class SchedulingController extends Controller
         $tsk->detail = $request->meal_at;
         else
         $tsk->detail = json_encode($request->detail);
+        if($request->has('status'))
+        $tsk->status = (int) $request->status;
         //workout not made completed default
-        if($request->type==='workout')
+        else if($request->type==='workout')
         $tsk->status = 0;
         else
         $tsk->status = 1;

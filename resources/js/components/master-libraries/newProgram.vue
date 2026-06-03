@@ -23,6 +23,10 @@
                             <p class="text-danger mb-0" v-show="titleError">* Please enter name</p>
                             <p class="fw-bold mb-2 mt-3">Content code (optional, e.g. PR-001)</p>
                             <input v-model="postData.content_code" type="text" class="theme-input w-80 brds-1" placeholder="leave empty to assign later via command">
+                            <p class="fw-bold mb-2 mt-3">Program cover image</p>
+                            <input type="file" accept="image/*" class="theme-input w-80 brds-1" @change="selectProgramImage">
+                            <img v-if="programImagePreview" :src="programImagePreview" alt="Program cover preview" class="mt-3 brds-1"
+                                style="width:160px;height:110px;object-fit:cover;">
                         </div>
                         <p class="text-muted mb-1 mt-4">Please choose the level of program</p>
                         <select v-model="postData.level" class="theme-select col-100 col-sm-8 col-xl-6 brds-1">
@@ -126,9 +130,16 @@ export default {
             loaderText: '',
             showTags: false,
             selectedTags: [],
+            programImageFile: null,
+            programImagePreview: null,
         }
     },
     methods: {
+        selectProgramImage(event) {
+            const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+            this.programImageFile = file;
+            this.programImagePreview = file ? URL.createObjectURL(file) : null;
+        },
         assignTags(tags) {
             this.showTags = false;
             this.selectedTags = [];
@@ -162,7 +173,19 @@ export default {
             }
             this.pageLoading = true;
             this.loaderText = 'Uploading'
-            axios.post(config.baseApiUrl + 'create-new-program', this.postData, this.apiConfig).then(res => {
+            const fd = new FormData();
+            fd.append('title', this.postData.title);
+            fd.append('type', this.postData.type);
+            fd.append('level', this.postData.level);
+            fd.append('phases', this.postData.phases);
+            fd.append('weeks_per_phase', this.postData.weeks_per_phase);
+            fd.append('language', this.postData.language);
+            fd.append('content_code', this.postData.content_code || '');
+            this.postData.tags.forEach(tagId => fd.append('tags[]', tagId));
+            if (this.programImageFile) {
+                fd.append('image', this.programImageFile);
+            }
+            axios.post(config.baseApiUrl + 'create-new-program', fd, this.apiConfig).then(res => {
                 this.pageLoading = false;
                 if (res.data.status) {
                     // this.modalTitle = 'Done!';

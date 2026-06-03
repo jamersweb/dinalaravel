@@ -90,6 +90,7 @@ Route::group(['prefix' => 'cms'], function(){
 		// Programs routes
 		Route::post('create-new-program',[ProgramsController::class,'createProgram']);
 		Route::post('rename-program',[ProgramsController::class,'renameProgram']);
+		Route::post('update-program-image',[ProgramsController::class,'updateProgramImage']);
 		Route::get('delete-program/{id}',[ProgramsController::class,'deleteProgram']);
 		Route::post('add-program-discription',[ProgramsController::class,'addProgramDiscription']);
 		Route::post('add-phase-workout',[ProgramsController::class,'addPhaseWorkouts']);

@@ -149,7 +149,7 @@
                     </div>
                     <div class="position-relative px-2 pt-4 pb-1 mb-3"
                         style="border-radius:10px; border: 1px solid #b1b0b0;">
-                        <div class="col-6 float-start pe-1 position-relative" style="height: 160px;">
+                        <div class="col-4 float-start pe-1 position-relative" style="height: 180px;">
                             <h4 class="mb-3" style="font-size: 26px;">Description</h4>
                             <button v-show="discrButton" class="position-absolute py-1 px-2 prim_btn brds-1"
                                 style="top:0px;right:20px" @mousedown="updateProgramDiscription(programDetail.id)">
@@ -163,7 +163,24 @@
                                 </textarea>
                             </div>
                         </div>
-                        <div class="col-6 float-start ps-1" style="height: 160px;">
+                        <div class="col-4 float-start px-1" style="height: 180px;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="mb-3">Cover Image</h4>
+                                <button v-if="programImageFile" class="py-1 px-2 prim_btn brds-1 border-0"
+                                    @click="updateProgramImage(programDetail.id)">Update</button>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <img v-if="programImagePreview || programDetail.image" :src="programImagePreview || programDetail.image"
+                                    alt="Program cover" class="brds-1" style="width:140px;height:100px;object-fit:cover;background:#111;">
+                                <img v-else src="/images/download1.png" alt="Program cover placeholder" class="brds-1"
+                                    style="width:140px;height:100px;object-fit:cover;background:#111;">
+                                <label class="scnd_btn py-1 px-3 h7 rounded-1 pointer mb-0">
+                                    Change
+                                    <input type="file" accept="image/*" class="d-none" @change="selectProgramImage">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-4 float-start ps-1" style="height: 180px;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h4 class="mb-3">Tags</h4>
                             </div>
@@ -173,7 +190,7 @@
                                     class="px-2 py-1 prim_bg mx-2 brds-1 my-1" style="height:35px;">{{ tag }}</span>
                             </div>
                         </div>
-                        <div class="mt-3">
+                        <div class="mt-3" style="clear: both;">
                             <h4 class="mb-2" style="font-size: 26px;">Subscribers</h4>
                             <div>
                                 <button @click="toggleSubsAdd(programDetail.id)"
@@ -330,9 +347,12 @@ export default {
             informModal: false,
             confirmModal: false,
             programLanguage: null,
+            programImageFile: null,
+            programImagePreview: null,
             modalTitle: '',
             modalDetail: '',
             modalValue: null,
+            loaderText: '',
             search: "",
             showWrktDetail: false,
             workoutId: null,
@@ -613,6 +633,42 @@ export default {
                 });
             }
         },
+        selectProgramImage(event) {
+            const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+            this.programImageFile = file;
+            this.programImagePreview = file ? URL.createObjectURL(file) : null;
+        },
+        updateProgramImage(id) {
+            if (!this.programImageFile) {
+                return;
+            }
+            const fd = new FormData();
+            fd.append('program_id', id);
+            fd.append('image', this.programImageFile);
+            this.pageLoading = true;
+            this.loaderText = 'Updating image';
+            axios.post(config.baseApiUrl + 'update-program-image', fd, this.apiConfig).then(res => {
+                this.pageLoading = false;
+                if (res.data.status) {
+                    this.programDetail.image = res.data.data.image;
+                    this.programImageFile = null;
+                    this.programImagePreview = null;
+                    this.getAllPrograms();
+                    this.modalTitle = 'Done!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                } else {
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                }
+            }).catch(er => {
+                this.pageLoading = false;
+                this.modalTitle = 'Failed!';
+                this.modalDetail = er.message || 'Something Went Wrong';
+                this.informModal = true;
+            });
+        },
         updateProgramDiscription(id) {
             if (this.programDiscr == null || this.programDiscr == '')
                 return;
@@ -732,6 +788,8 @@ export default {
                     this.programLanguage = res.data.data.language;
                     this.items = this.programDetail.subscribers;
                     this.programDiscr = this.programDetail.discription;
+                    this.programImageFile = null;
+                    this.programImagePreview = null;
                 }
                 else {
                     this.modalTitle = 'Error!';

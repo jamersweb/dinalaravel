@@ -156,7 +156,7 @@ class ProgramsController extends Controller
     {
         $program = Program::where('id', $id)->with(['subscribers' => function ($q) {
             $q->select('user_id', 'status', 'start_date', 'program_id');
-        }])->first(['id', 'title', 'discription', 'language', 'level', 'tags']);
+        }])->first(['id', 'title', 'discription', 'image', 'language', 'level', 'tags']);
 
         if (is_null($program)) {
             return $this->notFound('Program Not Found');
@@ -229,6 +229,7 @@ class ProgramsController extends Controller
             'level' => 'required|in:beginner,intermediate,expert',
             'language' => 'required|in:ar,en,no',
             'tags' => 'array',
+            'image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
             'content_code' => [
                 'nullable',
                 'string',
@@ -251,6 +252,11 @@ class ProgramsController extends Controller
         $program->language = $request->language;
         $program->tags = json_encode($request->tags);
         $program->content_code = $request->input('content_code');
+        if ($request->hasFile('image')) {
+            $imageName = 'program_' . time() . '_' . uniqid() . '.' . $request->image->getClientOriginalExtension();
+            $request->image->storeAs('programs', $imageName, 'fwd_media');
+            $program->image = $imageName;
+        }
         $program->save();
         for ($i = 0; $i < $program->phases; $i++) {
             $phase = new ProgramPhase();
@@ -266,6 +272,27 @@ class ProgramsController extends Controller
             'status' => true,
             'message' => 'Program Created Successfully'
         ]);
+    }
+
+    function updateProgramImage(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'program_id' => 'required|exists:programs,id',
+            'image' => 'required|file|image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+        if ($validate->fails()) {
+            return $this->validationError($validate);
+        }
+
+        $program = Program::find($request->program_id);
+        $imageName = $program->id . '_program_' . time() . '_' . uniqid() . '.' . $request->image->getClientOriginalExtension();
+        $request->image->storeAs('programs', $imageName, 'fwd_media');
+        $program->image = $imageName;
+        $program->save();
+
+        return $this->success([
+            'image' => $program->image,
+        ], 'Program image updated.');
     }
 
     function addProgramDiscription(Request $request)
@@ -335,9 +362,13 @@ class ProgramsController extends Controller
                 $msg = "Workouts Added.";
             }
 
-            $image = DB::table('workouts')->where('id', $request->workout_ids[0])->pluck('image')->first();
             $program_id = ProgramPhase::where('id', $request->program_phase_id)->pluck('program_id')->first();
-            Program::where('id', $program_id)->update(array('image' => $image));
+            $program = Program::find($program_id);
+            if ($program && empty($program->getRawOriginal('image'))) {
+                $image = DB::table('workouts')->where('id', $request->workout_ids[0])->pluck('image')->first();
+                $program->image = $image;
+                $program->save();
+            }
 
             return $this->success(null, $msg);
         } catch (Exception $er) {
