@@ -35,4 +35,11 @@ return [
         'webhook_debug' => env('REVENUECAT_WEBHOOK_DEBUG', false),
     ],
 
+    'store_iap' => [
+        'google_package_name' => env('GOOGLE_PLAY_PACKAGE_NAME'),
+        'google_service_account_json' => env('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON'),
+        'apple_shared_secret' => env('APPLE_IAP_SHARED_SECRET'),
+        'media_token_secret' => env('MEDIA_ACCESS_TOKEN_SECRET', env('APP_KEY')),
+    ],
+
 ];

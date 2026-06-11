@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\TagsController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\LanguageController;
 use App\Mail\contactEmail;
+use App\Http\Controllers\Api\StoreSubscriptionController;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 
@@ -102,9 +103,12 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 	Route::post('set-fitbit-auth', [AppIntegrationsController::class, 'setFitbitAuth']);
 	Route::get('get-fitbit-auth', [AppIntegrationsController::class, 'getFitbitAuth']);
 
-	//payments - RevenueCat only (Stripe/refund removed)
+	//payments / subscriptions
 	Route::get('get-subscriptions', [SubscriptionsController::class, 'getSubscriptions']);
 	Route::get('get-subscription-status', [SubscriptionsController::class, 'getSubscriptionStatus']);
+	Route::post('store-subscription/verify', [StoreSubscriptionController::class, 'verify']);
+	Route::get('store-subscription/status', [StoreSubscriptionController::class, 'status']);
+	Route::post('media/access-token', [StoreSubscriptionController::class, 'mediaAccessToken']);
 
 	Route::get('chat-messages', [ChatsController::class, 'userChatMessages']);
 	Route::get('get-stats-sequence', [UserSettingsController::class, 'getStatsSequence']);
