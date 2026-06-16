@@ -61,12 +61,15 @@ class GroupChatController extends Controller
             'message' => $validate->errors()->all()[0]
         ]);
         $group = new Group();
-        $fileUrl = $group->id."_group_icon_file_".time().'_'.uniqid().'.'.request()->image->getClientOriginalExtension();
-        $request->image->storeAs('messages_files', $fileUrl, 'fwd_media');
         $group->name = $request->name;
         $group->msg_access = $request->msg_access;
+        $group->save();
+
+        $fileUrl = $group->id."_group_icon_file_".time().'_'.uniqid().'.'.$request->image->getClientOriginalExtension();
+        $request->image->storeAs('messages_files', $fileUrl, 'fwd_media');
         $group->image = $fileUrl;
         $group->save();
+
         $member = new GroupMember();
         $member->group_id = $group->id;
         $member->user_id = Auth::id();

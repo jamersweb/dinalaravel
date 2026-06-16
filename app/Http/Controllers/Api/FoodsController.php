@@ -15,6 +15,27 @@ class FoodsController extends Controller
 {
     use ActivitiesTrait;
 
+    private function applyTagFilter($query, $tags)
+    {
+        $tagArray = is_array($tags) ? $tags : explode(',', $tags);
+        $tagIds = array_values(array_filter(array_map(static function ($tagId) {
+            return is_numeric($tagId) ? (int) $tagId : null;
+        }, $tagArray)));
+
+        if (empty($tagIds)) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($tagIds) {
+            foreach ($tagIds as $tagId) {
+                $q->orWhere('tags', 'like', '%['.$tagId.',%')
+                    ->orWhere('tags', 'like', '%['.$tagId.']%')
+                    ->orWhere('tags', 'like', '%,'.$tagId.',%')
+                    ->orWhere('tags', 'like', '%,'.$tagId.']%');
+            }
+        });
+    }
+
     //
     function createFood(Request $request){
         $validate = Validator::make($request->all(),[
@@ -168,12 +189,7 @@ class FoodsController extends Controller
 
         $tags = $request->get('tags');
         if($tags) {
-            $tagArray = is_array($tags) ? $tags : explode(',', $tags);
-            $query->where(function($q) use ($tagArray) {
-                foreach($tagArray as $tagId) {
-                    $q->orWhere('tags', 'like', '%'.$tagId.'%');
-                }
-            });
+            $query = $this->applyTagFilter($query, $tags);
         }
 
         $search = $request->get('search');
@@ -202,12 +218,7 @@ class FoodsController extends Controller
         // Add tag filtering if provided
         $tags = $request->get('tags');
         if($tags) {
-            $tagArray = is_array($tags) ? $tags : explode(',', $tags);
-            $query->where(function($q) use ($tagArray) {
-                foreach($tagArray as $tagId) {
-                    $q->orWhere('tags', 'like', '%'.$tagId.'%');
-                }
-            });
+            $query = $this->applyTagFilter($query, $tags);
         }
         
         $data = $query->get(['id','name','language','serving_size','calories','protein','carbs','fat','fiber','tags','image']);
