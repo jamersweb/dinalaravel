@@ -82,6 +82,11 @@ class AuthController extends Controller
                     'email' => $data['email'] ?? null,
                     'message' => $e->getMessage(),
                 ]);
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Unable to send verification email right now. Please try again in a moment.'
+                ], 500);
             }
 
             return response()->json([
@@ -159,6 +164,11 @@ class AuthController extends Controller
                 'email' => $data['email'] ?? null,
                 'message' => $e->getMessage(),
             ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Account created, but we could not send the verification email right now. Please try again in a moment.'
+            ], 500);
         }
         return response()->json([
             'status' => true,
@@ -278,7 +288,19 @@ class AuthController extends Controller
                     'verification_code' => $verificationCode,
                     'email' => $email
                 ];
-                Mail::to($email)->send(new emailVerification($data));
+                try {
+                    Mail::to($email)->send(new emailVerification($data));
+                } catch (\Throwable $e) {
+                    Log::error('login verification email failed', [
+                        'email' => $email,
+                        'message' => $e->getMessage(),
+                    ]);
+
+                    return response()->json([
+                        'status' => 0,
+                        'message' => 'Unable to send verification email right now. Please try again later.'
+                    ], 500);
+                }
                 return response()->json([
                     'status' => 2,
                     'message' => $request->language === 'en' ? config('responses.account_verification_sent.en') : config('responses.account_verification_sent.ar')
@@ -357,7 +379,19 @@ class AuthController extends Controller
             'verification_code' => $verificationCode,
             'email' => $email
         ];
-        Mail::to($data['email'])->send(new emailVerification($data));
+        try {
+            Mail::to($data['email'])->send(new emailVerification($data));
+        } catch (\Throwable $e) {
+            Log::error('resend verification email failed', [
+                'email' => $data['email'] ?? null,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Unable to resend verification email right now. Please try again later.'
+            ], 500);
+        }
         return response()->json([
             'status' => true,
             'message' => 'Verification Email Sent.',
