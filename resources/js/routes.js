@@ -11,6 +11,7 @@ import Homepage from "./Website/Homepage";
 import program from "./pages/master-libraries/program";
 import Workout from "./pages/master-libraries/Workout";
 import Habit from "./pages/master-libraries/Habit";
+import HabitLists from "./pages/master-libraries/HabitLists.vue";
 import Exercises from "./pages/master-libraries/Exercises";
 import Meals from "./pages/master-libraries/Meals";
 import Food from "./pages/master-libraries/Food";
@@ -43,6 +44,7 @@ const routes = [
     { path: '/cms/program', component: program, name: 'program' },
     { path: '/cms/workout', component: Workout, name: 'Workout' },
     { path: '/cms/habit', component: Habit, name: 'Habit' },
+    { path: '/cms/habit-lists', component: HabitLists, name: 'HabitLists' },
     { path: '/cms/exercises', component: Exercises, name: 'Exercises' },
     { path: '/cms/mealplan', component: MealPlan, name: 'MealPlan' },
     { path: '/cms/meals', component: Meals, name: 'Meals' },

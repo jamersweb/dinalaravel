@@ -14,6 +14,7 @@
                     <div class="filter-btn ms-1 me-2">
                         <button @click="filters=true" style="border:none;background-color:transparent">
                             <img src="/cms-assets/images/master-libraries/filter.png" alt="" class="img-fluid mt-1" style="max-height:20px">
+                            <span v-if="selectedTagsForFilter.length" class="filter-count">{{ selectedTagsForFilter.length }}</span>
                         </button>
                     </div>
                 </div>
@@ -50,6 +51,9 @@
                                 <div class="w-50">
                                     <p class="mb-0 fw-bold wb-all" style="height: 24px; overflow: hidden;" data-toggle="tooltip" :title="items.name">{{trimTitle(items.name)}}</p>
                                     <p class="mb-0 h8">{{items.serving_size}} serving</p>
+                                    <div v-if="items.tagNames && items.tagNames.length" class="tag-preview">
+                                        <span v-for="tagName in items.tagNames.slice(0, 2)" :key="tagName">{{ tagName }}</span>
+                                    </div>
                                 </div>
                                 <div class="w-50 h-100 img-as-bg brds-1" :style='{"background-image":"url("+items.image+")"}'>
                                 </div>
@@ -169,21 +173,45 @@ export default {
                 return title
             }
         },
-        applyFilters(tagIds){
-            this.selectedTagsForFilter = tagIds;
-            this.tagsFilteredFoods = [];
-            for (let i = 0; i < this.allFoods.length; i++) {
-                const wrk = this.allFoods[i];
-                for (let j = 0; j < tagIds.length; j++) {
-                    if(wrk.tags===null)
-                    break;
-                    const tId = tagIds[j];
-                    if(wrk.tags.includes(tId)){
-                        this.tagsFilteredFoods.push(wrk);
-                        break;
-                    }
-                };
+        normalizedTagIds(rawTags) {
+            if (rawTags === null || rawTags === undefined || rawTags === '') {
+                return [];
             }
+
+            let tags = rawTags;
+            if (typeof tags === 'string') {
+                try {
+                    tags = JSON.parse(tags);
+                } catch (e) {
+                    tags = tags.split(',');
+                }
+            }
+
+            if (!Array.isArray(tags)) {
+                tags = [tags];
+            }
+
+            return tags
+                .map(tag => Number(tag))
+                .filter(tag => Number.isInteger(tag) && tag > 0);
+        },
+        normalizeFood(food) {
+            return {
+                ...food,
+                tags: this.normalizedTagIds(food.tags),
+                tagNames: Array.isArray(food.tagNames) ? food.tagNames : []
+            };
+        },
+        applyFilters(tagIds){
+            this.selectedTagsForFilter = tagIds.map(tag => Number(tag));
+            if (this.selectedTagsForFilter.length === 0) {
+                this.clearFilters();
+                return;
+            }
+            this.tagsFilteredFoods = this.allFoods.filter(food => {
+                const foodTags = this.normalizedTagIds(food.tags);
+                return this.selectedTagsForFilter.some(tagId => foodTags.includes(tagId));
+            });
             this.finalVisibleFoods = this.tagsFilteredFoods;
             this.applySearch();
         },
@@ -237,7 +265,7 @@ export default {
                 .then(res => {
                     this.pageLoading = false;
                     if (res.data.status) {
-                        this.allFoods = res.data.data;
+                        this.allFoods = (res.data.data || []).map(food => this.normalizeFood(food));
                         this.finalVisibleFoods = this.allFoods;
                         this.tagsFilteredFoods = this.allFoods;
                     }
@@ -483,6 +511,46 @@ export default {
     float: left;
     margin: 5px 0px 0px 10px;
     border-radius: 3px;
+}
+
+.filter-btn button {
+    position: relative;
+}
+
+.filter-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 10px;
+    background-color: #F2A18C;
+    color: #111;
+    font-size: 10px;
+    line-height: 16px;
+    font-weight: bold;
+}
+
+.tag-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 4px;
+    max-height: 34px;
+    overflow: hidden;
+}
+
+.tag-preview span {
+    max-width: 70px;
+    padding: 1px 5px;
+    border-radius: 10px;
+    background-color: #F8E5DF;
+    color: #343434;
+    font-size: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* .three-dots:after {

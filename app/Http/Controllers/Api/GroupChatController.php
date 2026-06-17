@@ -19,9 +19,37 @@ class GroupChatController extends Controller
 {
     use NotificationsTrait,ActivitiesTrait;
     //
+    private function canAccessGroup(Group $group): bool
+    {
+        if (Auth::user()->role === 2) {
+            return true;
+        }
+
+        if ($group->label === 'all') {
+            return true;
+        }
+
+        return GroupMember::where('user_id', Auth::id())
+            ->where('group_id', $group->id)
+            ->exists();
+    }
+
     function allGroups(){
         $groupIds = GroupMember::where('user_id',Auth::id())->pluck('group_id')->toArray();
-        $groups = Group::whereIn('id',$groupIds)->orderBy('updated_at','desc')->get();
+        $groups = Group::query()
+            ->when(Auth::user()->role === 1, function ($query) use ($groupIds) {
+                $query->where(function ($query) use ($groupIds) {
+                    $query->where('label', 'all')
+                        ->orWhereIn('id', $groupIds);
+                });
+            }, function ($query) {
+                $query->where(function ($query) {
+                    $query->where('label', 'all')
+                        ->orWhereIn('id', GroupMember::where('user_id', Auth::id())->pluck('group_id')->toArray());
+                });
+            })
+            ->orderBy('updated_at','desc')
+            ->get();
         $userLang = $this->userSelecetdLanguage(Auth::id());
         foreach ($groups as $group) {
             $lastMsg = $group->lastMessage();
@@ -261,6 +289,11 @@ class GroupChatController extends Controller
             'message' => $validate->errors()->all()[0]
         ]);
         $group = Group::find($request->group_id);
+        if(!$this->canAccessGroup($group))
+        return response()->json([
+            'status' => false,
+            'message' => 'Not a Member.'
+        ]);
         if(Auth::user()->role===1 && $group->msg_access==='admins')
         return response()->json([
             'status' => false,
@@ -365,6 +398,11 @@ class GroupChatController extends Controller
         ]);
 
         $group = Group::find($request->group_id);
+        if(!$this->canAccessGroup($group))
+        return response()->json([
+            'status' => false,
+            'message' => 'Not a Member.'
+        ]);
         if($group->msg_access==='admins')
         return response()->json([
             'status' => false,
@@ -396,8 +434,8 @@ class GroupChatController extends Controller
     }
 
     function groupMessages($id){
-        $isMember = GroupMember::where('user_id',Auth::id())->where('group_id',$id)->first();
-        if(is_null($isMember))
+        $group = Group::find($id);
+        if(is_null($group) || !$this->canAccessGroup($group))
         return response()->json([
             'status' => false,
             'message' => 'Not a Member.'

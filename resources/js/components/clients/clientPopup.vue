@@ -232,7 +232,27 @@
                 </div>
             </div>
             <div v-if="consultation" class="mx-auto pt-3 brds-3 tsl position-relative" style="width:95%;min-height:335px;border:none">
-                <p style="font-size:29px;margin:0px 0px 0px 20px;">Consultation Form</p>
+                <div class="d-flex justify-content-between align-items-start px-4 mb-3">
+                    <p style="font-size:29px;margin:0px;">Consultation Form</p>
+                    <div v-if="logInDetails.role==='Admin'" class="habit-assignment-box">
+                        <p class="mb-1 fw-bold">Assign Habit List</p>
+                        <div class="d-flex gap-2">
+                            <select v-model="selectedHabitListId" class="form-select form-select-sm">
+                                <option :value="null">Select habit list</option>
+                                <option v-for="list in habitLists" :key="list.id" :value="list.id">
+                                    {{ list.name }}
+                                </option>
+                            </select>
+                            <button class="assign-btn" @click="assignHabitList">Assign</button>
+                        </div>
+                        <p v-if="assignedHabitLists.length" class="assigned-list mb-0">
+                            Assigned:
+                            <span v-for="(list, index) in assignedHabitLists" :key="list.id">
+                                {{ list.name }}<span v-if="index + 1 !== assignedHabitLists.length">, </span>
+                            </span>
+                        </p>
+                    </div>
+                </div>
                 <div class="w-100 px-4" v-for="(item, index) in consultationDetails" :key="index">
                     <p class="fw-bold mb-0">Q<span>{{index+1}}.</span> {{item.question}}</p>
                     <p v-if="item.answer_type=='single'" class="mb-0">Ans: {{item.answer}}</p>
@@ -409,6 +429,9 @@ export default {
             consultationDetails: null,
             userAttachments: null,
             attachmentFile: null,
+            habitLists: [],
+            assignedHabitLists: [],
+            selectedHabitListId: null,
             tagsDiv: false,
             clientTags: {
                 ids: [],
@@ -431,6 +454,7 @@ export default {
         this.getClientConsultation();
         this.getClientInvoices();
         this.getClientTags();
+        this.getHabitLists();
         if (this.logInDetails.role == 'Admin')
             this.getAttachments();
     },
@@ -505,6 +529,72 @@ export default {
                 this.modalDetail = er;
                 this.informModal = true;
             })
+        },
+        getHabitLists() {
+            axios.get(config.baseApiUrl + 'get-all-habit-lists', this.apiConfig).then(res => {
+                if (res.data.status) {
+                    this.habitLists = res.data.data || [];
+                    this.getAssignedHabitLists();
+                }
+            }).catch(er => {
+                this.modalTitle = 'Error!';
+                this.modalDetail = er.message || er;
+                this.informModal = true;
+            });
+        },
+        getAssignedHabitLists() {
+            if (!this.habitLists.length) {
+                this.assignedHabitLists = [];
+                return;
+            }
+
+            const requests = this.habitLists.map(list =>
+                axios.get(config.baseApiUrl + 'get-habit-list-users/' + list.id, this.apiConfig)
+                    .then(res => {
+                        const users = res.data.status ? (res.data.data || []) : [];
+                        const assigned = users.some(user => user && user.id == this.idForDetails);
+                        return assigned ? list : null;
+                    })
+                    .catch(() => null)
+            );
+
+            Promise.all(requests).then(results => {
+                this.assignedHabitLists = results.filter(Boolean);
+            });
+        },
+        assignHabitList() {
+            if (!this.selectedHabitListId) {
+                this.modalTitle = 'Error!';
+                this.modalDetail = 'Please select a habit list';
+                this.informModal = true;
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Assigning habit list';
+            axios.post(config.baseApiUrl + 'assign-habit-list-to-users', {
+                habit_list_id: this.selectedHabitListId,
+                user_ids: [this.idForDetails],
+            }, this.apiConfig).then(res => {
+                this.pageLoading = false;
+                if (res.data.status) {
+                    this.modalTitle = 'Done!';
+                    this.modalDetail = res.data.message || 'Habit list assigned successfully';
+                    this.informModal = true;
+                    this.selectedHabitListId = null;
+                    this.getAssignedHabitLists();
+                }
+                else {
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                }
+            }).catch(er => {
+                this.pageLoading = false;
+                this.modalTitle = 'Error!';
+                this.modalDetail = er.message || er;
+                this.informModal = true;
+            });
         },
         getClientInvoices() {
             let userId = this.idForDetails;
@@ -820,5 +910,28 @@ export default {
     color: black;
     font-size: 20px;
     float: left;
+}
+
+.habit-assignment-box {
+    width: 360px;
+    border: 1px solid #E7E7E7;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #FFFFFF;
+}
+
+.assign-btn {
+    border: none;
+    border-radius: 5px;
+    background-color: #F2A18C;
+    padding: 4px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.assigned-list {
+    margin-top: 8px;
+    color: #777;
+    font-size: 12px;
 }
 </style>

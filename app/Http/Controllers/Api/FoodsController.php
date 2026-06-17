@@ -28,12 +28,56 @@ class FoodsController extends Controller
 
         return $query->where(function ($q) use ($tagIds) {
             foreach ($tagIds as $tagId) {
-                $q->orWhere('tags', 'like', '%['.$tagId.',%')
+                $q->orWhereRaw("CASE WHEN JSON_VALID(tags) THEN JSON_CONTAINS(tags, ?) ELSE 0 END", [json_encode($tagId)])
+                    ->orWhere('tags', 'like', '%['.$tagId.',%')
                     ->orWhere('tags', 'like', '%['.$tagId.']%')
+                    ->orWhere('tags', 'like', '%['.$tagId.', %')
                     ->orWhere('tags', 'like', '%,'.$tagId.',%')
-                    ->orWhere('tags', 'like', '%,'.$tagId.']%');
+                    ->orWhere('tags', 'like', '%, '.$tagId.',%')
+                    ->orWhere('tags', 'like', '%,'.$tagId.']%')
+                    ->orWhere('tags', 'like', '%, '.$tagId.']%');
             }
         });
+    }
+
+    private function normalizeTagIds($tags): array
+    {
+        if (is_null($tags) || $tags === '') {
+            return [];
+        }
+
+        if (is_array($tags)) {
+            return array_values(array_filter(array_map('intval', $tags)));
+        }
+
+        $decoded = json_decode($tags, true);
+        if (is_array($decoded)) {
+            return array_values(array_filter(array_map('intval', $decoded)));
+        }
+
+        return array_values(array_filter(array_map('intval', explode(',', $tags))));
+    }
+
+    private function attachTagNames($foods)
+    {
+        $allTagIds = [];
+        foreach ($foods as $food) {
+            $tagIds = $this->normalizeTagIds($food->tags);
+            $food->tags = $tagIds;
+            $allTagIds = array_merge($allTagIds, $tagIds);
+        }
+
+        $tagNamesById = empty($allTagIds)
+            ? []
+            : Tag::whereIn('id', array_unique($allTagIds))->pluck('name', 'id')->toArray();
+
+        foreach ($foods as $food) {
+            $food->tagNames = array_values(array_filter(array_map(function ($tagId) use ($tagNamesById) {
+                return $tagNamesById[$tagId] ?? null;
+            }, $food->tags)));
+        }
+
+        return $foods;
     }
 
     //
@@ -198,14 +242,7 @@ class FoodsController extends Controller
         }
 
         $data = $query->get(['id','name','language','serving_size','calories','protein','carbs','fat','fiber','tags','image']);
-        foreach ($data as $fd) {
-            if(is_null($fd->tags))
-            $fd->tagNames = [];
-            else{
-                $fd->tags = json_decode($fd->tags);
-                $fd->tagNames = Tag::whereIn('id',$fd->tags)->pluck('name')->toArray();
-            }
-        }
+        $data = $this->attachTagNames($data);
         return response()->json([
             'status' => true,
             'data' => $data
@@ -222,14 +259,7 @@ class FoodsController extends Controller
         }
         
         $data = $query->get(['id','name','language','serving_size','calories','protein','carbs','fat','fiber','tags','image']);
-        foreach ($data as $fd) {
-            if(is_null($fd->tags))
-            $fd->tagNames = [];
-            else{
-                $fd->tags = json_decode($fd->tags);
-                $fd->tagNames = Tag::whereIn('id',$fd->tags)->pluck('name')->toArray();
-            }
-        }
+        $data = $this->attachTagNames($data);
         return response()->json([
             'status' => true,
             'data' => $data
@@ -238,14 +268,7 @@ class FoodsController extends Controller
 
     function getSpecificFoodsList($query){
         $data = Food::where('name', 'like', '%' . $query . '%')->orderBy('id','desc')->get(['id','name','language','serving_size','calories','protein','carbs','fat','fiber','tags','image']);
-        foreach ($data as $fd) {
-            if(is_null($fd->tags))
-            $fd->tagNames = [];
-            else{
-                $fd->tags = json_decode($fd->tags);
-                $fd->tagNames = Tag::whereIn('id',$fd->tags)->pluck('name')->toArray();
-            }
-        }
+        $data = $this->attachTagNames($data);
         return response()->json([
             'status' => true,
             'data' => $data
@@ -255,12 +278,7 @@ class FoodsController extends Controller
     function foodDetail($id){
         $food = Food::find($id);
         if($food){
-            if(is_null($food->tags))
-            $food->tagNames = [];
-            else{
-                $food->tags = json_decode($food->tags);
-                $food->tagNames = Tag::whereIn('id',$food->tags)->pluck('name')->toArray();
-            }
+            $this->attachTagNames(collect([$food]));
             foreach ($food->toArray() as $key => $value) {
                 if(is_null($value) || $value === 0)
                 unset($food[$key]);
@@ -283,12 +301,7 @@ class FoodsController extends Controller
             'status' => false,
             'message' => 'Invalid Food Id'
         ]);
-        if(is_null($food->tags))
-        $food->tagNames = [];
-        else{
-            $food->tags = json_decode($food->tags);
-            $food->tagNames = Tag::whereIn('id',$food->tags)->pluck('name')->toArray();
-        }
+        $this->attachTagNames(collect([$food]));
         return response()->json([
             'status' => true,
             'data' => $food

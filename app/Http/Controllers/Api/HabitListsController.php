@@ -34,6 +34,10 @@ class HabitListsController extends Controller
 
         $habitLists = $assignments->map(function ($assignment) use ($user) {
             $list = $assignment->habitList;
+            if (!$list) {
+                return null;
+            }
+
             $list->items = $list->items->map(function ($item) use ($user) {
                 $item->is_completed_today = UserHabitCompletion::where('user_id', $user->id)
                     ->where('habit_list_item_id', $item->id)
@@ -52,7 +56,7 @@ class HabitListsController extends Controller
             ];
             
             return $list;
-        });
+        })->filter()->values();
 
         return response()->json([
             'status' => true,
