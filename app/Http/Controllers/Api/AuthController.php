@@ -492,7 +492,7 @@ class AuthController extends Controller
             $isEmailExist->code_expire_time = Carbon::now()->addMinutes(5);
             $isEmailExist->update();
             $data = [
-                'name' => $isEmailExist->firstname,
+                'name' => $isEmailExist->name,
                 'token' => base64_encode($verificationCode . ',' . $isEmailExist->email),
                 'email' => $isEmailExist->email
             ];

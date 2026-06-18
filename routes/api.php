@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\LanguageController;
 use App\Mail\contactEmail;
 use App\Http\Controllers\Api\StoreSubscriptionController;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /*
@@ -297,7 +298,32 @@ Route::post('send-email-to-admin', function (Request $request) {
 	$data['from_email'] = $request->email;
 	$data['message'] = $request->message;
 	$adminMail = User::where('role', 2)->pluck('email')->first();
-	Mail::to($adminMail)->send(new contactEmail($data));
+	if (empty($adminMail)) {
+		Log::error('contact email failed: admin email not found', [
+			'from_email' => $data['from_email'] ?? null,
+		]);
+
+		return response()->json([
+			'status' => false,
+			'message' => 'Admin email is not configured.'
+		], 500);
+	}
+
+	try {
+		Mail::to($adminMail)->send(new contactEmail($data));
+	} catch (\Throwable $e) {
+		Log::error('contact email failed', [
+			'admin_email' => $adminMail,
+			'from_email' => $data['from_email'] ?? null,
+			'message' => $e->getMessage(),
+		]);
+
+		return response()->json([
+			'status' => false,
+			'message' => 'Unable to send email right now. Please try again later.'
+		], 500);
+	}
+
 	return response()->json([
 		'status' => true,
 		'message' => 'Email Sent to Admin.'
