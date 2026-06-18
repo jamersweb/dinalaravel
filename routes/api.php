@@ -111,6 +111,13 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 	Route::post('media/access-token', [StoreSubscriptionController::class, 'mediaAccessToken']);
 
 	Route::get('chat-messages', [ChatsController::class, 'userChatMessages']);
+	Route::get('chat-convo', [ChatsController::class, 'chatConvo']);
+	Route::get('my-groups', [GroupChatController::class, 'allGroups']);
+	Route::get('group-chat-messages/{id}', [GroupChatController::class, 'groupMessages']);
+	Route::get('group-members/{id}', [GroupChatController::class, 'groupMembers']);
+	Route::get('my-habit-lists', [HabitListsController::class, 'myHabitLists']);
+	Route::post('mark-habit-complete', [HabitListsController::class, 'markHabitComplete']);
+	Route::get('habit-progress', [HabitListsController::class, 'getHabitProgress']);
 	Route::get('get-stats-sequence', [UserSettingsController::class, 'getStatsSequence']);
 	Route::get('check-questions', [UserInformationController::class, 'checkQuestions']);
 	Route::get('get-questions', [QuestionsController::class, 'getQuetions']); // Get questions should be accessible before consultation completion
@@ -148,17 +155,13 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 	Route::group(['middleware' => ['checkSub', 'checkConsultation']], function () {
 
 		//chats
-		Route::get('chat-convo', [ChatsController::class, 'chatConvo']);
 		Route::get('delete-message/{id}', [ChatsController::class, 'deleteMessage']);
 		Route::post('send-text-message', [ChatsController::class, 'sendTextMessageUser'])->middleware('checkFullAccess');
 		Route::post('send-file-message', [ChatsController::class, 'sendFileMessageUser'])->middleware('checkFullAccess');
-		Route::get('my-groups', [GroupChatController::class, 'allGroups']);
 		Route::get('leave-group/{id}', [GroupChatController::class, 'leaveGroup']);
 		Route::get('delete-group-message/{id}', [GroupChatController::class, 'deleteMessage']);
 		Route::post('send-group-text-message', [GroupChatController::class, 'sendTextMessage'])->middleware('checkFullAccess');
 		Route::post('send-group-file-message', [GroupChatController::class, 'sendFileMessageUser'])->middleware('checkFullAccess');
-		Route::get('group-chat-messages/{id}', [GroupChatController::class, 'groupMessages']);
-		Route::get('group-members/{id}', [GroupChatController::class, 'groupMembers']);
 
 
 		// user information routes (require active subscription + completed consultation)
@@ -277,9 +280,6 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 		Route::get('meal-photo-comments/{id}', [MealPhotosController::class, 'getComments']);
 
 		//Habit Lists
-		Route::get('my-habit-lists', [HabitListsController::class, 'myHabitLists']);
-		Route::post('mark-habit-complete', [HabitListsController::class, 'markHabitComplete']);
-		Route::get('habit-progress', [HabitListsController::class, 'getHabitProgress']);
 
 		//Weight Tracking
 		Route::post('track-exercise-weight', [WeightTrackingController::class, 'trackWeight']);

@@ -11,7 +11,9 @@ class GroupMessage extends Model
     use HasFactory;
     function userName(){
         $name = UserDetail::where('user_id',$this->from)->first(['name','Lastname']);
-        return $name->name.' '.$name->Lastname;
+        if(is_null($name) || empty($name->name))
+            return 'Member';
+        return trim(($name->name ?? '').' '.($name->Lastname ?? ''));
     }
     function getFileUrlAttribute($name){
         if($this->msg_type==='text' || empty($name))

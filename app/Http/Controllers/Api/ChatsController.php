@@ -125,9 +125,14 @@ class ChatsController extends Controller
             $chat->save();
             $chat = Chat::find($chat->id);
         }
-        $admin = UserDetail::where('user_id',User::where('role',2)->pluck('id')->first())->first(['name','Lastname','picture']);
-        $chat->user_name = $admin->name.' '.$admin->Lastname;
-        $chat->image = $admin->picture;
+        $adminUserId = User::where('role',2)->pluck('id')->first();
+        $admin = $adminUserId
+            ? UserDetail::where('user_id',$adminUserId)->first(['name','Lastname','picture'])
+            : null;
+        $chat->user_name = $admin
+            ? trim(($admin->name ?? 'Coach').' '.($admin->Lastname ?? ''))
+            : 'Coach';
+        $chat->image = $admin ? $admin->picture : null;
         $chat->unread = $chat->unreadMsgs('admin');
         
         // Add user tags to chat response
