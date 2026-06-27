@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -44,11 +45,20 @@ class StoreSubscriptionController extends Controller
 
         if (!$result['active']) {
             $this->storeVerification($request, $result, 'expired');
+            Log::warning('Store subscription verification returned inactive', [
+                'user_id' => Auth::id(),
+                'platform' => $platform,
+                'product_id' => $productId,
+                'reason' => $result['reason'] ?? null,
+                'expires_at' => optional($result['expires_at'])->toIso8601String(),
+                'store_payload' => $result['raw_payload'] ?? null,
+            ]);
             return response()->json([
                 'status' => false,
-                'message' => 'Subscription is not active.',
+                'message' => $this->inactiveMessage($result['reason'] ?? null),
+                'reason' => $result['reason'] ?? null,
                 'subscription_active' => false,
-                'expires_at' => $result['expires_at'],
+                'expires_at' => optional($result['expires_at'])->toIso8601String(),
             ], 402);
         }
 
@@ -123,37 +133,56 @@ class StoreSubscriptionController extends Controller
         $accessToken = $this->googleAccessToken();
         $packageName = config('services.store_iap.google_package_name');
         if (!$accessToken || !$packageName) {
-            return $this->inactiveResult(['error' => 'Google Play verification is not configured.']);
+            return $this->inactiveResult(
+                ['error' => 'Google Play verification is not configured.'],
+                'google_play_not_configured'
+            );
         }
 
         $url = sprintf(
-            'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/%s/purchases/subscriptions/%s/tokens/%s',
+            'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/%s/purchases/subscriptionsv2/tokens/%s',
             rawurlencode($packageName),
-            rawurlencode($productId),
             rawurlencode($purchaseToken)
         );
         $response = Http::withToken($accessToken)->get($url);
         if (!$response->ok()) {
-            return $this->inactiveResult($response->json() ?? ['body' => $response->body()]);
+            return $this->inactiveResult(
+                $response->json() ?? ['body' => $response->body()],
+                'google_play_api_error'
+            );
         }
 
         $json = $response->json();
-        $expiresAt = isset($json['expiryTimeMillis'])
-            ? Carbon::createFromTimestampMs((int) $json['expiryTimeMillis'])
+        $lineItems = collect($json['lineItems'] ?? []);
+        $matchingLineItem = $lineItems
+            ->filter(fn ($item) => ($item['productId'] ?? null) === $productId)
+            ->sortByDesc(fn ($item) => strtotime($item['expiryTime'] ?? '') ?: 0)
+            ->first();
+
+        if (!$matchingLineItem) {
+            return $this->inactiveResult($json, 'google_play_product_not_found');
+        }
+
+        $expiresAt = isset($matchingLineItem['expiryTime'])
+            ? Carbon::parse($matchingLineItem['expiryTime'])
             : null;
-        $purchasedAt = isset($json['startTimeMillis'])
-            ? Carbon::createFromTimestampMs((int) $json['startTimeMillis'])
+        $purchasedAt = isset($json['startTime'])
+            ? Carbon::parse($json['startTime'])
             : now();
-        $paymentState = (int) ($json['paymentState'] ?? -1);
-        $cancelReason = $json['cancelReason'] ?? null;
+        $subscriptionState = $json['subscriptionState'] ?? null;
+        $activeStates = [
+            'SUBSCRIPTION_STATE_ACTIVE',
+            'SUBSCRIPTION_STATE_IN_GRACE_PERIOD',
+        ];
 
         return [
-            'active' => $expiresAt !== null && $expiresAt->isFuture() && in_array($paymentState, [1, 2], true),
-            'transaction_id' => $json['orderId'] ?? null,
+            'active' => $expiresAt !== null && $expiresAt->isFuture() && in_array($subscriptionState, $activeStates, true),
+            'transaction_id' => $matchingLineItem['latestSuccessfulOrderId'] ?? null,
             'original_transaction_id' => $json['linkedPurchaseToken'] ?? null,
             'purchased_at' => $purchasedAt,
             'expires_at' => $expiresAt,
-            'raw_payload' => $json + ['cancelReason' => $cancelReason],
+            'raw_payload' => $json,
+            'reason' => $subscriptionState,
         ];
     }
 
@@ -169,7 +198,7 @@ class StoreSubscriptionController extends Controller
             $json = $this->postAppleReceipt('https://sandbox.itunes.apple.com/verifyReceipt', $payload);
         }
         if (($json['status'] ?? null) !== 0) {
-            return $this->inactiveResult($json);
+            return $this->inactiveResult($json, 'apple_receipt_status_' . ($json['status'] ?? 'unknown'));
         }
 
         $items = collect($json['latest_receipt_info'] ?? [])
@@ -177,7 +206,7 @@ class StoreSubscriptionController extends Controller
             ->sortByDesc(fn ($item) => (int) ($item['expires_date_ms'] ?? 0));
         $latest = $items->first();
         if (!$latest) {
-            return $this->inactiveResult($json);
+            return $this->inactiveResult($json, 'apple_product_not_found');
         }
 
         $expiresAt = isset($latest['expires_date_ms'])
@@ -194,6 +223,7 @@ class StoreSubscriptionController extends Controller
             'purchased_at' => $purchasedAt,
             'expires_at' => $expiresAt,
             'raw_payload' => $json,
+            'reason' => $expiresAt !== null && $expiresAt->isFuture() ? null : 'apple_subscription_expired',
         ];
     }
 
@@ -253,7 +283,7 @@ class StoreSubscriptionController extends Controller
         return $productId === self::PREMIUM_PRODUCT ? 'full_access' : 'half_access';
     }
 
-    private function inactiveResult(array $payload): array
+    private function inactiveResult(array $payload, ?string $reason = null): array
     {
         return [
             'active' => false,
@@ -262,7 +292,20 @@ class StoreSubscriptionController extends Controller
             'purchased_at' => null,
             'expires_at' => null,
             'raw_payload' => $payload,
+            'reason' => $reason,
         ];
+    }
+
+    private function inactiveMessage(?string $reason): string
+    {
+        return match ($reason) {
+            'google_play_not_configured' => 'Google Play verification is not configured.',
+            'google_play_api_error' => 'Google Play could not verify this purchase.',
+            'google_play_product_not_found' => 'Purchase product does not match an active app subscription.',
+            'apple_product_not_found' => 'Receipt product does not match an active app subscription.',
+            'apple_subscription_expired' => 'Subscription is expired.',
+            default => 'Subscription is not active.',
+        };
     }
 
     private function googleAccessToken(): ?string
