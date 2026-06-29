@@ -130,12 +130,20 @@ class StoreSubscriptionController extends Controller
 
     private function verifyGoogleSubscription(string $productId, string $purchaseToken): array
     {
-        $accessToken = $this->googleAccessToken();
         $packageName = config('services.store_iap.google_package_name');
-        if (!$accessToken || !$packageName) {
+        $configIssue = $this->googleVerificationConfigIssue();
+        if ($configIssue !== null) {
             return $this->inactiveResult(
-                ['error' => 'Google Play verification is not configured.'],
-                'google_play_not_configured'
+                ['error' => $this->inactiveMessage($configIssue)],
+                $configIssue
+            );
+        }
+
+        $accessToken = $this->googleAccessToken();
+        if (!$accessToken) {
+            return $this->inactiveResult(
+                ['error' => 'Google Play API access token could not be created.'],
+                'google_play_auth_failed'
             );
         }
 
@@ -300,12 +308,44 @@ class StoreSubscriptionController extends Controller
     {
         return match ($reason) {
             'google_play_not_configured' => 'Google Play verification is not configured.',
+            'google_play_package_missing' => 'Google Play package name is not configured.',
+            'google_play_service_account_missing' => 'Google Play service account is not configured.',
+            'google_play_service_account_file_missing' => 'Google Play service account file was not found.',
+            'google_play_service_account_invalid' => 'Google Play service account JSON is invalid.',
+            'google_play_auth_failed' => 'Google Play verification could not authenticate.',
             'google_play_api_error' => 'Google Play could not verify this purchase.',
             'google_play_product_not_found' => 'Purchase product does not match an active app subscription.',
             'apple_product_not_found' => 'Receipt product does not match an active app subscription.',
             'apple_subscription_expired' => 'Subscription is expired.',
             default => 'Subscription is not active.',
         };
+    }
+
+    private function googleVerificationConfigIssue(): ?string
+    {
+        if (!config('services.store_iap.google_package_name')) {
+            return 'google_play_package_missing';
+        }
+
+        $raw = config('services.store_iap.google_service_account_json');
+        if (!$raw) {
+            return 'google_play_service_account_missing';
+        }
+
+        $serviceAccount = json_decode($raw, true);
+        if (!is_array($serviceAccount)) {
+            if (!is_file($raw)) {
+                return 'google_play_service_account_file_missing';
+            }
+
+            $serviceAccount = json_decode(file_get_contents($raw), true);
+        }
+
+        if (!is_array($serviceAccount) || empty($serviceAccount['client_email']) || empty($serviceAccount['private_key'])) {
+            return 'google_play_service_account_invalid';
+        }
+
+        return null;
     }
 
     private function googleAccessToken(): ?string
@@ -331,7 +371,9 @@ class StoreSubscriptionController extends Controller
             'exp' => $now + 3600,
         ];
         $unsigned = $this->base64UrlEncode(json_encode($header)) . '.' . $this->base64UrlEncode(json_encode($claims));
-        openssl_sign($unsigned, $signature, $serviceAccount['private_key'], 'sha256WithRSAEncryption');
+        if (!openssl_sign($unsigned, $signature, $serviceAccount['private_key'], 'sha256WithRSAEncryption')) {
+            return null;
+        }
 
         $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
