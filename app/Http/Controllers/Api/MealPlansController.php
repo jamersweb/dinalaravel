@@ -305,6 +305,7 @@ class MealPlansController extends Controller
             'attatchment' => 'required|mimes:pdf,PDF',
             'attatchment2' => 'mimes:pdf,PDF',
             'attatchment3' => 'mimes:pdf,PDF',
+            'image' => 'image|mimes:jpg,jpeg,png,webp,gif',
             'language' => 'required|in:en,ar'
         ]);
         if($validate->fails())
@@ -319,7 +320,7 @@ class MealPlansController extends Controller
                 'message' => 'Duration must be equal to weeks'
             ]);
         }
-        $newId = MealPlan::orderBy('id','desc')->pluck('id')->first()+1;
+        $newId = (MealPlan::max('id') ?? 0) + 1;
         $file = $newId."_1_meal_plan_file_".time().'.'.request()->attatchment->getClientOriginalExtension();
         $request->attatchment->storeAs('meals', $file, config('filesystems.default'));
         $file2 = null;
@@ -333,10 +334,15 @@ class MealPlansController extends Controller
             $request->attatchment3->storeAs('meals', $file3, config('filesystems.default'));
         }
 
+        $image = null;
         foreach($weekArray as $weekId){
             $image = DB::table('meal_weeks')->where('id',$weekId)->pluck('image')->first();
             if(!is_null($image))
             break;
+        }
+        if($request->hasFile('image')){
+            $image = $newId."_meal_plan_thumbnail_".time().'.'.$request->file('image')->getClientOriginalExtension();
+            $request->file('image')->storeAs('meals', $image, config('filesystems.default'));
         }
         $mealPlan = new MealPlan();
         $mealPlan->name = $request->name;
@@ -1027,7 +1033,8 @@ class MealPlansController extends Controller
             'week_data' => 'required',
             'attatchment' => 'mimes:pdf,PDF',
             'attatchment2' => 'mimes:pdf,PDF',
-            'attatchment3' => 'mimes:pdf,PDF'
+            'attatchment3' => 'mimes:pdf,PDF',
+            'image' => 'image|mimes:jpg,jpeg,png,webp,gif'
         ]);
         if($vld->fails())
         return response()->json([
@@ -1045,6 +1052,11 @@ class MealPlansController extends Controller
         $mealPlan->tags = $request->tags;
         $mealPlan->language = $request->language;
         $mealPlan->duration = $request->duration;
+        if($request->hasFile('image')){
+            $fileName = $request->id."_meal_plan_thumbnail_".time().'.'.$request->file('image')->getClientOriginalExtension();
+            $request->file('image')->storeAs('meals', $fileName, config('filesystems.default'));
+            $mealPlan->image = $fileName;
+        }
         if($request->has('attatchment')){
             $fileName = $request->id."_1_meal_plan_file_".time().'.'.$request->attatchment->getClientOriginalExtension();
             $request->attatchment->storeAs('meals', $fileName, config('filesystems.default'));

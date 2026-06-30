@@ -39,6 +39,17 @@
                     <div v-if="type=='plan'">
                         <div class="row px-2 mb-2">
                             <div class="col-2">
+                                <p class="mb-0 mt-2">Thumbnail: </p>
+                            </div>
+                            <div class="col-10 tsl brds-2 p-2 d-flex align-items-center position-relative">
+                                <img v-if="thumbnailPreview || DWPdetails.image" :src="thumbnailPreview || DWPdetails.image" class="me-2" alt="Meal plan thumbnail preview" style="height:54px;width:85px;object-fit:contain;background:white;">
+                                <p v-if="DWPdetails.image_file==null" class="mb-0">Select an image file (optional)</p>
+                                <p v-else class="mb-0">{{DWPdetails.image_file.name}}</p>
+                                <input type="file" @change="getImage" ref="thumbnailFile" accept="image/*" style="position:absolute;height:100%;width:100%;top:0;left:0;opacity:0;">
+                            </div>
+                        </div>
+                        <div class="row px-2 mb-2">
+                            <div class="col-2">
                                 <p class="mb-0 mt-2">File 1: </p>
                             </div>
                             <div class="col-10 tsl brds-2 p-2 d-flex align-items-center position-relative">
@@ -332,7 +343,8 @@ export default {
             modalTitle: '',
             modalDetail: '',
             loaderText: '',
-            durationweeks: '1'
+            durationweeks: '1',
+            thumbnailPreview: null
         }
     },
     computed: {
@@ -377,6 +389,22 @@ export default {
             } else {
                 return title;
             }
+        },
+        getImage() {
+            const tempFile = this.$refs.thumbnailFile.files[0];
+            if (tempFile == null) {
+                return;
+            }
+            if (!tempFile.type.includes('image')) {
+                this.modalTitle = 'Error!';
+                this.modalDetail = 'Selected file is not an image';
+                this.informModal = true;
+                this.DWPdetails.image_file = null;
+                this.thumbnailPreview = null;
+                return;
+            }
+            this.DWPdetails.image_file = tempFile;
+            this.thumbnailPreview = URL.createObjectURL(tempFile);
         },
         getFile(n) {
             let tempFile;
@@ -490,7 +518,9 @@ export default {
                 fd.append('description', this.DWPdetails.description);
                 fd.append('language', this.DWPdetails.language);
                 fd.append('week_data', JSON.stringify(this.DWPdetails.week_detail));
-                fd.append('tags', JSON.stringify(this.postData.tags));
+                fd.append('tags', JSON.stringify(this.DWPdetails.tags));
+                if(typeof this.DWPdetails.image_file == 'object' && this.DWPdetails.image_file !=null)
+                fd.append('image', this.DWPdetails.image_file);
                 if(typeof this.DWPdetails.attatchment == 'object' && this.DWPdetails.attatchment !=null)
                 fd.append('attatchment', this.DWPdetails.attatchment);
                 if(typeof this.DWPdetails.attatchment2 == 'object' && this.DWPdetails.attatchment2 !=null)

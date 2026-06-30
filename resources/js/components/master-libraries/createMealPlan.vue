@@ -39,6 +39,17 @@
                     <div v-if="type=='plan'">
                         <div class="row px-2 mb-2">
                             <div class="col-2">
+                                <p class="mb-0 mt-2">Thumbnail: </p>
+                            </div>
+                            <div class="col-10 tsl brds-2 p-2 d-flex align-items-center position-relative">
+                                <img v-if="thumbnailPreview" :src="thumbnailPreview" class="me-2" alt="Meal plan thumbnail preview" style="height:54px;width:85px;object-fit:contain;background:white;">
+                                <p v-if="postData.image==null" class="mb-0">Select an image file (optional)</p>
+                                <p v-else class="mb-0">{{postData.image.name}}</p>
+                                <input type="file" @change="getImage" ref="thumbnailFile" accept="image/*" style="position:absolute;height:100%;width:100%;top:0;left:0;opacity:0;">
+                            </div>
+                        </div>
+                        <div class="row px-2 mb-2">
+                            <div class="col-2">
                                 <p class="mb-0 mt-2">File 1: </p>
                             </div>
                             <div class="col-10 tsl brds-2 p-2 d-flex align-items-center position-relative">
@@ -235,6 +246,7 @@ export default {
                 name: null,
                 description: null,
                 tags: [],
+                image: null,
                 attatchment: null,
                 attatchment2: null,
                 attatchment3: null,
@@ -255,7 +267,8 @@ export default {
             modalTitle: '',
             modalDetail: '',
             loaderText: '',
-            durationweeks: '1'
+            durationweeks: '1',
+            thumbnailPreview: null
         }
     },
     computed: {
@@ -293,6 +306,22 @@ export default {
             } else {
                 return title;
             }
+        },
+        getImage() {
+            const tempFile = this.$refs.thumbnailFile.files[0];
+            if (tempFile == null) {
+                return;
+            }
+            if (!tempFile.type.includes('image')) {
+                this.modalTitle = 'Error!';
+                this.modalDetail = 'Selected file is not an image';
+                this.informModal = true;
+                this.postData.image = null;
+                this.thumbnailPreview = null;
+                return;
+            }
+            this.postData.image = tempFile;
+            this.thumbnailPreview = URL.createObjectURL(tempFile);
         },
         getFile() {
             this.postData.attatchment = this.$refs.PDFFile.files[0];
@@ -483,6 +512,8 @@ export default {
                 fd.append('language', this.postData.language);
                 fd.append('week_data', JSON.stringify(this.postData.week_data));
                 fd.append('tags', JSON.stringify(this.postData.tags));
+                if(this.postData.image!=null)
+                fd.append('image', this.postData.image);
                 fd.append('attatchment', this.postData.attatchment);
                 if(this.postData.attatchment2!=null)
                 fd.append('attatchment2', this.postData.attatchment2);
