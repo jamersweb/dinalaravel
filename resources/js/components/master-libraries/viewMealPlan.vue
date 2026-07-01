@@ -150,7 +150,7 @@
                 </div>
             </div>
         </div>
-        <div v-if="selectedMealDetail" class="meal-detail-overlay" @click.self="closeMealDetails">
+        <div v-if="selectedMealDetail" class="meal-detail-overlay meal-detail-overlay-meal" @click.self="closeMealDetails">
             <div class="meal-detail-box position-relative p-3">
                 <button class="trans_btn position-absolute" @click="closeMealDetails" style="right:18px;top:12px;font-size:25px">
                     <i class="fa-solid fa-xmark"></i>
@@ -196,7 +196,7 @@
                 </div>
             </div>
         </div>
-        <div v-if="selectedMealDayDetail" class="meal-detail-overlay" @click.self="closeMealDayDetails">
+        <div v-if="selectedMealDayDetail" class="meal-detail-overlay meal-detail-overlay-day" @click.self="closeMealDayDetails">
             <div class="meal-detail-box position-relative p-3">
                 <button class="trans_btn position-absolute" @click="closeMealDayDetails" style="right:18px;top:12px;font-size:25px">
                     <i class="fa-solid fa-xmark"></i>
@@ -230,7 +230,7 @@
                 </div>
             </div>
         </div>
-        <div v-if="selectedMealWeekDetail" class="meal-detail-overlay" @click.self="closeMealWeekDetails">
+        <div v-if="selectedMealWeekDetail" class="meal-detail-overlay meal-detail-overlay-week" @click.self="closeMealWeekDetails">
             <div class="meal-detail-box position-relative p-3">
                 <button class="trans_btn position-absolute" @click="closeMealWeekDetails" style="right:18px;top:12px;font-size:25px">
                     <i class="fa-solid fa-xmark"></i>
@@ -533,12 +533,23 @@ export default {
 .meal-detail-overlay {
     position: fixed;
     inset: 0;
-    z-index: 1050;
     background: rgba(0, 0, 0, 0.45);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
+}
+
+.meal-detail-overlay-week {
+    z-index: 1050;
+}
+
+.meal-detail-overlay-day {
+    z-index: 1060;
+}
+
+.meal-detail-overlay-meal {
+    z-index: 1070;
 }
 
 .meal-detail-box {
