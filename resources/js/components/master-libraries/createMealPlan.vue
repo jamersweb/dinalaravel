@@ -277,6 +277,7 @@ export default {
             weeks: [null, null, null, null, null, null, null],
             plan: [null],
             allMeals: [],
+            allMealsForSearch: [],
             tempItem: null,
             search: "",
             showTags: false,
@@ -300,7 +301,7 @@ export default {
                 return this.allMeals;
             }
 
-            return this.getSearchResults(this.allMeals, searchValue);
+            return this.getSearchResults(this.getMealSearchPool(searchValue), searchValue);
         },
         searchSuggestions() {
             const searchValue = this.normalizeSearchText(this.search);
@@ -308,7 +309,7 @@ export default {
                 return [];
             }
 
-            return this.allMeals
+            return this.getMealSearchPool(searchValue)
                 .map((item) => ({ item, score: this.mealSearchScore(item, searchValue) }))
                 .filter((match) => match.score > 0)
                 .sort((a, b) => b.score - a.score)
@@ -387,6 +388,17 @@ export default {
             return requireEveryTerm
                 ? terms.every((term) => searchableText.includes(term))
                 : terms.some((term) => searchableText.includes(term));
+        },
+        getMealSearchPool(searchValue) {
+            const languageMatches = this.allMeals || [];
+            const allMeals = this.allMealsForSearch.length > 0 ? this.allMealsForSearch : languageMatches;
+
+            if (searchValue === '') {
+                return languageMatches;
+            }
+
+            const languageExactMatches = languageMatches.filter((item) => this.mealMatchesSearch(item, searchValue, true));
+            return languageExactMatches.length > 0 ? languageMatches : allMeals;
         },
         getSearchResults(items, searchValue) {
             const exactMatches = items.filter((item) => this.mealMatchesSearch(item, searchValue, true));
@@ -493,7 +505,7 @@ export default {
             }
         },
         filterMealsByLanguage() {
-            this.allMeals = this.allMeals.filter((item) => item.language == this.postData.language);
+            this.allMeals = this.allMealsForSearch.filter((item) => item.language == this.postData.language || item.language == null || item.language == '');
         },
         build() {
             if (this.postData.name == null || this.postData.name == '') {
@@ -733,7 +745,7 @@ export default {
             axios.get(config.baseApiUrl + "get-meals", this.apiConfig)
                 .then((res) => {
                     if (res.data.status) {
-                        this.allMeals = res.data.data;
+                        this.allMealsForSearch = res.data.data;
                         this.pageLoading = false;
                         this.filterMealsByLanguage();
                     }
