@@ -29,7 +29,7 @@
         document.getElementById("loaderNigga").style.display = "none !important";
     });
 </script> --}}
-<script src="{{ mix('/js/app.js') }}"></script>
+<script src="{{ mix('/js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script>
 {{-- <script src="https://unpkg.com/vue@latest"></script>
 <script src="https://unpkg.com/@vuepic/vue-datepicker@latest"></script> --}}
 </html>
