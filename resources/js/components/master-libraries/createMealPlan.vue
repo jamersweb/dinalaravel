@@ -239,7 +239,7 @@
             </div>
         </div>
     </div>
-    <div v-if="selectedMealDetail" class="meal-preview-overlay" @click.self="closeMealPreview">
+    <div v-if="selectedMealDetail" class="meal-preview-overlay meal-preview-overlay-meal" @click.self="closeMealPreview">
         <div class="meal-preview-box position-relative p-3">
             <button class="trans_btn position-absolute" @click="closeMealPreview" style="right:18px;top:12px;font-size:25px">
                 <i class="fa-solid fa-xmark"></i>
@@ -282,6 +282,73 @@
                 <h5 class="fw-bold">Tags</h5>
                 <span v-for="(item, index) in selectedMealTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1 d-inline-block">{{item}}</span>
                 <p v-if="selectedMealTags.length < 1" class="mb-0">No tags added</p>
+            </div>
+        </div>
+    </div>
+    <div v-if="selectedMealDayDetail" class="meal-preview-overlay meal-preview-overlay-day" @click.self="closeMealDayPreview">
+        <div class="meal-preview-box position-relative p-3">
+            <button class="trans_btn position-absolute" @click="closeMealDayPreview" style="right:18px;top:12px;font-size:25px">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="fw-bold pe-5">{{selectedMealDayDetail.name}}</h3>
+            <div class="row w-100 mx-0 mt-2">
+                <div class="col-md-6 p-2">
+                    <p class="fw-bold mb-1">Tags</p>
+                    <div class="d-flex flex-wrap brds-1 p-2 border detail-meta-box">
+                        <span v-for="(item, index) in selectedMealDayTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1">{{item}}</span>
+                        <p v-if="selectedMealDayTags.length < 1" class="mb-0">No tags added</p>
+                    </div>
+                </div>
+                <div class="col-md-6 p-2">
+                    <p class="fw-bold mb-1">Description</p>
+                    <div class="brds-1 p-2 border detail-meta-box">
+                        <p class="mb-0 wb-all" v-if="selectedMealDayDetail.description">{{selectedMealDayDetail.description}}</p>
+                        <p class="mb-0" v-else>No description added</p>
+                    </div>
+                </div>
+            </div>
+            <div class="w-100 mt-2">
+                <template v-for="slot in dayMealSlots(selectedMealDayDetail)" :key="slot.label">
+                    <p class="ms-3 mb-0 mt-3 fw-bold">{{slot.label}}:</p>
+                    <div class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-preview-row" @click="showMealPreview(slot.id)">
+                        <img v-if="slot.detail.file_type=='image'" :src="slot.detail.file" alt="" class="img-fluid" style="max-width:100px">
+                        <img v-else :src="slot.detail.video_thumbnail" alt="" class="img-fluid" style="max-width:100px">
+                        <p class="ms-3 mb-0" style="align-self: center;">{{slot.detail.name}}</p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    <div v-if="selectedMealWeekDetail" class="meal-preview-overlay meal-preview-overlay-week" @click.self="closeMealWeekPreview">
+        <div class="meal-preview-box position-relative p-3">
+            <button class="trans_btn position-absolute" @click="closeMealWeekPreview" style="right:18px;top:12px;font-size:25px">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="fw-bold pe-5">{{selectedMealWeekDetail.name}}</h3>
+            <div class="row w-100 mx-0 mt-2">
+                <div class="col-md-6 p-2">
+                    <p class="fw-bold mb-1">Tags</p>
+                    <div class="d-flex flex-wrap brds-1 p-2 border detail-meta-box">
+                        <span v-for="(item, index) in selectedMealWeekTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1">{{item}}</span>
+                        <p v-if="selectedMealWeekTags.length < 1" class="mb-0">No tags added</p>
+                    </div>
+                </div>
+                <div class="col-md-6 p-2">
+                    <p class="fw-bold mb-1">Description</p>
+                    <div class="brds-1 p-2 border detail-meta-box">
+                        <p class="mb-0 wb-all" v-if="selectedMealWeekDetail.description">{{selectedMealWeekDetail.description}}</p>
+                        <p class="mb-0" v-else>No description added</p>
+                    </div>
+                </div>
+            </div>
+            <div class="w-100 mt-2">
+                <template v-for="slot in weekDaySlots(selectedMealWeekDetail)" :key="slot.label">
+                    <p class="ms-3 mb-0 mt-3 fw-bold">{{slot.label}}:</p>
+                    <div class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-preview-row" @click="showMealDayPreview(slot.id)">
+                        <img :src="slot.detail.image" alt="" class="img-fluid" style="max-width:100px">
+                        <p class="ms-3 mb-0" style="align-self: center;">{{slot.detail.name}}</p>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
@@ -341,7 +408,11 @@ export default {
             selectedMealDetail: null,
             selectedMealIngredients: [],
             selectedMealDirections: [],
-            selectedMealTags: []
+            selectedMealTags: [],
+            selectedMealDayDetail: null,
+            selectedMealDayTags: [],
+            selectedMealWeekDetail: null,
+            selectedMealWeekTags: []
         }
     },
     computed: {
@@ -542,14 +613,59 @@ export default {
         mealTotalPrepTime(meal) {
             return (parseInt(meal.prep_time) || 0) + (parseInt(meal.cook_time) || 0);
         },
+        dayMealSlots(dayDetail) {
+            if (!dayDetail) {
+                return [];
+            }
+
+            return [
+                { label: 'Breakfast', id: dayDetail.breakfast, detail: dayDetail.breakfast_detail },
+                { label: 'Lunch', id: dayDetail.lunch, detail: dayDetail.lunch_detail },
+                { label: 'Dinner', id: dayDetail.dinner, detail: dayDetail.dinner_detail },
+                { label: 'Snacks', id: dayDetail.snacks, detail: dayDetail.snacks_detail },
+                { label: 'Drink', id: dayDetail.drinks, detail: dayDetail.drinks_detail },
+            ].filter((slot) => slot.id !== null && slot.id !== undefined && slot.detail);
+        },
+        weekDaySlots(weekDetail) {
+            if (!weekDetail) {
+                return [];
+            }
+
+            return [
+                { label: 'Day1', id: weekDetail.meal_day1, detail: weekDetail.meal_day1_detail },
+                { label: 'Day2', id: weekDetail.meal_day2, detail: weekDetail.meal_day2_detail },
+                { label: 'Day3', id: weekDetail.meal_day3, detail: weekDetail.meal_day3_detail },
+                { label: 'Day4', id: weekDetail.meal_day4, detail: weekDetail.meal_day4_detail },
+                { label: 'Day5', id: weekDetail.meal_day5, detail: weekDetail.meal_day5_detail },
+                { label: 'Day6', id: weekDetail.meal_day6, detail: weekDetail.meal_day6_detail },
+                { label: 'Day7', id: weekDetail.meal_day7, detail: weekDetail.meal_day7_detail },
+            ].filter((slot) => slot.id !== null && slot.id !== undefined && slot.detail);
+        },
         previewLibraryItem(item) {
-            if (this.type !== 'days' || !item || !item.id) {
+            if (!item || !item.id) {
+                return;
+            }
+
+            if (this.type === 'weeks') {
+                this.showMealDayPreview(item.id);
+                return;
+            }
+
+            if (this.type === 'plan') {
+                this.showMealWeekPreview(item.id);
+                return;
+            }
+
+            this.showMealPreview(item.id);
+        },
+        showMealPreview(mealId) {
+            if (!mealId) {
                 return;
             }
 
             this.pageLoading = true;
             this.loaderText = 'Fetching Meal';
-            axios.get(config.baseApiUrl + 'get-meal-detail/' + item.id, this.apiConfig)
+            axios.get(config.baseApiUrl + 'get-meal-detail/' + mealId, this.apiConfig)
                 .then((res) => {
                     this.pageLoading = false;
                     if (res.data.status) {
@@ -570,11 +686,71 @@ export default {
                     this.informModal = true;
                 })
         },
+        showMealDayPreview(mealDayId) {
+            if (!mealDayId) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal Day';
+            axios.get(config.baseApiUrl + 'get-meal-day-detail/' + mealDayId, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealDayDetail = res.data.data;
+                        this.selectedMealDayTags = this.selectedMealDayDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
+        showMealWeekPreview(mealWeekId) {
+            if (!mealWeekId) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal Week';
+            axios.get(config.baseApiUrl + 'get-meal-week-detail/' + mealWeekId, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealWeekDetail = res.data.data;
+                        this.selectedMealWeekTags = this.selectedMealWeekDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
         closeMealPreview() {
             this.selectedMealDetail = null;
             this.selectedMealIngredients = [];
             this.selectedMealDirections = [];
             this.selectedMealTags = [];
+        },
+        closeMealDayPreview() {
+            this.selectedMealDayDetail = null;
+            this.selectedMealDayTags = [];
+        },
+        closeMealWeekPreview() {
+            this.selectedMealWeekDetail = null;
+            this.selectedMealWeekTags = [];
         },
         getImage() {
             const tempFile = this.$refs.thumbnailFile.files[0];
@@ -1035,7 +1211,6 @@ export default {
 .meal-preview-overlay {
     position: fixed;
     inset: 0;
-    z-index: 1080;
     background: rgba(0, 0, 0, 0.45);
     display: flex;
     align-items: center;
@@ -1043,11 +1218,36 @@ export default {
     padding: 24px;
 }
 
+.meal-preview-overlay-week {
+    z-index: 1080;
+}
+
+.meal-preview-overlay-day {
+    z-index: 1090;
+}
+
+.meal-preview-overlay-meal {
+    z-index: 1100;
+}
+
 .meal-preview-box {
     background: white;
     border-radius: 20px;
     width: min(1000px, 92vw);
     max-height: 88vh;
+    overflow-y: auto;
+}
+
+.meal-preview-row {
+    cursor: pointer;
+}
+
+.meal-preview-row:hover {
+    transform: translateY(-1px);
+}
+
+.detail-meta-box {
+    min-height: 90px;
     overflow-y: auto;
 }
 </style>
