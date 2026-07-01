@@ -300,7 +300,7 @@ export default {
                 return this.allMeals;
             }
 
-            return this.allMeals.filter((item) => this.mealMatchesSearch(item, searchValue, true));
+            return this.getSearchResults(this.allMeals, searchValue);
         },
         searchSuggestions() {
             const searchValue = this.normalizeSearchText(this.search);
@@ -387,6 +387,19 @@ export default {
             return requireEveryTerm
                 ? terms.every((term) => searchableText.includes(term))
                 : terms.some((term) => searchableText.includes(term));
+        },
+        getSearchResults(items, searchValue) {
+            const exactMatches = items.filter((item) => this.mealMatchesSearch(item, searchValue, true));
+
+            if (exactMatches.length > 0) {
+                return exactMatches;
+            }
+
+            return items
+                .map((item) => ({ item, score: this.mealSearchScore(item, searchValue) }))
+                .filter((match) => match.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .map((match) => match.item);
         },
         mealSearchScore(item, searchValue) {
             const searchableText = this.mealSearchText(item);
