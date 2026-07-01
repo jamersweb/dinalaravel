@@ -180,9 +180,18 @@
                     <div class="shd_card heavy_shd my-2 p-md-3 p-1">
                         <div class="d-flex justify-content-between brds-1 gray_bg p-3">
                             <div class="position-relative w-100">
-                                <input type="text" class="w-100 exSearch" placeholder="Search for a Meal" v-model="search">
+                                <input
+                                    type="text"
+                                    class="w-100 exSearch"
+                                    placeholder="Search for a Meal"
+                                    v-model="search"
+                                    @input="showSearchSuggestions = true"
+                                    @focus="showSearchSuggestions = true"
+                                    @blur="hideSearchSuggestions"
+                                    @keydown.escape="showSearchSuggestions = false"
+                                >
                                 <img src="/cms-assets/images/navbar-topbar/search.png" alt="search-icon" class="img-fluid position-absolute">
-                                <div v-if="searchSuggestions.length > 0" class="meal-search-suggestions">
+                                <div v-if="showSearchSuggestions && searchSuggestions.length > 0" class="meal-search-suggestions">
                                     <button
                                         v-for="item in searchSuggestions"
                                         :key="item.id || item.name"
@@ -280,7 +289,8 @@ export default {
             modalDetail: '',
             loaderText: '',
             durationweeks: '1',
-            thumbnailPreview: null
+            thumbnailPreview: null,
+            showSearchSuggestions: false
         }
     },
     computed: {
@@ -403,6 +413,12 @@ export default {
         },
         selectSearchSuggestion(item) {
             this.search = item.name;
+            this.showSearchSuggestions = false;
+        },
+        hideSearchSuggestions() {
+            setTimeout(() => {
+                this.showSearchSuggestions = false;
+            }, 120);
         },
         getImage() {
             const tempFile = this.$refs.thumbnailFile.files[0];

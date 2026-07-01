@@ -12,8 +12,18 @@
                     <div class="col-1 float-start pt-1 ps-1">
                         <img src="/cms-assets/images/navbar-topbar/search.png" alt="Error" style="height:13px;width:15px;z-index:99;">
                     </div>
-                    <input @input="applySearch()" type="text" class="input1 col-9 h-75 mt-0 ms-2 float-start" style="border:none;background-color:transparent;" v-model="search" placeholder="Search for meal">
-                    <div v-if="searchSuggestions.length > 0" class="meal-search-suggestions">
+                    <input
+                        @input="onSearchInput"
+                        @focus="showSearchSuggestions = true"
+                        @blur="hideSearchSuggestions"
+                        @keydown.escape="showSearchSuggestions = false"
+                        type="text"
+                        class="input1 col-9 h-75 mt-0 ms-2 float-start"
+                        style="border:none;background-color:transparent;"
+                        v-model="search"
+                        placeholder="Search for meal"
+                    >
+                    <div v-if="showSearchSuggestions && searchSuggestions.length > 0" class="meal-search-suggestions">
                         <button
                             v-for="item in searchSuggestions"
                             :key="item.id || item.name"
@@ -210,6 +220,7 @@ export default {
             tags: [],
             detailtagNames: null,
             editMeal: false,
+            showSearchSuggestions: false,
         };
     },
     components: { CreateCustomMeal, Loader, Confirm, Inform, Filters, EditMeal },
@@ -320,6 +331,16 @@ export default {
         },
         selectSearchSuggestion(item) {
             this.search = item.name;
+            this.showSearchSuggestions = false;
+            this.applySearch();
+        },
+        hideSearchSuggestions() {
+            setTimeout(() => {
+                this.showSearchSuggestions = false;
+            }, 120);
+        },
+        onSearchInput() {
+            this.showSearchSuggestions = true;
             this.applySearch();
         },
         getVisibleMeals() {
