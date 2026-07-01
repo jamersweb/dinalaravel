@@ -322,18 +322,18 @@ class MealPlansController extends Controller
         $fileName = null;
         if($request->hasFile('attatchment')){
             $file = $newId."_1_meal_plan_file_".time().'.'.$request->file('attatchment')->getClientOriginalExtension();
-            $request->file('attatchment')->storeAs('meals', $file, config('filesystems.default'));
+            $request->file('attatchment')->storeAs('meals', $file, 'fwd_media');
             $fileName = $request->file('attatchment')->getClientOriginalName();
         }
         $file2 = null;
         $file3 = null;
         if($request->hasFile('attatchment2')){
             $file2 = $newId."_2_meal_plan_file_".time().'.'.$request->file('attatchment2')->getClientOriginalExtension();
-            $request->file('attatchment2')->storeAs('meals', $file2, config('filesystems.default'));
+            $request->file('attatchment2')->storeAs('meals', $file2, 'fwd_media');
         }
         if($request->hasFile('attatchment3')){
             $file3 = $newId."_3_meal_plan_file_".time().'.'.$request->file('attatchment3')->getClientOriginalExtension();
-            $request->file('attatchment3')->storeAs('meals', $file3, config('filesystems.default'));
+            $request->file('attatchment3')->storeAs('meals', $file3, 'fwd_media');
         }
 
         $image = null;
@@ -344,7 +344,7 @@ class MealPlansController extends Controller
         }
         if($request->hasFile('image')){
             $image = $newId."_meal_plan_thumbnail_".time().'.'.$request->file('image')->getClientOriginalExtension();
-            $request->file('image')->storeAs('meals', $image, config('filesystems.default'));
+            $request->file('image')->storeAs('meals', $image, 'fwd_media');
         }
         $mealPlan = new MealPlan();
         $mealPlan->name = $request->name;
@@ -1028,24 +1028,24 @@ class MealPlansController extends Controller
         $mealPlan->duration = $request->duration;
         if($request->hasFile('image')){
             $fileName = $request->id."_meal_plan_thumbnail_".time().'.'.$request->file('image')->getClientOriginalExtension();
-            $request->file('image')->storeAs('meals', $fileName, config('filesystems.default'));
+            $request->file('image')->storeAs('meals', $fileName, 'fwd_media');
             $mealPlan->image = $fileName;
         }
         if($request->hasFile('attatchment')){
             $fileName = $request->id."_1_meal_plan_file_".time().'.'.$request->file('attatchment')->getClientOriginalExtension();
-            $request->file('attatchment')->storeAs('meals', $fileName, config('filesystems.default'));
+            $request->file('attatchment')->storeAs('meals', $fileName, 'fwd_media');
             $mealPlan->attatchment = $fileName;
             $mealPlan->attatchment_name = $request->file('attatchment')->getClientOriginalName();
         }
         if($request->hasFile('attatchment2')){
             $fileName = $request->id."_2_meal_plan_file_".time().'.'.$request->file('attatchment2')->getClientOriginalExtension();
-            $request->file('attatchment2')->storeAs('meals', $fileName, config('filesystems.default'));
+            $request->file('attatchment2')->storeAs('meals', $fileName, 'fwd_media');
             $mealPlan->attatchment2 = $fileName;
             $mealPlan->attatchment2_name = $request->file('attatchment2')->getClientOriginalName();
         }
         if($request->hasFile('attatchment3')){
             $fileName = $request->id."_3_meal_plan_file_".time().'.'.$request->file('attatchment3')->getClientOriginalExtension();
-            $request->file('attatchment3')->storeAs('meals', $fileName, config('filesystems.default'));
+            $request->file('attatchment3')->storeAs('meals', $fileName, 'fwd_media');
             $mealPlan->attatchment3 = $fileName;
             $mealPlan->attatchment3_name = $request->file('attatchment3')->getClientOriginalName();
         }

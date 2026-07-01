@@ -56,11 +56,12 @@ class MediaController extends Controller
 
         // Build file path
         $filePath = $type . '/' . $filename;
+        $disk = 'fwd_media';
 
         // Legacy support: some old DB rows store image names without extension.
         // If exact file is missing and filename has no extension, try prefix match.
-        if (!Storage::disk('fwd_media')->exists($filePath) && pathinfo($filename, PATHINFO_EXTENSION) === '') {
-            $allFiles = Storage::disk('fwd_media')->files($type);
+        if (!Storage::disk($disk)->exists($filePath) && pathinfo($filename, PATHINFO_EXTENSION) === '') {
+            $allFiles = Storage::disk($disk)->files($type);
             foreach ($allFiles as $candidate) {
                 if (basename($candidate) === $filename || str_starts_with(basename($candidate), $filename . '.')) {
                     $filePath = $candidate;
@@ -68,20 +69,43 @@ class MediaController extends Controller
                 }
             }
         }
+
+        $defaultDisk = config('filesystems.default');
+        if (!Storage::disk($disk)->exists($filePath) && $defaultDisk !== $disk && Storage::disk($defaultDisk)->exists($filePath)) {
+            $disk = $defaultDisk;
+        }
         
         // Check if file exists
-        if (!Storage::disk('fwd_media')->exists($filePath)) {
+        if (!Storage::disk($disk)->exists($filePath)) {
             return response()->json([
                 'status' => false,
                 'message' => 'File not found'
             ], 404);
         }
 
+        if ($disk !== 'fwd_media') {
+            $mimeType = Storage::disk($disk)->mimeType($filePath) ?: 'application/octet-stream';
+            $fileSize = Storage::disk($disk)->size($filePath);
+            $stream = Storage::disk($disk)->readStream($filePath);
+
+            return response()->stream(function () use ($stream) {
+                fpassthru($stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+            }, 200, [
+                'Content-Type' => $mimeType,
+                'Content-Length' => $fileSize,
+                'Cache-Control' => 'public, max-age=86400',
+                'Accept-Ranges' => 'bytes',
+            ]);
+        }
+
         // Get full path
-        $fullPath = Storage::disk('fwd_media')->path($filePath);
+        $fullPath = Storage::disk($disk)->path($filePath);
 
         // Get MIME type
-        $mimeType = Storage::disk('fwd_media')->mimeType($filePath);
+        $mimeType = Storage::disk($disk)->mimeType($filePath);
         if (!$mimeType) {
             $mimeType = File::mimeType($fullPath);
         }
