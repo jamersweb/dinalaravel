@@ -53,7 +53,7 @@
                                 <p class="mb-0 mt-2">File 1: </p>
                             </div>
                             <div class="col-10 tsl brds-2 p-2 d-flex align-items-center position-relative">
-                                <p v-if="postData.attatchment==null" class="mb-0">Select a PDF File</p>
+                                <p v-if="postData.attatchment==null" class="mb-0">Select a PDF File (optional)</p>
                                 <p v-else class="mb-0">{{postData.attatchment.name}}</p>
                                 <input type="file" @change="getFile" ref="PDFFile" accept=".pdf" style="position:absolute;height:100%;width:100%;top:0;left:0;opacity:0;">
                             </div>
@@ -770,6 +770,9 @@ export default {
         },
         getFile() {
             this.postData.attatchment = this.$refs.PDFFile.files[0];
+            if (this.postData.attatchment == null) {
+                return;
+            }
             if (!this.postData.attatchment.type.includes('pdf')) {
                 this.modalTitle = 'Error!';
                 this.modalDetail = 'Selected file is not PDF';
@@ -779,6 +782,9 @@ export default {
         },
         getFile2() {
             this.postData.attatchment2 = this.$refs.PDFFile2.files[0];
+            if (this.postData.attatchment2 == null) {
+                return;
+            }
             if (!this.postData.attatchment2.type.includes('pdf')) {
                 this.modalTitle = 'Error!';
                 this.modalDetail = 'Selected file is not PDF';
@@ -788,6 +794,9 @@ export default {
         },
         getFile3() {
             this.postData.attatchment3 = this.$refs.PDFFile3.files[0];
+            if (this.postData.attatchment3 == null) {
+                return;
+            }
             if (!this.postData.attatchment3.type.includes('pdf')) {
                 this.modalTitle = 'Error!';
                 this.modalDetail = 'Selected file is not PDF';
@@ -959,6 +968,7 @@ export default {
                 fd.append('tags', JSON.stringify(this.postData.tags));
                 if(this.postData.image!=null)
                 fd.append('image', this.postData.image);
+                if(this.postData.attatchment!=null)
                 fd.append('attatchment', this.postData.attatchment);
                 if(this.postData.attatchment2!=null)
                 fd.append('attatchment2', this.postData.attatchment2);

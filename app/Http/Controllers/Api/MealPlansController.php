@@ -302,9 +302,9 @@ class MealPlansController extends Controller
             'tags' => 'string|required',
             'duration' => 'integer',
             'week_data' => 'string',
-            'attatchment' => 'required|mimes:pdf,PDF',
-            'attatchment2' => 'mimes:pdf,PDF',
-            'attatchment3' => 'mimes:pdf,PDF',
+            'attatchment' => 'nullable|mimes:pdf,PDF',
+            'attatchment2' => 'nullable|mimes:pdf,PDF',
+            'attatchment3' => 'nullable|mimes:pdf,PDF',
             'image' => 'image|mimes:jpg,jpeg,png,webp,gif',
             'language' => 'required|in:en,ar'
         ]);
@@ -321,17 +321,22 @@ class MealPlansController extends Controller
             ]);
         }
         $newId = (MealPlan::max('id') ?? 0) + 1;
-        $file = $newId."_1_meal_plan_file_".time().'.'.request()->attatchment->getClientOriginalExtension();
-        $request->attatchment->storeAs('meals', $file, config('filesystems.default'));
+        $file = null;
+        $fileName = null;
+        if($request->hasFile('attatchment')){
+            $file = $newId."_1_meal_plan_file_".time().'.'.$request->file('attatchment')->getClientOriginalExtension();
+            $request->file('attatchment')->storeAs('meals', $file, config('filesystems.default'));
+            $fileName = $request->file('attatchment')->getClientOriginalName();
+        }
         $file2 = null;
         $file3 = null;
-        if($request->has('attatchment2') && !is_null($request->attatchment2)){
-            $file2 = $newId."_2_meal_plan_file_".time().'.'.request()->attatchment2->getClientOriginalExtension();
-            $request->attatchment2->storeAs('meals', $file2, config('filesystems.default'));
+        if($request->hasFile('attatchment2')){
+            $file2 = $newId."_2_meal_plan_file_".time().'.'.$request->file('attatchment2')->getClientOriginalExtension();
+            $request->file('attatchment2')->storeAs('meals', $file2, config('filesystems.default'));
         }
-        if($request->has('attatchment3') && !is_null($request->attatchment3)){
-            $file3 = $newId."_3_meal_plan_file_".time().'.'.request()->attatchment3->getClientOriginalExtension();
-            $request->attatchment3->storeAs('meals', $file3, config('filesystems.default'));
+        if($request->hasFile('attatchment3')){
+            $file3 = $newId."_3_meal_plan_file_".time().'.'.$request->file('attatchment3')->getClientOriginalExtension();
+            $request->file('attatchment3')->storeAs('meals', $file3, config('filesystems.default'));
         }
 
         $image = null;
@@ -351,11 +356,11 @@ class MealPlansController extends Controller
         $mealPlan->language = $request->language;
         $mealPlan->duration = $request->duration;
         $mealPlan->attatchment = $file;
-        $mealPlan->attatchment_name = $request->attatchment->getClientOriginalName();
+        $mealPlan->attatchment_name = $fileName;
         $mealPlan->attatchment2 = $file2;
-        $mealPlan->attatchment2_name = is_null($file2)?null:$request->attatchment2->getClientOriginalName();
+        $mealPlan->attatchment2_name = is_null($file2)?null:$request->file('attatchment2')->getClientOriginalName();
         $mealPlan->attatchment3 = $file3;
-        $mealPlan->attatchment3_name = is_null($file3)?null:$request->attatchment3->getClientOriginalName();
+        $mealPlan->attatchment3_name = is_null($file3)?null:$request->file('attatchment3')->getClientOriginalName();
         $mealPlan->tags = $request->tags;
         $mealPlan->save();
 
@@ -938,7 +943,7 @@ class MealPlansController extends Controller
         $validate = Validator::make($request->all(),[
             'id' => 'required|numeric',
             'name' => 'required|string',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'tags' => 'required|array|min:1',
             'language' => 'required|in:en,ar',
             'breakfast' => 'numeric|nullable',
@@ -983,7 +988,7 @@ class MealPlansController extends Controller
         $vld = Validator::make($request->all(),[
             'id' => 'required|numeric',
             'name' => 'required|string',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'tags' => 'required|array|min:1',
             'language' => 'required|in:en,ar',
             'meal_day1' => 'required|numeric',
@@ -1027,13 +1032,13 @@ class MealPlansController extends Controller
         $vld = Validator::make($request->all(),[
             'id' => 'required|numeric',
             'name' => 'required|string',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'tags' => 'required|string',
             'language' => 'required|in:en,ar',
             'week_data' => 'required',
-            'attatchment' => 'mimes:pdf,PDF',
-            'attatchment2' => 'mimes:pdf,PDF',
-            'attatchment3' => 'mimes:pdf,PDF',
+            'attatchment' => 'nullable|mimes:pdf,PDF',
+            'attatchment2' => 'nullable|mimes:pdf,PDF',
+            'attatchment3' => 'nullable|mimes:pdf,PDF',
             'image' => 'image|mimes:jpg,jpeg,png,webp,gif'
         ]);
         if($vld->fails())
@@ -1057,23 +1062,23 @@ class MealPlansController extends Controller
             $request->file('image')->storeAs('meals', $fileName, config('filesystems.default'));
             $mealPlan->image = $fileName;
         }
-        if($request->has('attatchment')){
-            $fileName = $request->id."_1_meal_plan_file_".time().'.'.$request->attatchment->getClientOriginalExtension();
-            $request->attatchment->storeAs('meals', $fileName, config('filesystems.default'));
+        if($request->hasFile('attatchment')){
+            $fileName = $request->id."_1_meal_plan_file_".time().'.'.$request->file('attatchment')->getClientOriginalExtension();
+            $request->file('attatchment')->storeAs('meals', $fileName, config('filesystems.default'));
             $mealPlan->attatchment = $fileName;
-            $mealPlan->attatchment_name = $request->attatchment->getClientOriginalName();
+            $mealPlan->attatchment_name = $request->file('attatchment')->getClientOriginalName();
         }
-        if($request->has('attatchment2')){
-            $fileName = $request->id."_2_meal_plan_file_".time().'.'.$request->attatchment2->getClientOriginalExtension();
-            $request->attatchment2->storeAs('meals', $fileName, config('filesystems.default'));
+        if($request->hasFile('attatchment2')){
+            $fileName = $request->id."_2_meal_plan_file_".time().'.'.$request->file('attatchment2')->getClientOriginalExtension();
+            $request->file('attatchment2')->storeAs('meals', $fileName, config('filesystems.default'));
             $mealPlan->attatchment2 = $fileName;
-            $mealPlan->attatchment2_name = $request->attatchment2->getClientOriginalName();
+            $mealPlan->attatchment2_name = $request->file('attatchment2')->getClientOriginalName();
         }
-        if($request->has('attatchment3')){
-            $fileName = $request->id."_3_meal_plan_file_".time().'.'.$request->attatchment3->getClientOriginalExtension();
-            $request->attatchment3->storeAs('meals', $fileName, config('filesystems.default'));
+        if($request->hasFile('attatchment3')){
+            $fileName = $request->id."_3_meal_plan_file_".time().'.'.$request->file('attatchment3')->getClientOriginalExtension();
+            $request->file('attatchment3')->storeAs('meals', $fileName, config('filesystems.default'));
             $mealPlan->attatchment3 = $fileName;
-            $mealPlan->attatchment3_name = $request->attatchment3->getClientOriginalName();
+            $mealPlan->attatchment3_name = $request->file('attatchment3')->getClientOriginalName();
         }
         $mealPlan->save();
         MealPlanWeek::where('meal_plan_id',$request->id)->delete();
