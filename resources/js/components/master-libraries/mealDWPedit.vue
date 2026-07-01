@@ -461,18 +461,6 @@ export default {
                 this.informModal = true;
                 return;
             }
-            if (this.DWPdetails.tags.length < 1) {
-                this.modalTitle = 'Error';
-                this.modalDetail = 'Please select at least one tag';
-                this.informModal = true;
-                return;
-            }
-            if (this.DWPdetails.description == null || this.DWPdetails.description == "") {
-                this.modalTitle = 'Error';
-                this.modalDetail = 'Please write description';
-                this.informModal = true;
-                return;
-            }
             if (this.type == 'days') {
                 if (this.DWPdetails.breakfast == null && this.DWPdetails.dinner == null && this.DWPdetails.lunch == null 
                 && this.DWPdetails.snacks == null && this.DWPdetails.drinks == null) {
@@ -484,14 +472,6 @@ export default {
                 this.updateDWP(this.DWPdetails,this.apiConfig);
             }
             else if (this.type == 'weeks') {
-                if (this.DWPdetails.meal_day1 == null || this.DWPdetails.meal_day2 == null || this.DWPdetails.meal_day3 == null ||
-                this.DWPdetails.meal_day4 == null || this.DWPdetails.meal_day5 == null || this.DWPdetails.meal_day6 == null || 
-                this.DWPdetails.meal_day7 == null) {
-                    this.modalTitle = 'Error';
-                    this.modalDetail = 'please fill all meals';
-                    this.informModal = true;
-                    return;
-                }
                 let tempObj = JSON.parse(JSON.stringify(this.DWPdetails));
                 delete tempObj.meal_day1_detail;
                 delete tempObj.meal_day2_detail;
@@ -503,21 +483,13 @@ export default {
                 this.updateDWP(tempObj,this.apiConfig);    
             }
             else if (this.type == 'plan') {
-                for (let index = 0; index < this.DWPdetails.week_detail.length; index++) {
-                    if (this.DWPdetails.week_detail[index] == null) {
-                        this.modalTitle = 'Error';
-                        this.modalDetail = 'Enter data for each Week';
-                        this.informModal = true;
-                        return;
-                    }
-                }
                 let fd = new FormData();
                 fd.append('id', this.DWPdetails.id);
                 fd.append('name', this.DWPdetails.name);
                 fd.append('duration', this.DWPdetails.duration);
                 fd.append('description', this.DWPdetails.description);
                 fd.append('language', this.DWPdetails.language);
-                fd.append('week_data', JSON.stringify(this.DWPdetails.week_detail));
+                fd.append('week_data', JSON.stringify(this.DWPdetails.week_detail.filter((item) => item != null)));
                 fd.append('tags', JSON.stringify(this.DWPdetails.tags));
                 if(typeof this.DWPdetails.image_file == 'object' && this.DWPdetails.image_file !=null)
                 fd.append('image', this.DWPdetails.image_file);

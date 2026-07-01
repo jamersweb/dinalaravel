@@ -44,6 +44,7 @@ class MealPlansController extends Controller
             'status' => false,
             'message' => $validate->errors()->all()[0]
         ]);
+        $image = null;
         if(isset($request->breakfast) && !is_null($request->breakfast)){
             $meal = DB::table('meals')->where('id',$request->breakfast)->first();
             if($meal->file_type == 'image'){
@@ -183,13 +184,13 @@ class MealPlansController extends Controller
             'name' => 'required',
             'description' => 'string|nullable',
             'tags' => 'array',
-            'meal_day1' => 'integer',
-            'meal_day2' => 'integer',
-            'meal_day3' => 'integer',
-            'meal_day4' => 'integer',
-            'meal_day5' => 'integer',
-            'meal_day6' => 'integer',
-            'meal_day7' => 'integer',
+            'meal_day1' => 'integer|nullable',
+            'meal_day2' => 'integer|nullable',
+            'meal_day3' => 'integer|nullable',
+            'meal_day4' => 'integer|nullable',
+            'meal_day5' => 'integer|nullable',
+            'meal_day6' => 'integer|nullable',
+            'meal_day7' => 'integer|nullable',
             'language' => 'required|in:en,ar'
         ]);
         if($validate->fails())
@@ -198,6 +199,7 @@ class MealPlansController extends Controller
             'message' => $validate->errors()->all()[0]
         ]);
 
+        $image = null;
         if(isset($request->meal_day1) && !is_null($request->meal_day1)){
             $image = DB::table('meal_days')->where('id',$request->meal_day1)->pluck('image')->first();
         }
@@ -299,9 +301,9 @@ class MealPlansController extends Controller
         $validate = Validator::make($request->all(),[
             'name' => 'required',
             'description' => 'string|nullable',
-            'tags' => 'string|required',
+            'tags' => 'nullable|string',
             'duration' => 'integer',
-            'week_data' => 'string',
+            'week_data' => 'nullable|string',
             'attatchment' => 'nullable|mimes:pdf,PDF',
             'attatchment2' => 'nullable|mimes:pdf,PDF',
             'attatchment3' => 'nullable|mimes:pdf,PDF',
@@ -313,13 +315,8 @@ class MealPlansController extends Controller
             'status' => false,
             'message' => $validate->errors()->all()[0]
         ]);
-        $weekArray = json_decode($request->week_data);
-        if(sizeof($weekArray)!=$request->duration){
-            return response()->json([
-                'status' => false,
-                'message' => 'Duration must be equal to weeks'
-            ]);
-        }
+        $weekArray = json_decode($request->week_data ?? '[]');
+        $weekArray = is_array($weekArray) ? $weekArray : [];
         $newId = (MealPlan::max('id') ?? 0) + 1;
         $file = null;
         $fileName = null;
@@ -361,7 +358,7 @@ class MealPlansController extends Controller
         $mealPlan->attatchment2_name = is_null($file2)?null:$request->file('attatchment2')->getClientOriginalName();
         $mealPlan->attatchment3 = $file3;
         $mealPlan->attatchment3_name = is_null($file3)?null:$request->file('attatchment3')->getClientOriginalName();
-        $mealPlan->tags = $request->tags;
+        $mealPlan->tags = $request->tags ?? json_encode([]);
         $mealPlan->save();
 
         foreach($weekArray as $weekId){
@@ -754,27 +751,10 @@ class MealPlansController extends Controller
         $weekIds = MealPlanWeek::where('meal_plan_id',$planDetail->id)->orderBy('id','asc')->pluck('meal_week_id')->toArray();
         $planDetail->weeks = empty($weekIds) ? collect() : MealWeek::whereIn('id',$weekIds)->orderByRaw('FIELD(id, ' . implode(',', $weekIds) . ')')->get()->makeHidden(['tags','status','created_at','updated_at']);
         foreach ($planDetail->weeks as $mwk) {
-            $mwk->meal_day1 = MealDay::where('id',$mwk->meal_day1)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day1))
-            $mwk->meal_day1 = $this->getMealDetails($mwk->meal_day1);
-            $mwk->meal_day2 = MealDay::where('id',$mwk->meal_day2)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day2))
-            $mwk->meal_day2 = $this->getMealDetails($mwk->meal_day2);
-            $mwk->meal_day3 = MealDay::where('id',$mwk->meal_day3)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day3))
-            $mwk->meal_day3 = $this->getMealDetails($mwk->meal_day3);
-            $mwk->meal_day4 = MealDay::where('id',$mwk->meal_day4)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day4))
-            $mwk->meal_day4 = $this->getMealDetails($mwk->meal_day4);
-            $mwk->meal_day5 = MealDay::where('id',$mwk->meal_day5)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day5))
-            $mwk->meal_day5 = $this->getMealDetails($mwk->meal_day5);
-            $mwk->meal_day6 = MealDay::where('id',$mwk->meal_day6)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day6))
-            $mwk->meal_day6 = $this->getMealDetails($mwk->meal_day6);
-            $mwk->meal_day7 = MealDay::where('id',$mwk->meal_day7)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day7))
-            $mwk->meal_day7 = $this->getMealDetails($mwk->meal_day7);
+            for($i = 1; $i <= 7; $i++) {
+                $dayField = 'meal_day' . $i;
+                $mwk->$dayField = $this->getMealDayWithDetails($mwk->$dayField);
+            }
         }
         return response()->json([
             'status' => true,
@@ -815,35 +795,12 @@ class MealPlansController extends Controller
         }
         
         $weekIds = MealPlanWeek::where('meal_plan_id',$planDetail->id)->orderBy('id','asc')->pluck('meal_week_id')->toArray();
-        $planDetail->weeks = MealWeek::whereIn('id',$weekIds)->orderByRaw('FIELD(id, ' . implode(',', $weekIds) . ')')->get()->makeHidden(['tags','status','created_at','updated_at']);
+        $planDetail->weeks = empty($weekIds) ? collect() : MealWeek::whereIn('id',$weekIds)->orderByRaw('FIELD(id, ' . implode(',', $weekIds) . ')')->get()->makeHidden(['tags','status','created_at','updated_at']);
         foreach ($planDetail->weeks as $mwk) {
-            $mwk->meal_day1 = MealDay::where('id',$mwk->meal_day1)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day1))
-            $mwk->meal_day1 = $this->getMealDetails($mwk->meal_day1);
-
-            $mwk->meal_day2 = MealDay::where('id',$mwk->meal_day2)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day2))
-            $mwk->meal_day2 = $this->getMealDetails($mwk->meal_day2);
-
-            $mwk->meal_day3 = MealDay::where('id',$mwk->meal_day3)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day3))
-            $mwk->meal_day3 = $this->getMealDetails($mwk->meal_day3);
-
-            $mwk->meal_day4 = MealDay::where('id',$mwk->meal_day4)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day4))
-            $mwk->meal_day4 = $this->getMealDetails($mwk->meal_day4);
-
-            $mwk->meal_day5 = MealDay::where('id',$mwk->meal_day5)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day5))
-            $mwk->meal_day5 = $this->getMealDetails($mwk->meal_day5);
-
-            $mwk->meal_day6 = MealDay::where('id',$mwk->meal_day6)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day6))
-            $mwk->meal_day6 = $this->getMealDetails($mwk->meal_day6);
-
-            $mwk->meal_day7 = MealDay::where('id',$mwk->meal_day7)->first()->makeHidden(['tags','status','created_at','updated_at']);
-            if(!is_null($mwk->meal_day7))
-            $mwk->meal_day7 = $this->getMealDetails($mwk->meal_day7);
+            for($i = 1; $i <= 7; $i++) {
+                $dayField = 'meal_day' . $i;
+                $mwk->$dayField = $this->getMealDayWithDetails($mwk->$dayField);
+            }
         }
 
         $weekStatuses = [];
@@ -939,12 +896,24 @@ class MealPlansController extends Controller
         return $mealDay;
     }
 
+    function getMealDayWithDetails($mealDayId){
+        if(is_null($mealDayId))
+        return null;
+
+        $mealDay = MealDay::where('id',$mealDayId)->first();
+        if(is_null($mealDay))
+        return null;
+
+        $mealDay->makeHidden(['tags','status','created_at','updated_at']);
+        return $this->getMealDetails($mealDay);
+    }
+
     function updateMealDay(Request $request){
         $validate = Validator::make($request->all(),[
             'id' => 'required|numeric',
             'name' => 'required|string',
             'description' => 'nullable|string',
-            'tags' => 'required|array|min:1',
+            'tags' => 'nullable|array',
             'language' => 'required|in:en,ar',
             'breakfast' => 'numeric|nullable',
             'lunch' => 'numeric|nullable',
@@ -970,7 +939,7 @@ class MealPlansController extends Controller
         ]);
         $mealDay->name = $request->name;
         $mealDay->description = $request->description;
-        $mealDay->tags = json_encode($request->tags);
+        $mealDay->tags = json_encode($request->tags ?? []);
         $mealDay->language = $request->language;
         $mealDay->breakfast = $request->breakfast;
         $mealDay->lunch = $request->lunch;
@@ -989,15 +958,15 @@ class MealPlansController extends Controller
             'id' => 'required|numeric',
             'name' => 'required|string',
             'description' => 'nullable|string',
-            'tags' => 'required|array|min:1',
+            'tags' => 'nullable|array',
             'language' => 'required|in:en,ar',
-            'meal_day1' => 'required|numeric',
-            'meal_day2' => 'required|numeric',
-            'meal_day3' => 'required|numeric',
-            'meal_day4' => 'required|numeric',
-            'meal_day5' => 'required|numeric',
-            'meal_day6' => 'required|numeric',
-            'meal_day7' => 'required|numeric',
+            'meal_day1' => 'nullable|numeric',
+            'meal_day2' => 'nullable|numeric',
+            'meal_day3' => 'nullable|numeric',
+            'meal_day4' => 'nullable|numeric',
+            'meal_day5' => 'nullable|numeric',
+            'meal_day6' => 'nullable|numeric',
+            'meal_day7' => 'nullable|numeric',
         ]);
         if($vld->fails())
         return response()->json([
@@ -1012,7 +981,7 @@ class MealPlansController extends Controller
         ]);
         $mealWeek->name = $request->name;
         $mealWeek->description = $request->description;
-        $mealWeek->tags = json_encode($request->tags);
+        $mealWeek->tags = json_encode($request->tags ?? []);
         $mealWeek->language = $request->language;
         $mealWeek->meal_day1 = $request->meal_day1;
         $mealWeek->meal_day2 = $request->meal_day2;
@@ -1033,9 +1002,9 @@ class MealPlansController extends Controller
             'id' => 'required|numeric',
             'name' => 'required|string',
             'description' => 'nullable|string',
-            'tags' => 'required|string',
+            'tags' => 'nullable|string',
             'language' => 'required|in:en,ar',
-            'week_data' => 'required',
+            'week_data' => 'nullable',
             'attatchment' => 'nullable|mimes:pdf,PDF',
             'attatchment2' => 'nullable|mimes:pdf,PDF',
             'attatchment3' => 'nullable|mimes:pdf,PDF',
@@ -1054,7 +1023,7 @@ class MealPlansController extends Controller
         ]);
         $mealPlan->name = $request->name;
         $mealPlan->description = $request->description;
-        $mealPlan->tags = $request->tags;
+        $mealPlan->tags = $request->tags ?? json_encode([]);
         $mealPlan->language = $request->language;
         $mealPlan->duration = $request->duration;
         if($request->hasFile('image')){
@@ -1082,7 +1051,8 @@ class MealPlansController extends Controller
         }
         $mealPlan->save();
         MealPlanWeek::where('meal_plan_id',$request->id)->delete();
-        $requestWeeks = json_decode($request->week_data);
+        $requestWeeks = json_decode($request->week_data ?? '[]');
+        $requestWeeks = is_array($requestWeeks) ? $requestWeeks : [];
         foreach ($requestWeeks as $rw) {
             $newWeek = new MealPlanWeek();
             $newWeek->meal_plan_id = $request->id;
@@ -1290,10 +1260,7 @@ class MealPlansController extends Controller
                     // Load all days for this week
                     for($i = 1; $i <= 7; $i++) {
                         $dayField = 'meal_day' . $i;
-                        $mealDay = MealDay::where('id', $mealWeek->$dayField)->first()->makeHidden(['tags','status','created_at','updated_at']);
-                        if($mealDay) {
-                            $mealWeek->$dayField = $this->getMealDetails($mealDay);
-                        }
+                        $mealWeek->$dayField = $this->getMealDayWithDetails($mealWeek->$dayField);
                     }
                     return response()->json([
                         'status' => true,
@@ -1312,35 +1279,12 @@ class MealPlansController extends Controller
             ]);
         } else {
             // Return full plan (default) - all weeks with all days
-            $planDetail->weeks = MealWeek::whereIn('id',$weekIds)->orderByRaw('FIELD(id, ' . implode(',', $weekIds) . ')')->get()->makeHidden(['tags','status','created_at','updated_at']);
+            $planDetail->weeks = empty($weekIds) ? collect() : MealWeek::whereIn('id',$weekIds)->orderByRaw('FIELD(id, ' . implode(',', $weekIds) . ')')->get()->makeHidden(['tags','status','created_at','updated_at']);
             foreach ($planDetail->weeks as $mwk) {
-                $mwk->meal_day1 = MealDay::where('id',$mwk->meal_day1)->first()->makeHidden(['tags','status','created_at','updated_at']);
-                if(!is_null($mwk->meal_day1))
-                $mwk->meal_day1 = $this->getMealDetails($mwk->meal_day1);
-
-                $mwk->meal_day2 = MealDay::where('id',$mwk->meal_day2)->first()->makeHidden(['tags','status','created_at','updated_at']);
-                if(!is_null($mwk->meal_day2))
-                $mwk->meal_day2 = $this->getMealDetails($mwk->meal_day2);
-
-                $mwk->meal_day3 = MealDay::where('id',$mwk->meal_day3)->first()->makeHidden(['tags','status','created_at','updated_at']);
-                if(!is_null($mwk->meal_day3))
-                $mwk->meal_day3 = $this->getMealDetails($mwk->meal_day3);
-
-                $mwk->meal_day4 = MealDay::where('id',$mwk->meal_day4)->first()->makeHidden(['tags','status','created_at','updated_at']);
-                if(!is_null($mwk->meal_day4))
-                $mwk->meal_day4 = $this->getMealDetails($mwk->meal_day4);
-
-                $mwk->meal_day5 = MealDay::where('id',$mwk->meal_day5)->first()->makeHidden(['tags','status','created_at','updated_at']);
-                if(!is_null($mwk->meal_day5))
-                $mwk->meal_day5 = $this->getMealDetails($mwk->meal_day5);
-
-                $mwk->meal_day6 = MealDay::where('id',$mwk->meal_day6)->first()->makeHidden(['tags','status','created_at','updated_at']);
-                if(!is_null($mwk->meal_day6))
-                $mwk->meal_day6 = $this->getMealDetails($mwk->meal_day6);
-
-                $mwk->meal_day7 = MealDay::where('id',$mwk->meal_day7)->first()->makeHidden(['tags','status','created_at','updated_at']);
-                if(!is_null($mwk->meal_day7))
-                $mwk->meal_day7 = $this->getMealDetails($mwk->meal_day7);
+                for($i = 1; $i <= 7; $i++) {
+                    $dayField = 'meal_day' . $i;
+                    $mwk->$dayField = $this->getMealDayWithDetails($mwk->$dayField);
+                }
             }
 
             $weekStatuses = [];

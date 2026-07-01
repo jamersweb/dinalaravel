@@ -830,12 +830,6 @@ export default {
                 this.informModal = true;
                 return
             }
-            if (this.postData.tags.length < 1) {
-                this.modalTitle = 'Error';
-                this.modalDetail = 'Please select at least one tag';
-                this.informModal = true;
-                return
-            }
             if (this.type == 'days') {
                 if (this.days[0].Breakfast == null && this.days[0].Dinner == null && this.days[0].Lunch == null && this.days[0].Snacks == null && this.days[0].Drink == null) {
                     this.modalTitle = 'Error';
@@ -895,14 +889,6 @@ export default {
                     })
             }
             else if (this.type == 'weeks') {
-                for (let index = 0; index < this.weeks.length; index++) {
-                    if (this.weeks[index] == null) {
-                        this.modalTitle = 'Error';
-                        this.modalDetail = 'Enter data for each day';
-                        this.informModal = true;
-                        return
-                    }
-                }
                 if (this.weeks[0] !== null) {
                     this.postData.meal_day1 = this.weeks[0].id;
                 }
@@ -946,16 +932,11 @@ export default {
                     })
             }
             else if (this.type == 'plan') {
-                for (let index = 0; index < this.plan.length; index++) {
-                    if (this.plan[index] == null) {
-                        this.modalTitle = 'Error';
-                        this.modalDetail = 'Enter data for each Week';
-                        this.informModal = true;
-                        return
-                    }
-                }
                 this.postData.week_data = [];
                 for (let index = 0; index < this.plan.length; index++) {
+                    if (this.plan[index] == null) {
+                        continue;
+                    }
                     this.postData.week_data.push(this.plan[index].id)
                 }
                 this.postData.duration = parseInt(this.durationweeks);
