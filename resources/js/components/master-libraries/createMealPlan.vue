@@ -220,7 +220,7 @@
                         <div class="p-2" style="height:300px;overflow-y:auto;overflow-x:hidden;">
                             <div class="row text-center">
                                 <div v-for="(item, index) in filteredMeals" :key="item.name"  class="col-xl-3 col-md-4 col-sm-6 col-12 mt-3">
-                                    <div class="shd_card p-0 h-100 text-center drag-el" draggable="true" @dragstart="startDrag(item)" style="width:100%;cursor:pointer">
+                                    <div class="shd_card p-0 h-100 text-center drag-el" draggable="true" @dragstart="startDrag(item)" @click="previewLibraryItem(item)" style="width:100%;cursor:pointer">
                                         <div v-if="type=='days'" class="p-2">
                                             <img v-if="item.file_type=='image'" :src="item.file" alt="" style="height:80px;width:100%;">
                                             <img v-else :src="item.video_thumbnail" alt="" style="height:80px;width:100%;">
@@ -236,6 +236,52 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div v-if="selectedMealDetail" class="meal-preview-overlay" @click.self="closeMealPreview">
+        <div class="meal-preview-box position-relative p-3">
+            <button class="trans_btn position-absolute" @click="closeMealPreview" style="right:18px;top:12px;font-size:25px">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="row w-100 mx-0">
+                <div class="col-md-5 p-2">
+                    <video v-if="selectedMealDetail.file_type=='video'" :src="selectedMealDetail.file" controls class="img-fluid brds-2 w-100"></video>
+                    <img v-else :src="selectedMealDetail.file" alt="Meal" class="img-fluid brds-2 w-100">
+                </div>
+                <div class="col-md-7 p-2 pe-5">
+                    <h2 class="fw-bold mb-3">{{selectedMealDetail.name}}</h2>
+                    <p class="mb-1 fs-4">{{selectedMealDetail.calories_per_serving}} Cal / Serving</p>
+                    <p class="mb-3 text-muted">{{selectedMealDetail.protein_per_serving}}g Protein, {{selectedMealDetail.carbs_per_serving}}g Carbs, {{selectedMealDetail.fat_per_serving}}g Fat, {{selectedMealDetail.fiber_per_serving}}g Fiber</p>
+                    <p class="mb-1 fs-5">Recipe Makes</p>
+                    <p class="mb-3 text-muted">{{selectedMealDetail.no_of_servings}} Servings</p>
+                    <p class="mb-1 fs-5">Total prep time {{mealTotalPrepTime(selectedMealDetail)}} minutes</p>
+                    <p class="mb-0 text-muted">Preparation: {{selectedMealDetail.prep_time}} minutes / Cooking: {{selectedMealDetail.cook_time}} minutes</p>
+                </div>
+            </div>
+            <div class="row w-100 mx-0 mt-3">
+                <div class="col-md-5 p-2">
+                    <div class="tsh brds-2 p-3 h-100">
+                        <h5 class="fw-bold">Ingredients</h5>
+                        <p v-if="selectedMealIngredients.length < 1" class="mb-0">No ingredients added</p>
+                        <p v-for="(item, index) in selectedMealIngredients" :key="index" class="mb-1">
+                            <span v-if="selectedMealDetail.meal_type=='auto'">{{item.name}} - {{parseInt(item.quantity1) + parseFloat(item.quantity2)}}</span>
+                            <span v-else>{{item}}</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-7 p-2">
+                    <div class="tsh brds-2 p-3 h-100">
+                        <h5 class="fw-bold">Directions</h5>
+                        <p v-if="selectedMealDirections.length < 1" class="mb-0">No directions added</p>
+                        <p v-for="(item, index) in selectedMealDirections" :key="index" class="mb-1 wb-all">{{index+1}} - {{item}}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="tsh brds-2 p-3 mt-3">
+                <h5 class="fw-bold">Tags</h5>
+                <span v-for="(item, index) in selectedMealTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1 d-inline-block">{{item}}</span>
+                <p v-if="selectedMealTags.length < 1" class="mb-0">No tags added</p>
             </div>
         </div>
     </div>
@@ -291,7 +337,11 @@ export default {
             loaderText: '',
             durationweeks: '1',
             thumbnailPreview: null,
-            showSearchSuggestions: false
+            showSearchSuggestions: false,
+            selectedMealDetail: null,
+            selectedMealIngredients: [],
+            selectedMealDirections: [],
+            selectedMealTags: []
         }
     },
     computed: {
@@ -338,8 +388,13 @@ export default {
         },
         normalizeSearchText(value) {
             return String(value ?? '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[\u200B-\u200D\uFEFF]/g, '')
+                .replace(/\u00a0/g, ' ')
                 .toLowerCase()
-                .replace(/[_\-/,.;:()[\]{}"'`~!@#$%^&*+=|\\<>?]+/g, ' ')
+                .replace(/&/g, ' and ')
+                .replace(/[_\-/,.;:()[\]{}"'`~!@#$%^*+=|\\<>?]+/g, ' ')
                 .replace(/\s+/g, ' ')
                 .trim();
         },
@@ -389,6 +444,21 @@ export default {
                 ? terms.every((term) => searchableText.includes(term))
                 : terms.some((term) => searchableText.includes(term));
         },
+        mealNameMatchesSearch(item, searchValue, requireEveryTerm = false) {
+            const name = this.normalizeSearchText(item.name);
+            if (name.includes(searchValue)) {
+                return true;
+            }
+
+            const terms = this.mealSearchTerms(searchValue);
+            if (terms.length === 0) {
+                return false;
+            }
+
+            return requireEveryTerm
+                ? terms.every((term) => name.includes(term))
+                : terms.some((term) => name.includes(term));
+        },
         getMealSearchPool(searchValue) {
             const languageMatches = this.allMeals || [];
             const allMeals = this.allMealsForSearch.length > 0 ? this.allMealsForSearch : languageMatches;
@@ -397,10 +467,20 @@ export default {
                 return languageMatches;
             }
 
-            const languageExactMatches = languageMatches.filter((item) => this.mealMatchesSearch(item, searchValue, true));
-            return languageExactMatches.length > 0 ? languageMatches : allMeals;
+            const languageTitleMatches = languageMatches.filter((item) => this.mealNameMatchesSearch(item, searchValue, true));
+            return languageTitleMatches.length > 0 ? languageMatches : allMeals;
         },
         getSearchResults(items, searchValue) {
+            const titlePhraseMatches = items.filter((item) => this.normalizeSearchText(item.name).includes(searchValue));
+            if (titlePhraseMatches.length > 0) {
+                return titlePhraseMatches;
+            }
+
+            const titleTermMatches = items.filter((item) => this.mealNameMatchesSearch(item, searchValue, true));
+            if (titleTermMatches.length > 0) {
+                return titleTermMatches;
+            }
+
             const exactMatches = items.filter((item) => this.mealMatchesSearch(item, searchValue, true));
 
             if (exactMatches.length > 0) {
@@ -439,11 +519,62 @@ export default {
         selectSearchSuggestion(item) {
             this.search = item.name;
             this.showSearchSuggestions = false;
+            this.previewLibraryItem(item);
         },
         hideSearchSuggestions() {
             setTimeout(() => {
                 this.showSearchSuggestions = false;
             }, 120);
+        },
+        parseJsonList(value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value === null || value === undefined || value === '') {
+                return [];
+            }
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                return [];
+            }
+        },
+        mealTotalPrepTime(meal) {
+            return (parseInt(meal.prep_time) || 0) + (parseInt(meal.cook_time) || 0);
+        },
+        previewLibraryItem(item) {
+            if (this.type !== 'days' || !item || !item.id) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal';
+            axios.get(config.baseApiUrl + 'get-meal-detail/' + item.id, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealDetail = res.data.data;
+                        this.selectedMealIngredients = this.parseJsonList(this.selectedMealDetail.ingredients);
+                        this.selectedMealDirections = this.parseJsonList(this.selectedMealDetail.directions);
+                        this.selectedMealTags = this.selectedMealDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
+        closeMealPreview() {
+            this.selectedMealDetail = null;
+            this.selectedMealIngredients = [];
+            this.selectedMealDirections = [];
+            this.selectedMealTags = [];
         },
         getImage() {
             const tempFile = this.$refs.thumbnailFile.files[0];
@@ -899,5 +1030,24 @@ export default {
 .meal-search-suggestion small {
     color: #777;
     font-size: 11px;
+}
+
+.meal-preview-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.meal-preview-box {
+    background: white;
+    border-radius: 20px;
+    width: min(1000px, 92vw);
+    max-height: 88vh;
+    overflow-y: auto;
 }
 </style>
