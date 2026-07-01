@@ -103,11 +103,11 @@
                         </div>
                         <div class="dropdown">
                             <div class="prof-name" style="cursor: pointer;" data-bs-toggle="dropdown" aria-expanded="false" >
-                                <h3 class="d-flex">
-                                    <strong>{{logInProps.name}}</strong>
+                                <h3 class="d-flex align-items-center mb-0 profile-name-heading">
+                                    <strong class="profile-name-text">{{logInProps.name}}</strong>
                                     <i class="fa-solid fa-angle-down mt-2" style="font-size: 15px;margin-left: 10px;padding-top: 2px;"></i>
                                 </h3>
-                                <p class="mb-0" style="font-size: 10px; color: #000;margin-top: -13px;">{{logInProps.role}}</p>
+                                <p class="mb-0 profile-role">{{logInProps.role}}</p>
                             </div>
                             <!-- <button class="py-1 border-0" type="button" id="dropdownMenuButton1"
                                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -287,6 +287,26 @@ img.position-absolute {
     width: 170px;
     top: 50px;
     right: -10px;
+}
+
+.profile-name-heading {
+    font-size: 0.75rem;
+    line-height: 1.1;
+}
+
+.profile-name-text {
+    display: inline-block;
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-role {
+    color: #000;
+    font-size: 10px;
+    line-height: 1.1;
+    margin-top: 2px;
 }
 
 .notify {
