@@ -182,6 +182,18 @@
                             <div class="position-relative w-100">
                                 <input type="text" class="w-100 exSearch" placeholder="Search for a Meal" v-model="search">
                                 <img src="/cms-assets/images/navbar-topbar/search.png" alt="search-icon" class="img-fluid position-absolute">
+                                <div v-if="searchSuggestions.length > 0" class="meal-search-suggestions">
+                                    <button
+                                        v-for="item in searchSuggestions"
+                                        :key="item.id || item.name"
+                                        type="button"
+                                        class="meal-search-suggestion"
+                                        @mousedown.prevent="selectSearchSuggestion(item)"
+                                    >
+                                        <span>{{ item.name }}</span>
+                                        <small v-if="item.tagNames && item.tagNames.length">{{ item.tagNames.join(', ') }}</small>
+                                    </button>
+                                </div>
                             </div>
                             <!-- <div>
                                 <button class="trans_btn py-2">
@@ -273,19 +285,25 @@ export default {
     },
     computed: {
         filteredMeals() {
-            return this.allMeals.filter((item) => {
-                if (item.name.toLowerCase().includes(this.search.toLowerCase())) {
-                    return item
-                }
-                else {
-                    for (let index = 0; index < item.tagNames.length; index++) {
-                        if (item.tagNames[index].toLowerCase().includes(this.search.toLowerCase())) {
-                            return item
-                        }
-                    }
+            const searchValue = this.normalizeSearchText(this.search);
+            if (searchValue === '') {
+                return this.allMeals;
+            }
 
-                }
-            });
+            return this.allMeals.filter((item) => this.mealMatchesSearch(item, searchValue, true));
+        },
+        searchSuggestions() {
+            const searchValue = this.normalizeSearchText(this.search);
+            if (searchValue === '') {
+                return [];
+            }
+
+            return this.allMeals
+                .map((item) => ({ item, score: this.mealSearchScore(item, searchValue) }))
+                .filter((match) => match.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 6)
+                .map((match) => match.item);
         },
     },
     mounted() {
@@ -306,6 +324,85 @@ export default {
             } else {
                 return title;
             }
+        },
+        normalizeSearchText(value) {
+            return String(value ?? '')
+                .toLowerCase()
+                .replace(/[_\-/,.;:()[\]{}"'`~!@#$%^&*+=|\\<>?]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        },
+        collectSearchableValues(value) {
+            if (value === null || value === undefined) {
+                return [];
+            }
+
+            if (Array.isArray(value)) {
+                return value.flatMap((item) => this.collectSearchableValues(item));
+            }
+
+            if (typeof value === 'object') {
+                return Object.values(value).flatMap((item) => this.collectSearchableValues(item));
+            }
+
+            const text = String(value);
+            const trimmed = text.trim();
+            if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+                try {
+                    return [text, ...this.collectSearchableValues(JSON.parse(trimmed))];
+                } catch (e) {
+                    return [text];
+                }
+            }
+
+            return [text];
+        },
+        mealSearchText(item) {
+            return this.normalizeSearchText(this.collectSearchableValues(item).join(' '));
+        },
+        mealSearchTerms(searchValue) {
+            return searchValue.split(' ').filter((term) => term.length > 1);
+        },
+        mealMatchesSearch(item, searchValue, requireEveryTerm = false) {
+            const searchableText = this.mealSearchText(item);
+            if (searchableText.includes(searchValue)) {
+                return true;
+            }
+
+            const terms = this.mealSearchTerms(searchValue);
+            if (terms.length === 0) {
+                return false;
+            }
+
+            return requireEveryTerm
+                ? terms.every((term) => searchableText.includes(term))
+                : terms.some((term) => searchableText.includes(term));
+        },
+        mealSearchScore(item, searchValue) {
+            const searchableText = this.mealSearchText(item);
+            const name = this.normalizeSearchText(item.name);
+            const terms = this.mealSearchTerms(searchValue);
+            let score = 0;
+
+            if (name.includes(searchValue)) {
+                score += 100;
+            }
+            if (searchableText.includes(searchValue)) {
+                score += 50;
+            }
+
+            terms.forEach((term) => {
+                if (name.includes(term)) {
+                    score += 10;
+                } else if (searchableText.includes(term)) {
+                    score += 3;
+                }
+            });
+
+            return score;
+        },
+        selectSearchSuggestion(item) {
+            this.search = item.name;
         },
         getImage() {
             const tempFile = this.$refs.thumbnailFile.files[0];
@@ -721,5 +818,45 @@ export default {
     background-color: #fff;
     margin-bottom: 10px;
     padding: 5px;
+}
+
+.meal-search-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #f2a18c;
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.meal-search-suggestion {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: 0;
+    background: #fff;
+    text-align: left;
+}
+
+.meal-search-suggestion:hover {
+    background: #f7f7f7;
+}
+
+.meal-search-suggestion span,
+.meal-search-suggestion small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.meal-search-suggestion small {
+    color: #777;
+    font-size: 11px;
 }
 </style>

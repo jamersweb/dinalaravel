@@ -8,11 +8,23 @@
             <h4 class="col-6 float-start pt-0" style="font-size:26px;">Meals</h4>
             <div class="col-6 ps-4 float-end">
                 <img v-if="!showDetails" src="../../../../public/images/filter.png" @click="filters=true" class="col-1 float-end mx-2 mt-2 " style="height:16px;width:25px;cursor:pointer;" alt="Error">
-                <div type="text" class="col-9 h-75 float-end mx-2" style="border:1px solid;border-color:#C5C5C5;border-radius:10px;float:right;height:30px;background-color:#FFFFFF" >
+                <div type="text" class="col-9 h-75 float-end mx-2 position-relative" style="border:1px solid;border-color:#C5C5C5;border-radius:10px;float:right;height:30px;background-color:#FFFFFF" >
                     <div class="col-1 float-start pt-1 ps-1">
                         <img src="/cms-assets/images/navbar-topbar/search.png" alt="Error" style="height:13px;width:15px;z-index:99;">
                     </div>
                     <input @input="applySearch()" type="text" class="input1 col-9 h-75 mt-0 ms-2 float-start" style="border:none;background-color:transparent;" v-model="search" placeholder="Search for meal">
+                    <div v-if="searchSuggestions.length > 0" class="meal-search-suggestions">
+                        <button
+                            v-for="item in searchSuggestions"
+                            :key="item.id || item.name"
+                            type="button"
+                            class="meal-search-suggestion"
+                            @mousedown.prevent="selectSearchSuggestion(item)"
+                        >
+                            <span>{{ item.name }}</span>
+                            <small v-if="item.tagNames && item.tagNames.length">{{ item.tagNames.join(', ') }}</small>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -206,6 +218,21 @@ export default {
         this.getTags();
         this.getAllMeals();
     },
+    computed: {
+        searchSuggestions() {
+            const searchValue = this.normalizeSearchText(this.search);
+            if (searchValue === '') {
+                return [];
+            }
+
+            return (this.tagsFilteredMeal || [])
+                .map((item) => ({ item, score: this.mealSearchScore(item, searchValue) }))
+                .filter((match) => match.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 6)
+                .map((match) => match.item);
+        },
+    },
     methods: {
         truncatedString(title) {
         const maxLength = 40;
@@ -214,6 +241,106 @@ export default {
             } else {
                 return title;
             }
+        },
+        normalizeSearchText(value) {
+            return String(value ?? '')
+                .toLowerCase()
+                .replace(/[_\-/,.;:()[\]{}"'`~!@#$%^&*+=|\\<>?]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        },
+        collectSearchableValues(value) {
+            if (value === null || value === undefined) {
+                return [];
+            }
+
+            if (Array.isArray(value)) {
+                return value.flatMap((item) => this.collectSearchableValues(item));
+            }
+
+            if (typeof value === 'object') {
+                return Object.values(value).flatMap((item) => this.collectSearchableValues(item));
+            }
+
+            const text = String(value);
+            const trimmed = text.trim();
+            if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+                try {
+                    return [text, ...this.collectSearchableValues(JSON.parse(trimmed))];
+                } catch (e) {
+                    return [text];
+                }
+            }
+
+            return [text];
+        },
+        mealSearchText(item) {
+            return this.normalizeSearchText(this.collectSearchableValues(item).join(' '));
+        },
+        mealSearchTerms(searchValue) {
+            return searchValue.split(' ').filter((term) => term.length > 1);
+        },
+        mealMatchesSearch(item, searchValue, requireEveryTerm = false) {
+            const searchableText = this.mealSearchText(item);
+            if (searchableText.includes(searchValue)) {
+                return true;
+            }
+
+            const terms = this.mealSearchTerms(searchValue);
+            if (terms.length === 0) {
+                return false;
+            }
+
+            return requireEveryTerm
+                ? terms.every((term) => searchableText.includes(term))
+                : terms.some((term) => searchableText.includes(term));
+        },
+        mealSearchScore(item, searchValue) {
+            const searchableText = this.mealSearchText(item);
+            const name = this.normalizeSearchText(item.name);
+            const terms = this.mealSearchTerms(searchValue);
+            let score = 0;
+
+            if (name.includes(searchValue)) {
+                score += 100;
+            }
+            if (searchableText.includes(searchValue)) {
+                score += 50;
+            }
+
+            terms.forEach((term) => {
+                if (name.includes(term)) {
+                    score += 10;
+                } else if (searchableText.includes(term)) {
+                    score += 3;
+                }
+            });
+
+            return score;
+        },
+        selectSearchSuggestion(item) {
+            this.search = item.name;
+            this.applySearch();
+        },
+        getVisibleMeals() {
+            const searchValue = this.normalizeSearchText(this.search);
+            let visibleMeals = this.tagsFilteredMeal || [];
+
+            if (this.btnValue !== 'all') {
+                visibleMeals = visibleMeals.filter((ml) => {
+                    try {
+                        return JSON.parse(ml.suitable_for || '[]').includes(this.btnValue);
+                    } catch (e) {
+                        return false;
+                    }
+                });
+            }
+
+            if (searchValue !== '') {
+                visibleMeals = visibleMeals.filter((ml) => this.mealMatchesSearch(ml, searchValue, true));
+            }
+
+            return visibleMeals;
         },
         applyFilters(tagIds){
             this.selectedTagsForFilter = tagIds;
@@ -230,41 +357,21 @@ export default {
                     }
                 };
             }
-            this.finalVisibleMeals = this.tagsFilteredMeal;
             this.applySearch();
         },
         clearFilters(){
             this.selectedTagsForFilter = [];
             this.tagsFilteredMeal = this.allMeals;
-            this.finalVisibleMeals = this.allMeals;
             this.applySearch();
         },
         applySearch(){
-            let searchValue = this.search.toLowerCase().trim();
-            if(searchValue==""){
-                this.finalVisibleMeals = this.tagsFilteredMeal;
+            if (this.normalizeSearchText(this.search) === '') {
                 this.search = '';
-                return;
             }
-            let tempArray = [];
-            this.tagsFilteredMeal.forEach(ml => {
-                if(ml.name.toLowerCase().includes(searchValue))
-                tempArray.push(ml);
-            });
-            this.finalVisibleMeals = tempArray;
-            selectedTab();
+            this.finalVisibleMeals = this.getVisibleMeals();
         },
         selectedTab(){
-            if(this.btnValue==='all'){
-                this.finalVisibleMeals = this.tagsFilteredMeal;
-                return;
-            }
-            let tempArray = [];
-            this.tagsFilteredMeal.forEach(ml => {
-                if(JSON.parse(ml.suitable_for).includes(this.btnValue))
-                tempArray.push(ml);
-            });
-            this.finalVisibleMeals = tempArray;
+            this.finalVisibleMeals = this.getVisibleMeals();
         },
         getTags() {
             this.pageLoading = true;
@@ -401,6 +508,46 @@ export default {
 
 .input1::placeholder {
     font-size: 9px;
+}
+
+.meal-search-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #f2a18c;
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.meal-search-suggestion {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: 0;
+    background: #fff;
+    text-align: left;
+}
+
+.meal-search-suggestion:hover {
+    background: #f7f7f7;
+}
+
+.meal-search-suggestion span,
+.meal-search-suggestion small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.meal-search-suggestion small {
+    color: #777;
+    font-size: 11px;
 }
 
 .content {
