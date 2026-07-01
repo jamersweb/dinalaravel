@@ -105,37 +105,37 @@
             </div>
             <div v-if="mealDetail!==null&&type=='weeks'" class="d-flex flex-wrap w-100 mt-0 mb-0" >
                 <p v-if="mealDetail.meal_day1!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Day1:</p>
-                <div v-if="mealDetail.meal_day1!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.meal_day1!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDayDetails(mealDetail.meal_day1, mealDetail.meal_day1_detail)">
                     <img :src="mealDetail.meal_day1_detail.image" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.meal_day1_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.meal_day2!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Day2:</p>
-                <div v-if="mealDetail.meal_day2!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.meal_day2!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDayDetails(mealDetail.meal_day2, mealDetail.meal_day2_detail)">
                     <img :src="mealDetail.meal_day2_detail.image" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.meal_day2_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.meal_day3!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Day3:</p>
-                <div v-if="mealDetail.meal_day3!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.meal_day3!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDayDetails(mealDetail.meal_day3, mealDetail.meal_day3_detail)">
                     <img :src="mealDetail.meal_day3_detail.image" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.meal_day3_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.meal_day4!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Day4:</p>
-                <div v-if="mealDetail.meal_day4!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.meal_day4!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDayDetails(mealDetail.meal_day4, mealDetail.meal_day4_detail)">
                     <img :src="mealDetail.meal_day4_detail.image" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.meal_day4_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.meal_day5!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Day5:</p>
-                <div v-if="mealDetail.meal_day5!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.meal_day5!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDayDetails(mealDetail.meal_day5, mealDetail.meal_day5_detail)">
                     <img :src="mealDetail.meal_day5_detail.image" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.meal_day5_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.meal_day6!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Day6:</p>
-                <div v-if="mealDetail.meal_day6!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.meal_day6!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDayDetails(mealDetail.meal_day6, mealDetail.meal_day6_detail)">
                     <img :src="mealDetail.meal_day6_detail.image" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.meal_day6_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.meal_day7!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Day7:</p>
-                <div v-if="mealDetail.meal_day7!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.meal_day7!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDayDetails(mealDetail.meal_day7, mealDetail.meal_day7_detail)">
                     <img :src="mealDetail.meal_day7_detail.image" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.meal_day7_detail.name}}</p>
                 </div>
@@ -143,7 +143,7 @@
             <div v-if="mealDetail!==null&&type=='plan'" class="d-flex flex-wrap w-100 mt-0 mb-0" >
                 <div v-for="(item, index) in mealDetail.week_detail" :key="index" class="w-100">
                     <p class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Week {{index+1}} :</p>
-                    <div v-if="item!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                    <div v-if="item!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealWeekDetails(item.id, item)">
                         <img :src="item.image" alt="" class="img-fluid" style="max-width:100px">
                         <p class="ms-3 mb-0" style="align-self: center;">{{item.name}}</p>
                     </div>
@@ -196,6 +196,73 @@
                 </div>
             </div>
         </div>
+        <div v-if="selectedMealDayDetail" class="meal-detail-overlay" @click.self="closeMealDayDetails">
+            <div class="meal-detail-box position-relative p-3">
+                <button class="trans_btn position-absolute" @click="closeMealDayDetails" style="right:18px;top:12px;font-size:25px">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <h3 class="fw-bold pe-5">{{selectedMealDayDetail.name}}</h3>
+                <div class="row w-100 mx-0 mt-2">
+                    <div class="col-md-6 p-2">
+                        <p class="fw-bold mb-1">Tags</p>
+                        <div class="d-flex flex-wrap brds-1 p-2 border detail-meta-box">
+                            <span v-for="(item, index) in selectedMealDayTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1">{{item}}</span>
+                            <p v-if="selectedMealDayTags.length < 1" class="mb-0">No tags added</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 p-2">
+                        <p class="fw-bold mb-1">Description</p>
+                        <div class="brds-1 p-2 border detail-meta-box">
+                            <p class="mb-0 wb-all" v-if="selectedMealDayDetail.description">{{selectedMealDayDetail.description}}</p>
+                            <p class="mb-0" v-else>No description added</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-100 mt-2">
+                    <template v-for="slot in dayMealSlots(selectedMealDayDetail)" :key="slot.label">
+                        <p class="ms-3 mb-0 mt-3 fw-bold">{{slot.label}}:</p>
+                        <div class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDetails(slot.id, slot.detail)">
+                            <img v-if="slot.detail.file_type=='image'" :src="slot.detail.file" alt="" class="img-fluid" style="max-width:100px">
+                            <img v-else :src="slot.detail.video_thumbnail" alt="" class="img-fluid" style="max-width:100px">
+                            <p class="ms-3 mb-0" style="align-self: center;">{{slot.detail.name}}</p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        <div v-if="selectedMealWeekDetail" class="meal-detail-overlay" @click.self="closeMealWeekDetails">
+            <div class="meal-detail-box position-relative p-3">
+                <button class="trans_btn position-absolute" @click="closeMealWeekDetails" style="right:18px;top:12px;font-size:25px">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <h3 class="fw-bold pe-5">{{selectedMealWeekDetail.name}}</h3>
+                <div class="row w-100 mx-0 mt-2">
+                    <div class="col-md-6 p-2">
+                        <p class="fw-bold mb-1">Tags</p>
+                        <div class="d-flex flex-wrap brds-1 p-2 border detail-meta-box">
+                            <span v-for="(item, index) in selectedMealWeekTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1">{{item}}</span>
+                            <p v-if="selectedMealWeekTags.length < 1" class="mb-0">No tags added</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 p-2">
+                        <p class="fw-bold mb-1">Description</p>
+                        <div class="brds-1 p-2 border detail-meta-box">
+                            <p class="mb-0 wb-all" v-if="selectedMealWeekDetail.description">{{selectedMealWeekDetail.description}}</p>
+                            <p class="mb-0" v-else>No description added</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-100 mt-2">
+                    <template v-for="slot in weekDaySlots(selectedMealWeekDetail)" :key="slot.label">
+                        <p class="ms-3 mb-0 mt-3 fw-bold">{{slot.label}}:</p>
+                        <div class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDayDetails(slot.id, slot.detail)">
+                            <img :src="slot.detail.image" alt="" class="img-fluid" style="max-width:100px">
+                            <p class="ms-3 mb-0" style="align-self: center;">{{slot.detail.name}}</p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -223,6 +290,10 @@ export default {
             selectedMealIngredients: [],
             selectedMealDirections: [],
             selectedMealTags: [],
+            selectedMealDayDetail: null,
+            selectedMealDayTags: [],
+            selectedMealWeekDetail: null,
+            selectedMealWeekTags: [],
         }
     },
     mounted() {
@@ -307,6 +378,34 @@ export default {
         mealTotalPrepTime(meal) {
             return (parseInt(meal.prep_time) || 0) + (parseInt(meal.cook_time) || 0);
         },
+        dayMealSlots(dayDetail) {
+            if (!dayDetail) {
+                return [];
+            }
+
+            return [
+                { label: 'Breakfast', id: dayDetail.breakfast, detail: dayDetail.breakfast_detail },
+                { label: 'Lunch', id: dayDetail.lunch, detail: dayDetail.lunch_detail },
+                { label: 'Dinner', id: dayDetail.dinner, detail: dayDetail.dinner_detail },
+                { label: 'Snacks', id: dayDetail.snacks, detail: dayDetail.snacks_detail },
+                { label: 'Drink', id: dayDetail.drinks, detail: dayDetail.drinks_detail },
+            ].filter((slot) => slot.id !== null && slot.id !== undefined && slot.detail);
+        },
+        weekDaySlots(weekDetail) {
+            if (!weekDetail) {
+                return [];
+            }
+
+            return [
+                { label: 'Day1', id: weekDetail.meal_day1, detail: weekDetail.meal_day1_detail },
+                { label: 'Day2', id: weekDetail.meal_day2, detail: weekDetail.meal_day2_detail },
+                { label: 'Day3', id: weekDetail.meal_day3, detail: weekDetail.meal_day3_detail },
+                { label: 'Day4', id: weekDetail.meal_day4, detail: weekDetail.meal_day4_detail },
+                { label: 'Day5', id: weekDetail.meal_day5, detail: weekDetail.meal_day5_detail },
+                { label: 'Day6', id: weekDetail.meal_day6, detail: weekDetail.meal_day6_detail },
+                { label: 'Day7', id: weekDetail.meal_day7, detail: weekDetail.meal_day7_detail },
+            ].filter((slot) => slot.id !== null && slot.id !== undefined && slot.detail);
+        },
         showMealDetails(mealId, mealSummary) {
             const id = mealId || (mealSummary ? mealSummary.id : null);
             if (!id) {
@@ -336,11 +435,73 @@ export default {
                     this.informModal = true;
                 })
         },
+        showMealDayDetails(mealDayId, mealDaySummary) {
+            const id = mealDayId || (mealDaySummary ? mealDaySummary.id : null);
+            if (!id) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal Day';
+            axios.get(config.baseApiUrl + 'get-meal-day-detail/' + id, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealDayDetail = res.data.data;
+                        this.selectedMealDayTags = this.selectedMealDayDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
+        showMealWeekDetails(mealWeekId, mealWeekSummary) {
+            const id = mealWeekId || (mealWeekSummary ? mealWeekSummary.id : null);
+            if (!id) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal Week';
+            axios.get(config.baseApiUrl + 'get-meal-week-detail/' + id, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealWeekDetail = res.data.data;
+                        this.selectedMealWeekTags = this.selectedMealWeekDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
         closeMealDetails() {
             this.selectedMealDetail = null;
             this.selectedMealIngredients = [];
             this.selectedMealDirections = [];
             this.selectedMealTags = [];
+        },
+        closeMealDayDetails() {
+            this.selectedMealDayDetail = null;
+            this.selectedMealDayTags = [];
+        },
+        closeMealWeekDetails() {
+            this.selectedMealWeekDetail = null;
+            this.selectedMealWeekTags = [];
         },
         quitComponent() {
             this.$parent.showViewMealPlanPopup(null);
@@ -385,6 +546,11 @@ export default {
     border-radius: 20px;
     width: min(1000px, 92vw);
     max-height: 88vh;
+    overflow-y: auto;
+}
+
+.detail-meta-box {
+    min-height: 90px;
     overflow-y: auto;
 }
 </style>
