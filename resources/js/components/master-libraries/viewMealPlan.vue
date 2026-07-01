@@ -73,31 +73,31 @@
             </div>
             <div v-if="mealDetail!==null&&type=='days'" class="d-flex flex-wrap w-100 mt-0 mb-0" >
                 <p v-if="mealDetail.breakfast!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Breakfast:</p>
-                <div v-if="mealDetail.breakfast!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.breakfast!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDetails(mealDetail.breakfast, mealDetail.breakfast_detail)">
                     <img v-if="mealDetail.breakfast_detail.file_type=='image'" :src="mealDetail.breakfast_detail.file" alt="" class="img-fluid" style="max-width:100px">
                     <img v-else :src="mealDetail.breakfast_detail.video_thumbnail" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.breakfast_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.lunch!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Lunch:</p>
-                <div v-if="mealDetail.lunch!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.lunch!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDetails(mealDetail.lunch, mealDetail.lunch_detail)">
                     <img v-if="mealDetail.lunch_detail.file_type=='image'" :src="mealDetail.lunch_detail.file" alt="" class="img-fluid" style="max-width:100px">
                     <img v-else :src="mealDetail.lunch_detail.video_thumbnail" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.lunch_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.dinner!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Dinner:</p>
-                <div v-if="mealDetail.dinner!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.dinner!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDetails(mealDetail.dinner, mealDetail.dinner_detail)">
                     <img v-if="mealDetail.dinner_detail.file_type=='image'" :src="mealDetail.dinner_detail.file" alt="" class="img-fluid" style="max-width:100px">
                     <img v-else :src="mealDetail.dinner_detail.video_thumbnail" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.dinner_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.snacks!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Snacks:</p>
-                <div v-if="mealDetail.snacks!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.snacks!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDetails(mealDetail.snacks, mealDetail.snacks_detail)">
                     <img v-if="mealDetail.snacks_detail.file_type=='image'" :src="mealDetail.snacks_detail.file" alt="" class="img-fluid" style="max-width:100px">
                     <img v-else :src="mealDetail.snacks_detail.video_thumbnail" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.snacks_detail.name}}</p>
                 </div>
                 <p v-if="mealDetail.drinks!==null" class="ms-3 mb-0 mt-3 fw-bold" style="align-self: center;">Drink:</p>
-                <div v-if="mealDetail.drinks!==null" class=" float-start d-flex shd_card w-100 mt-1 mb-0 py-2">
+                <div v-if="mealDetail.drinks!==null" class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-row" @click="showMealDetails(mealDetail.drinks, mealDetail.drinks_detail)">
                     <img v-if="mealDetail.drinks_detail.file_type=='image'" :src="mealDetail.drinks_detail.file" alt="" class="img-fluid" style="max-width:100px">
                     <img v-else :src="mealDetail.drinks_detail.video_thumbnail" alt="" class="img-fluid" style="max-width:100px">
                     <p class="ms-3 mb-0" style="align-self: center;">{{mealDetail.drinks_detail.name}}</p>
@@ -150,6 +150,52 @@
                 </div>
             </div>
         </div>
+        <div v-if="selectedMealDetail" class="meal-detail-overlay" @click.self="closeMealDetails">
+            <div class="meal-detail-box position-relative p-3">
+                <button class="trans_btn position-absolute" @click="closeMealDetails" style="right:18px;top:12px;font-size:25px">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="row w-100 mx-0">
+                    <div class="col-md-5 p-2">
+                        <video v-if="selectedMealDetail.file_type=='video'" :src="selectedMealDetail.file" controls class="img-fluid brds-2 w-100"></video>
+                        <img v-else :src="selectedMealDetail.file" alt="Meal" class="img-fluid brds-2 w-100">
+                    </div>
+                    <div class="col-md-7 p-2 pe-5">
+                        <h2 class="fw-bold mb-3">{{selectedMealDetail.name}}</h2>
+                        <p class="mb-1 fs-4">{{selectedMealDetail.calories_per_serving}} Cal / Serving</p>
+                        <p class="mb-3 text-muted">{{selectedMealDetail.protein_per_serving}}g Protein, {{selectedMealDetail.carbs_per_serving}}g Carbs, {{selectedMealDetail.fat_per_serving}}g Fat, {{selectedMealDetail.fiber_per_serving}}g Fiber</p>
+                        <p class="mb-1 fs-5">Recipe Makes</p>
+                        <p class="mb-3 text-muted">{{selectedMealDetail.no_of_servings}} Servings</p>
+                        <p class="mb-1 fs-5">Total prep time {{mealTotalPrepTime(selectedMealDetail)}} minutes</p>
+                        <p class="mb-0 text-muted">Preparation: {{selectedMealDetail.prep_time}} minutes / Cooking: {{selectedMealDetail.cook_time}} minutes</p>
+                    </div>
+                </div>
+                <div class="row w-100 mx-0 mt-3">
+                    <div class="col-md-5 p-2">
+                        <div class="tsh brds-2 p-3 h-100">
+                            <h5 class="fw-bold">Ingredients</h5>
+                            <p v-if="selectedMealIngredients.length < 1" class="mb-0">No ingredients added</p>
+                            <p v-for="(item, index) in selectedMealIngredients" :key="index" class="mb-1">
+                                <span v-if="selectedMealDetail.meal_type=='auto'">{{item.name}} - {{parseInt(item.quantity1) + parseFloat(item.quantity2)}}</span>
+                                <span v-else>{{item}}</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-7 p-2">
+                        <div class="tsh brds-2 p-3 h-100">
+                            <h5 class="fw-bold">Directions</h5>
+                            <p v-if="selectedMealDirections.length < 1" class="mb-0">No directions added</p>
+                            <p v-for="(item, index) in selectedMealDirections" :key="index" class="mb-1 wb-all">{{index+1}} - {{item}}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="tsh brds-2 p-3 mt-3">
+                    <h5 class="fw-bold">Tags</h5>
+                    <span v-for="(item, index) in selectedMealTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1 d-inline-block">{{item}}</span>
+                    <p v-if="selectedMealTags.length < 1" class="mb-0">No tags added</p>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -173,6 +219,10 @@ export default {
             modalTitle: '',
             modalDetail: '',
             loaderText: '',
+            selectedMealDetail: null,
+            selectedMealIngredients: [],
+            selectedMealDirections: [],
+            selectedMealTags: [],
         }
     },
     mounted() {
@@ -241,6 +291,57 @@ export default {
         }
     },
     methods: {
+        parseJsonList(value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value === null || value === undefined || value === '') {
+                return [];
+            }
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                return [];
+            }
+        },
+        mealTotalPrepTime(meal) {
+            return (parseInt(meal.prep_time) || 0) + (parseInt(meal.cook_time) || 0);
+        },
+        showMealDetails(mealId, mealSummary) {
+            const id = mealId || (mealSummary ? mealSummary.id : null);
+            if (!id) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal';
+            axios.get(config.baseApiUrl + 'get-meal-detail/' + id, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealDetail = res.data.data;
+                        this.selectedMealIngredients = this.parseJsonList(this.selectedMealDetail.ingredients);
+                        this.selectedMealDirections = this.parseJsonList(this.selectedMealDetail.directions);
+                        this.selectedMealTags = this.selectedMealDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
+        closeMealDetails() {
+            this.selectedMealDetail = null;
+            this.selectedMealIngredients = [];
+            this.selectedMealDirections = [];
+            this.selectedMealTags = [];
+        },
         quitComponent() {
             this.$parent.showViewMealPlanPopup(null);
         }
@@ -258,5 +359,32 @@ export default {
 
 .cptl {
     text-transform: capitalize;
+}
+
+.meal-row {
+    cursor: pointer;
+}
+
+.meal-row:hover {
+    transform: translateY(-1px);
+}
+
+.meal-detail-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.meal-detail-box {
+    background: white;
+    border-radius: 20px;
+    width: min(1000px, 92vw);
+    max-height: 88vh;
+    overflow-y: auto;
 }
 </style>
