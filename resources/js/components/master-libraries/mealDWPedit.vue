@@ -487,7 +487,7 @@ export default {
                 fd.append('id', this.DWPdetails.id);
                 fd.append('name', this.DWPdetails.name);
                 fd.append('duration', this.DWPdetails.duration);
-                fd.append('description', this.DWPdetails.description);
+                fd.append('description', this.DWPdetails.description || '');
                 fd.append('language', this.DWPdetails.language);
                 fd.append('week_data', JSON.stringify(this.DWPdetails.week_detail.filter((item) => item != null)));
                 fd.append('tags', JSON.stringify(this.DWPdetails.tags));

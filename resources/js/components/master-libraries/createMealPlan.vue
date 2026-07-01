@@ -943,7 +943,7 @@ export default {
                 let fd = new FormData();
                 fd.append('name', this.postData.name);
                 fd.append('duration', this.postData.duration);
-                fd.append('description', this.postData.description);
+                fd.append('description', this.postData.description || '');
                 fd.append('language', this.postData.language);
                 fd.append('week_data', JSON.stringify(this.postData.week_data));
                 fd.append('tags', JSON.stringify(this.postData.tags));

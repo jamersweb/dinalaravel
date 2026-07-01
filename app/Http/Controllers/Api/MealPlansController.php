@@ -88,7 +88,7 @@ class MealPlansController extends Controller
 
         $mealDay = new MealDay();
         $mealDay->name = $request->name;
-        $mealDay->description = $request->description;
+        $mealDay->description = $this->normalizeOptionalText($request->description);
         $mealDay->language = $request->language;
         if(isset($request->tags))
         $mealDay->tags = json_encode($request->tags);
@@ -225,7 +225,7 @@ class MealPlansController extends Controller
         $mealWeek = new MealWeek();
         $mealWeek->name = $request->name;
         $mealWeek->image = $image;
-        $mealWeek->description = $request->description;
+        $mealWeek->description = $this->normalizeOptionalText($request->description);
         $mealWeek->language = $request->language;
         if(isset($request->tags))
         $mealWeek->tags = json_encode($request->tags);
@@ -349,7 +349,7 @@ class MealPlansController extends Controller
         $mealPlan = new MealPlan();
         $mealPlan->name = $request->name;
         $mealPlan->image = $image;
-        $mealPlan->description = $request->description;
+        $mealPlan->description = $this->normalizeOptionalText($request->description);
         $mealPlan->language = $request->language;
         $mealPlan->duration = $request->duration;
         $mealPlan->attatchment = $file;
@@ -415,7 +415,7 @@ class MealPlansController extends Controller
             // Add calories field (default to 150 if not in database, can be calculated later)
             $meal->calories = 150; // TODO: Calculate from meals or add to database
             // Sanitize text fields for valid JSON (description, attatchment_name, etc.)
-            $meal->description = $this->sanitizeForJson($meal->description);
+            $meal->description = $this->sanitizeForJson($this->normalizeOptionalText($meal->description));
             $meal->attatchment_name = $this->sanitizeForJson($meal->attatchment_name);
             $meal->attatchment2_name = $this->sanitizeForJson($meal->attatchment2_name ?? null);
             $meal->attatchment3_name = $this->sanitizeForJson($meal->attatchment3_name ?? null);
@@ -452,6 +452,7 @@ class MealPlansController extends Controller
             // IMPORTANT: Add description about accessing all meals
             // If description exists, append the note about all meals access
             // Otherwise, set a default message
+            $meal->description = $this->normalizeOptionalText($meal->description);
             if(empty($meal->description)) {
                 $meal->description = "By subscribing to this meal plan, you'll have access to hundreds of meal recipes for all health backgrounds. You can view meals by day, by week, or the entire plan, plus browse all available meals in our meal library.";
             } else {
@@ -486,6 +487,7 @@ class MealPlansController extends Controller
             //get attacthmengt links end
             
             // IMPORTANT: Add description about accessing all meals
+            $mealPlan->description = $this->normalizeOptionalText($mealPlan->description);
             if(empty($mealPlan->description)) {
                 $mealPlan->description = "By subscribing to this meal plan, you'll have access to hundreds of meal recipes for all health backgrounds. You can view meals by day, by week, or the entire plan, plus browse all available meals in our meal library.";
             } else {
@@ -717,6 +719,7 @@ class MealPlansController extends Controller
         // Add description about accessing all meals to each plan
         foreach($plans as $plan) {
             if($plan->planDetail) {
+                $plan->planDetail->description = $this->normalizeOptionalText($plan->planDetail->description);
                 if(empty($plan->planDetail->description)) {
                     $plan->planDetail->description = "You have access to hundreds of meal recipes for all health backgrounds. View meals by day, by week, or browse the entire meal library.";
                 } else {
@@ -743,6 +746,7 @@ class MealPlansController extends Controller
             'message' => 'Meal Plan Not Found.'
         ]);
         $planDetail->makeHidden(['tags','status','created_at','updated_at']);
+        $planDetail->description = $this->normalizeOptionalText($planDetail->description);
         if(empty($planDetail->description)) {
             $planDetail->description = "By subscribing to this meal plan, you'll have access to hundreds of meal recipes for all health backgrounds. You can view meals by day, by week, or the entire plan, plus browse all available meals in our meal library.";
         } else {
@@ -788,6 +792,7 @@ class MealPlansController extends Controller
         $planDetail = MealPlan::where('id',$userPlan->meal_plan_id)->first()->makeHidden(['tags','status','created_at','updated_at']);
         
         // IMPORTANT: Add description about accessing all meals
+        $planDetail->description = $this->normalizeOptionalText($planDetail->description);
         if(empty($planDetail->description)) {
             $planDetail->description = "You have access to hundreds of meal recipes for all health backgrounds. View meals by day, by week, or browse the entire meal library.";
         } else {
@@ -896,6 +901,17 @@ class MealPlansController extends Controller
         return $mealDay;
     }
 
+    private function normalizeOptionalText($value){
+        if(is_null($value))
+        return null;
+
+        $value = trim((string) $value);
+        if($value === '' || strtolower($value) === 'null')
+        return null;
+
+        return $value;
+    }
+
     function getMealDayWithDetails($mealDayId){
         if(is_null($mealDayId))
         return null;
@@ -938,7 +954,7 @@ class MealPlansController extends Controller
             'message' => 'Atleast 1 meal is required.'
         ]);
         $mealDay->name = $request->name;
-        $mealDay->description = $request->description;
+        $mealDay->description = $this->normalizeOptionalText($request->description);
         $mealDay->tags = json_encode($request->tags ?? []);
         $mealDay->language = $request->language;
         $mealDay->breakfast = $request->breakfast;
@@ -980,7 +996,7 @@ class MealPlansController extends Controller
             'message' => 'Invalid Meal Week'
         ]);
         $mealWeek->name = $request->name;
-        $mealWeek->description = $request->description;
+        $mealWeek->description = $this->normalizeOptionalText($request->description);
         $mealWeek->tags = json_encode($request->tags ?? []);
         $mealWeek->language = $request->language;
         $mealWeek->meal_day1 = $request->meal_day1;
@@ -1022,7 +1038,7 @@ class MealPlansController extends Controller
             'message' => 'Invalid Meal Plan'
         ]);
         $mealPlan->name = $request->name;
-        $mealPlan->description = $request->description;
+        $mealPlan->description = $this->normalizeOptionalText($request->description);
         $mealPlan->tags = $request->tags ?? json_encode([]);
         $mealPlan->language = $request->language;
         $mealPlan->duration = $request->duration;
@@ -1210,6 +1226,7 @@ class MealPlansController extends Controller
         $planDetail = MealPlan::where('id',$userPlan->meal_plan_id)->first()->makeHidden(['tags','status','created_at','updated_at']);
         
         // IMPORTANT: Add description about accessing all meals
+        $planDetail->description = $this->normalizeOptionalText($planDetail->description);
         if(empty($planDetail->description)) {
             $planDetail->description = "You have access to hundreds of meal recipes for all health backgrounds. View meals by day, by week, or browse the entire meal library.";
         } else {

@@ -11,6 +11,9 @@
                 <div class="col-12 float-start">
                     <h3 class="cptl"><strong>{{mealDetail.name}}</strong></h3>
                 </div>
+                <div v-if="type=='plan' && mealDetail.image" class="col-12 float-start mb-3">
+                    <img :src="mealDetail.image" alt="Meal plan cover" class="img-fluid brds-2 w-100 meal-plan-cover">
+                </div>
                 <div class="col-6 pe-3 float-start">
                     <div class="d-flex justify-content-between align-items-center">
                         <p class="cptl fw-bold mb-0">Tags</p>
@@ -524,6 +527,12 @@ export default {
 
 .meal-row {
     cursor: pointer;
+}
+
+.meal-plan-cover {
+    max-height: 260px;
+    object-fit: contain;
+    background: white;
 }
 
 .meal-row:hover {
