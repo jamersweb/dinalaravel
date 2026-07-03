@@ -144,6 +144,7 @@ Route::group(['prefix' => 'cms'], function(){
         //Meals Routes
         Route::post('create-new-meal',[MealsController::class,'createMeal']);
         Route::post('update-meal',[MealsController::class,'updateMeal']);
+        Route::post('duplicate-meal',[MealsController::class,'duplicateMeal']);
         Route::post('delete-meals',[MealsController::class,'deleteMeals']);
         Route::get('get-meals',[MealsController::class,'getMeals']);
         Route::get('get-meal-detail/{id}',[MealsController::class,'mealDetail']);
@@ -162,6 +163,7 @@ Route::group(['prefix' => 'cms'], function(){
         Route::post('update-meal-day',[MealPlansController::class,'updateMealDay']);
         Route::post('update-meal-week',[MealPlansController::class,'updateMealWeek']);
         Route::post('update-meal-plan',[MealPlansController::class,'updateMealPlan']);
+        Route::post('duplicate-meal-plan-item',[MealPlansController::class,'duplicateMealPlanItem']);
 
         //Clients Routes
         Route::get('active-clients-list',[ClientsController::class,'activeClients']);

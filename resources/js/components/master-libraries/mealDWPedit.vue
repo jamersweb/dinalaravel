@@ -233,7 +233,7 @@
                                 <strong> Week{{index+1}}</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
                                     <div class="col-12 brds-2 p-2 text-center" :key="index" @drop="onDrop(index)" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
-                                        <p class="mb-0" v-if="item==null">Drag and Drop Meal for the day</p>
+                                        <p class="mb-0" v-if="item==null">Drag and Drop Week here</p>
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" :value="index" v-model="selectedItems">
                                             <img :src="item.image" alt="" style="height:80px;width:80%; object-fit: contain; background: white;">
@@ -277,7 +277,7 @@
                         <div class="p-2" style="height:300px;overflow-y:auto;overflow-x:hidden;">
                             <div class="row text-center">
                                 <div v-for="(item, index) in filteredMeals" :key="item.name"  class="col-xl-4 col-md-4 col-sm-6 col-12 mt-3">
-                                    <div class="shd_card p-0 h-100 text-center drag-el" draggable="true" @dragstart="startDrag(item)" style="width:100%;cursor:pointer">
+                                    <div class="shd_card p-0 h-100 text-center drag-el" draggable="true" @dragstart="startDrag(item)" @click="addLibraryItem(item)" style="width:100%;cursor:pointer">
                                         <div v-if="type=='days'" class="p-2">
                                             <img v-if="item.file_type=='image'" :src="item.file" alt="" style="height:80px;width:100%;">
                                             <img v-else :src="item.video_thumbnail" alt="" style="height:80px;width:100%;">
@@ -379,6 +379,7 @@ export default {
             this.getAllMealDays();
         }
         else if (this.type == 'plan') {
+            this.normalizePlanWeeks();
             this.getAllMealWeeks();
         }
     },
@@ -567,20 +568,24 @@ export default {
             });
             this.DWPdetails.tags = tempTags;
         },
+        normalizePlanWeeks() {
+            if (!Array.isArray(this.DWPdetails.week_detail)) {
+                this.DWPdetails.week_detail = [];
+            }
+
+            const duration = parseInt(this.DWPdetails.duration || this.DWPdetails.week_detail.length || 1);
+            this.DWPdetails.duration = duration;
+
+            while (this.DWPdetails.week_detail.length < duration) {
+                this.DWPdetails.week_detail.push(null);
+            }
+
+            while (this.DWPdetails.week_detail.length > duration) {
+                this.DWPdetails.week_detail.pop();
+            }
+        },
         durationChanged() {
-            console.log(this.DWPdetails);
-            if (this.DWPdetails.week_detail.length < this.DWPdetails.duration) {
-                let rep = (this.DWPdetails.duration - this.DWPdetails.week_detail.length);
-                for (let index = 0; index < rep; index++) {
-                    this.DWPdetails.week_detail.push(null);
-                }
-            }
-            else {
-                let rep = this.DWPdetails.week_detail.length - this.DWPdetails.duration;
-                for (let index = 0; index < rep; index++) {
-                    this.DWPdetails.week_detail.pop();
-                }
-            }
+            this.normalizePlanWeeks();
         },
         getAllMeals() {
             this.allMeals = [];
@@ -609,7 +614,7 @@ export default {
             this.allMeals = [];
             this.pageLoading = true;
             this.loaderText = 'Fetching';
-            axios.get(config.baseApiUrl + "get-meal-days?lang="+this.postData.language, this.apiConfig)
+            axios.get(config.baseApiUrl + "get-meal-days?lang="+this.DWPdetails.language, this.apiConfig)
                 .then((res) => {
                     if (res.data.status) {
                         this.allMeals = res.data.data;
@@ -631,7 +636,7 @@ export default {
             this.allMeals = [];
             this.pageLoading = true;
             this.loaderText = 'Fetching';
-            axios.get(config.baseApiUrl + "get-meal-weeks?lang="+this.postData.language, this.apiConfig)
+            axios.get(config.baseApiUrl + "get-meal-weeks?lang="+this.DWPdetails.language, this.apiConfig)
                 .then((res) => {
                     if (res.data.status) {
                         this.allMeals = res.data.data;
@@ -651,6 +656,17 @@ export default {
         },
         startDrag(item) {
             this.tempItem = item;
+        },
+        addLibraryItem(item) {
+            this.tempItem = item;
+            if (this.type == 'plan') {
+                this.normalizePlanWeeks();
+                const emptyIndex = this.DWPdetails.week_detail.findIndex((week) => week == null);
+                if (emptyIndex !== -1) {
+                    this.onDrop(emptyIndex);
+                }
+                return;
+            }
         },
         async onDrop(meal) {
             if (this.type == 'days') {

@@ -25,10 +25,10 @@ class Workout extends Model
     }
 
     function getImageAttribute($value){
+        if (empty($value)) return null;
         if (strlen($value) === 11) {
             return config('app.youtube_thumbnail_baseUrl_start').$value.config('app.youtube_thumbnail_baseUrl_end');
         }
-        if(empty($value)) return null;
         return FileHandle::getURL($value,4);
     }
 }

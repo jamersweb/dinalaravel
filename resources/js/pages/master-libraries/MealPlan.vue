@@ -24,6 +24,7 @@
             <button @click="showCreateMealPlanPopup" class="prim_bg border-0 py-1 px-3 mx-2">New</button>
             <button @click="deleteMeal" class="tsl border-0 py-1 px-3 mx-2" style="background-color:transparent;">Delete</button>
             <button @click="editDWPFunc" class="tsl border-0 py-1 px-3 mx-2" style="background-color:transparent;">Edit</button>
+            <button @click="duplicateDWPFunc" class="tsl border-0 py-1 px-3 mx-2" style="background-color:transparent;">Duplicate</button>
         </div>
         <div class="w-100" style="height:calc(100% - 103px);overflow-y:auto;">
             <div class="row col-12 py-2 px-3 m-0">
@@ -333,6 +334,49 @@ export default {
                 this.informModal = true;
                 console.log("dwp get edit get error: ",er.message);
             });
+        },
+        duplicateDWPFunc(){
+            if(this.selectedItems.length!==1){
+                this.modalTitle = 'Error!';
+                this.modalDetail = 'Select only 1 to duplicate';
+                this.informModal = true;
+                return;
+            }
+            let postData = {
+                id: this.selectedItems[0],
+                duplicate_type: this.mealType
+            };
+            this.pageLoading = true;
+            this.loaderText = 'Duplicating';
+            axios.post(config.baseApiUrl + 'duplicate-meal-plan-item', postData, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedItems = [];
+                        this.modalTitle = 'Success';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                        if (this.mealType == 'days') {
+                            this.getAllMealDays();
+                        }
+                        else if (this.mealType == 'weeks') {
+                            this.getAllMealWeeks();
+                        }
+                        else if (this.mealType == 'plan') {
+                            this.getAllMealPlans();
+                        }
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
         }
     }
 }

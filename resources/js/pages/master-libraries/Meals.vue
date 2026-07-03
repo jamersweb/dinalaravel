@@ -42,6 +42,7 @@
             <div class="row w-100 mx-0 px-3 bar">
                 <div class="col-6">
                     <button type="button" class="btn1" @click="createCustomMeal">New</button>
+                    <button class="btn3 px-2 tsl" @click="duplicateSelectedMeal" type="button">Duplicate</button>
                     <button class="btn3 px-2 tsl" @click="deleteMeals" type="button">Delete</button>
                 </div>
                 <div class="col-6">
@@ -65,6 +66,10 @@
                         <div class="d-inline-block" @click="changeBtnValue('snacks')">
                             <button class="col-4 bar-btn px-3 w-100">Snacks</button>
                             <div :class="{btn_active : btnValue=='snacks'}" style="height:2px;width:100%;background-color:#707070;"></div>
+                        </div>
+                        <div class="d-inline-block" @click="changeBtnValue('drinks')">
+                            <button class="col-4 bar-btn px-3 w-100">Drinks</button>
+                            <div :class="{btn_active : btnValue=='drinks'}" style="height:2px;width:100%;background-color:#707070;"></div>
                         </div>
                     </div>
                     <!-- <div class="col-5 float-start mt-2 ps-2">
@@ -106,6 +111,10 @@
             <button class="trans_btn position-absolute" @click="editMeal = true;"
                 style="right: 45px;top: 21px;font-size: 17px;">
                 <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="trans_btn position-absolute" @click="duplicateMeal(mealDetails.id)"
+                style="right: 75px;top: 21px;font-size: 17px;">
+                <i class="fa-solid fa-copy"></i>
             </button>
             <div class="tsh p-2 mx-0 w-100 brds-2 row">
                 <div class="col-5 p-2 overflow-hidden">
@@ -206,6 +215,7 @@ export default {
             lunch: false,
             dinner: false,
             snacks: false,
+            drinks: false,
             pageLoading: false,
             informModal: false,
             confirmModal: false,
@@ -516,6 +526,40 @@ export default {
                     this.pageLoading = false;
                     this.modalTitle = 'Error!';
                     this.modalDetail = 'Meals not deleted';
+                })
+        },
+        duplicateSelectedMeal() {
+            if (this.idsToDel.length !== 1) {
+                this.informModal = true;
+                this.modalTitle = 'Error';
+                this.modalDetail = 'Select only 1 meal to duplicate';
+                return;
+            }
+            this.duplicateMeal(this.idsToDel[0]);
+        },
+        duplicateMeal(id) {
+            this.pageLoading = true;
+            this.loaderText = 'Duplicating';
+            axios.post(config.baseApiUrl + "duplicate-meal", { id }, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.idsToDel = [];
+                        this.modalTitle = 'Success';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                        this.getAllMeals();
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
                 })
         },
         acknowledged() {

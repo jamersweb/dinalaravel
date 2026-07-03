@@ -154,6 +154,84 @@ class MealPlansController extends Controller
             'message' => 'Meal Day Deleted'
         ]);
     }
+
+    public function duplicateMealPlanItem(Request $request){
+        $validate = Validator::make($request->all(),[
+            'id' => 'required|numeric',
+            'duplicate_type' => 'required|in:days,weeks,plan'
+        ]);
+        if($validate->fails())
+        return response()->json([
+            'status' => false,
+            'message' => $validate->errors()->all()[0]
+        ]);
+
+        if($request->duplicate_type == 'days'){
+            $mealDay = MealDay::whereId($request->id)->whereStatus(1)->first();
+            if(is_null($mealDay))
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid Meal Day'
+            ]);
+
+            $newMealDay = $mealDay->replicate();
+            $newMealDay->name = $mealDay->name.' (Copy)';
+            $newMealDay->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Meal Day Duplicated Successfully.',
+                'data' => ['id' => $newMealDay->id]
+            ]);
+        }
+
+        if($request->duplicate_type == 'weeks'){
+            $mealWeek = MealWeek::whereId($request->id)->whereStatus(1)->first();
+            if(is_null($mealWeek))
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid Meal Week'
+            ]);
+
+            $newMealWeek = $mealWeek->replicate();
+            $newMealWeek->name = $mealWeek->name.' (Copy)';
+            $newMealWeek->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Meal Week Duplicated Successfully.',
+                'data' => ['id' => $newMealWeek->id]
+            ]);
+        }
+
+        $mealPlan = MealPlan::whereId($request->id)->whereStatus(1)->first();
+        if(is_null($mealPlan))
+        return response()->json([
+            'status' => false,
+            'message' => 'Invalid Meal Plan'
+        ]);
+
+        $newMealPlan = null;
+        DB::transaction(function () use ($mealPlan, &$newMealPlan) {
+            $newMealPlan = $mealPlan->replicate();
+            $newMealPlan->name = $mealPlan->name.' (Copy)';
+            $newMealPlan->save();
+
+            $planWeeks = MealPlanWeek::where('meal_plan_id',$mealPlan->id)->orderBy('id','asc')->get();
+            foreach($planWeeks as $planWeek){
+                $newPlanWeek = $planWeek->replicate();
+                $newPlanWeek->meal_plan_id = $newMealPlan->id;
+                $newPlanWeek->save();
+            }
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Meal Plan Duplicated Successfully.',
+            'data' => ['id' => $newMealPlan->id]
+        ]);
+    }
+
     public function getMealDayDetail($id){
         $mealDay = MealDay::where('id',$id)->first();
         if($mealDay){

@@ -415,7 +415,7 @@ export default {
             autoModeV: false,
             manualModeV: false,
             containsArray: ['Meat','Fish','Shellfish','Soy','Tree Nuts','Eggs','Dairy','Gluten','Peanuts'],
-            suitableArray: ['breakfast','lunch','dinner','snacks'],
+            suitableArray: ['breakfast','lunch','dinner','snacks','drinks'],
             allFoods: null,
             foodDetails: [],
             mealDetails: true,

@@ -29,6 +29,7 @@ use App\Traits\NotificationsTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
 
@@ -702,6 +703,7 @@ class ProgramSubTrackingController extends Controller
     }
 
     function getProgramDetail($id){
+        try {
         $programSub = ProgramSub::where('user_id',Auth::id())->where('program_id',$id)->first();
         if(is_null($programSub))
         return response()->json([
@@ -842,6 +844,20 @@ class ProgramSubTrackingController extends Controller
             'weeks_visible' => $maxWeekToShow,
             'visibility_rule' => 'Only current week + 1 week ahead visible'
         ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $e) {
+            Log::error('program-detail failed', [
+                'program_id' => $id,
+                'user_id' => Auth::id(),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Unable to load program details.',
+            ]);
+        }
     }
 
     function organizeExercises($wrkType,$exercises){

@@ -429,6 +429,31 @@ class MealsController extends Controller
         ]);
     }
 
+    function duplicateMeal(Request $request){
+        $validate = Validator::make($request->all(),[
+            'id' => 'required|numeric|exists:meals,id',
+        ]);
+        if($validate->fails())
+            return $this->validationError($validate);
+
+        $meal = Meal::where('id',$request->id)->where('meal_by','admin')->first();
+        if(is_null($meal))
+            return $this->notFound('Invalid Id Given.');
+
+        $newMeal = $meal->replicate();
+        $newMeal->name = $meal->name.' (Copy)';
+        $newMeal->user_id = Auth::id();
+        $newMeal->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Meal Duplicated Successfully.',
+            'data' => [
+                'id' => $newMeal->id,
+            ],
+        ]);
+    }
+
     function createUserMeal(Request $request){
         $validate = Validator::make($request->all(),[
             'name' => 'required|string',
