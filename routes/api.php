@@ -97,6 +97,7 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 	//auth
 	Route::get('token-validity', [AuthController::class, 'isTokenValid']);
 	Route::get('app-start-checks', [AuthController::class, 'appStartupChecks']);
+	Route::post('update-fcm-token', [AuthController::class, 'updateFcmToken']);
 	Route::post('logout', [AuthController::class, 'logout']);
 	Route::post('delete-account', [AuthController::class, 'deleteAccount']);
 

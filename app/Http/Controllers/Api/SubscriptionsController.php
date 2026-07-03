@@ -30,17 +30,24 @@ class SubscriptionsController extends Controller
 
     function getSubscriptionStatus(){
         $subDetail = UserDetail::where('user_id',Auth::id())->first(['subscription','subscription_status']);
-        if($subDetail->subscription_status==='active'){
-            $subType = Subscription::where('id',$subDetail->subscription)->pluck('access_type')->first();
+        if($subDetail && $subDetail->subscription_status==='active'){
+            $subscription = Subscription::where('id',$subDetail->subscription)->first(['id', 'name', 'access_type']);
+            $subType = $subscription?->access_type;
             return response()->json([
                 'status' => true,
                 'message' => 'Subscription is Active.',
+                'subscription' => $subscription?->name,
+                'subscription_id' => $subscription?->id,
+                'access_type' => $subType,
                 'two_way_chat' => $subType==='full_access'?true:false
             ]);
         }
         return response()->json([
             'status' => false,
             'message' => 'Subscription is Expired.',
+            'subscription' => null,
+            'subscription_id' => null,
+            'access_type' => null,
             'two_way_chat' => false
         ]);
     }

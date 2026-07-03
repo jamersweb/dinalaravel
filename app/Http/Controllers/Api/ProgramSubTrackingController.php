@@ -853,10 +853,22 @@ class ProgramSubTrackingController extends Controller
                 'line' => $e->getLine(),
             ]);
 
-            return response()->json([
+            $payload = [
                 'status' => false,
                 'message' => 'Unable to load program details.',
-            ]);
+            ];
+
+            if (config('app.debug')) {
+                $payload['error'] = $e->getMessage();
+                $payload['line'] = $e->getLine();
+            }
+
+            return response()->json(
+                JsonSanitizer::sanitize($payload),
+                200,
+                [],
+                JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_UNICODE
+            );
         }
     }
 

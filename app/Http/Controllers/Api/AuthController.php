@@ -355,6 +355,25 @@ class AuthController extends Controller
         ]);
     }
 
+    public function updateFcmToken(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'fcm_token' => 'required|string|max:4096',
+        ]);
+        if ($validate->fails()) {
+            return $this->validationError($validate);
+        }
+
+        $user = Auth::user();
+        $user->fcm_token = $request->fcm_token;
+        $user->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'FCM token updated successfully',
+        ]);
+    }
+
     function resendEmail(Request $request)
     {
         $email = strtolower(trim((string) $request->input('email', '')));
