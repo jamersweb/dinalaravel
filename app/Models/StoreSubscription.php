@@ -27,4 +27,9 @@ class StoreSubscription extends Model
         'verified_at' => 'datetime',
         'raw_payload' => 'array',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

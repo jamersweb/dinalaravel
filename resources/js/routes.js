@@ -16,6 +16,7 @@ import Exercises from "./pages/master-libraries/Exercises";
 import Meals from "./pages/master-libraries/Meals";
 import Food from "./pages/master-libraries/Food";
 import Payments from "./pages/payments.vue";
+import StoreSubscriptions from "./pages/store_subscriptions.vue";
 import PodcastCMS from "./pages/podcastCMS.vue";
 import Settings from "./pages/settings.vue";
 import Teams from './pages/teams.vue';
@@ -50,6 +51,7 @@ const routes = [
     { path: '/cms/meals', component: Meals, name: 'Meals' },
     { path: '/cms/food', component: Food, name: 'Food' },
     { path: '/cms/payments', component: Payments, name: 'Payments' },
+    { path: '/cms/store-subscriptions', component: StoreSubscriptions, name: 'StoreSubscriptions' },
     { path: '/cms/settings', component: Settings, name: 'Settings'},
     { path: '/cms/teams', component: Teams, name:'Teams'},
     { path: '/cms/profile', component: Profile, name:'Profile'},

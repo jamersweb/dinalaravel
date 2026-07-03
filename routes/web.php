@@ -101,6 +101,7 @@ Route::prefix('cms')->group(function () {
     Route::view('/meals', 'cms');
     Route::view('/food', 'cms');
     Route::view('/payments', 'cms');
+    Route::view('/store-subscriptions', 'cms');
     Route::view('/settings', 'cms');
     Route::view('/localization', 'cms');
     Route::view('/ui-strings', 'cms');

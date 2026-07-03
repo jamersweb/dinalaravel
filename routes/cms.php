@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\QuestionsController;
 use App\Http\Controllers\Api\TagsController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\CmsLocalizationController;
+use App\Http\Controllers\Api\CmsStoreSubscriptionController;
 
 Route::get('/test-noti',[NotificationsController::class,'sendNotification']);
 
@@ -230,6 +231,11 @@ Route::group(['prefix' => 'cms'], function(){
         Route::get('all-discount-codes',[SubscriptionsController::class,'allDiscountCodes']);
         Route::post('create-discount-code',[SubscriptionsController::class,'createDiscountCode']);
         Route::get('disable-discount-code/{id}',[SubscriptionsController::class,'disableCode']);
+
+        // In-app purchase subscriptions & orders (Apple / Google)
+        Route::get('store-subscriptions/summary', [CmsStoreSubscriptionController::class, 'summary']);
+        Route::get('store-subscriptions', [CmsStoreSubscriptionController::class, 'index']);
+        Route::get('store-subscriptions/{id}', [CmsStoreSubscriptionController::class, 'show']);
 
         //Podcast
         Route::post('create-podcast',[PodcastsController::class,'createPodcast']);
