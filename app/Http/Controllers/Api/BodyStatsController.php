@@ -1862,11 +1862,12 @@ class BodyStatsController extends Controller
         $returnData->steps = $data;
 
         // Sleep
-        $data = UserSleep::select('id', 'sleep', 'date')
+        $data = UserSleep::select('id', 'sleep_time', 'sleep_percent', 'date')
             ->where('user_id', $userId)
             ->orderBy('date', 'DESC')
             ->first();
         if($data){
+            $data->sleep = $data->sleep_time;
             $data->formated_date = date('Y-m-d', strtotime($data->date));
         }
         $returnData->sleep = $data;
@@ -1905,29 +1906,33 @@ class BodyStatsController extends Controller
         $returnData->lean_body_mass = $data;
 
         // Calories Burn
-        $data = UserCaloriesBurn::select('id', 'calories', 'date')
+        $data = UserCaloriesBurn::select('id', 'carbs', 'proteins', 'fats', 'total', 'date')
             ->where('user_id', $userId)
             ->orderBy('date', 'DESC')
             ->first();
         if($data){
+            $data->calories = $data->total;
             $data->formated_date = date('Y-m-d', strtotime($data->date));
         }
         $returnData->caloric_burn = $data;
 
-        $data = UserHeartRate::select('id', 'heart_rate', 'date')
+        $data = UserHeartRate::select('id', 'min', 'max', 'average', 'date')
             ->where('user_id', $userId)
             ->orderBy('date', 'DESC')
             ->first();
         if($data){
+            $data->heart_rate = $data->average;
             $data->formated_date = date('Y-m-d', strtotime($data->date));
         }
         $returnData->resting_hr = $data;
 
-        $data = UserBloodPressure::select('id', 'systolic', 'diastolic', 'date')
+        $data = UserBloodPressure::select('id', 'sys', 'dia', 'date')
             ->where('user_id', $userId)
             ->orderBy('date', 'DESC')
             ->first();
         if($data){
+            $data->systolic = $data->sys;
+            $data->diastolic = $data->dia;
             $data->formated_date = date('Y-m-d', strtotime($data->date));
         }
         $returnData->blood_pressure = $data;
