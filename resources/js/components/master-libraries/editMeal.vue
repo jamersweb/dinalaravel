@@ -45,7 +45,7 @@
                             <option value="20">20 min</option>
                             <option value="25">25 min</option>
                         </select> -->
-                        <p style="font-size:13px;float:left;margin:5px;margin-top:11px;">Cook<span style="color:red;">*</span></p>
+                        <p style="font-size:13px;float:left;margin:5px;margin-top:11px;">Cook (optional)</p>
                     </div>
                     <div class="mt-3">
                         <h5 class="m-0">Suitable For <span class="text-danger">*</span></h5>
@@ -376,10 +376,9 @@
                         </div>
                         <button class="prim_btn h8 brds-1 py-1" @click="addDirection()">Add next step</button>
                         <div class="mt-3 px-2 overflow-auto text-start" style="max-height:190px">
-                            <!-- <p style="word-break: break-all;" class="m-0 h7" v-for="(dir,index) in mealData.directions">{{index+1}}. {{dir}}</p> -->
-                            <div v-for="(dir,index) in mealData.directions" class="d-flex justify-content-between">
-                                <input type="text" class="brds-1 py-1 px-2 h8 tm-brdr w-80 my-1" v-model="mealData.directions[index]">
-                                <button @click="removeDirection(index)" class="scnd_btn py-0 px-1 brds-1 my-2" title="remove direction" style="height: 15px;font-size: 12px;">X</button>
+                            <div v-for="(dir, index) in mealData.directions" :key="'direction-' + index" class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <input type="text" class="brds-1 py-1 px-2 h8 tm-brdr flex-grow-1" v-model="mealData.directions[index]" :placeholder="'Step ' + (index + 1)">
+                                <button type="button" @click="removeDirection(index)" class="scnd_btn py-1 px-2 brds-1" title="Remove step">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -490,7 +489,7 @@ export default {
         this.getAllTags();
         let tempNutrient = JSON.parse(JSON.stringify(this.mealData.nutrient));
         tempMD.contains = JSON.parse(tempMD.contains);
-        tempMD.directions = JSON.parse(tempMD.directions);
+        tempMD.directions = this.parseJsonList(tempMD.directions);
         tempMD.ingredients = JSON.parse(tempMD.ingredients);
         tempMD.suitable_for = JSON.parse(tempMD.suitable_for);
         tempMD.tags = JSON.parse(tempMD.tags);
@@ -526,6 +525,35 @@ export default {
         }
     },
     methods: {
+        normalizeCookTime(value) {
+            if (value === null || value === undefined || value === '' || value === 0 || value === '0') {
+                return '';
+            }
+            return value;
+        },
+        parseJsonList(value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value === null || value === undefined || value === '') {
+                return [];
+            }
+            try {
+                const parsed = JSON.parse(value);
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+                if (typeof parsed === 'string' && parsed.trim()) {
+                    return [parsed];
+                }
+                return [];
+            } catch (e) {
+                if (typeof value === 'string' && value.trim()) {
+                    return [value];
+                }
+                return [];
+            }
+        },
         filterMealsByLanguage() {
             this.allFoods = this.allFoods.filter((item) => item.language == this.mealData.language);
         },
@@ -627,8 +655,6 @@ export default {
                 this.mealData.name == "" ||
                 this.mealData.prep_time == null ||
                 this.mealData.prep_time == "" ||
-                this.mealData.cook_time == null ||
-                this.mealData.cook_time == "" ||
                 this.mealData.suitable_for.length == 0 ||
                 this.mealData.tags.length < 1
             ) {
@@ -745,18 +771,18 @@ export default {
             this.changeQuantity();
         },
         addDirection() {
-            if (this.directions == null || this.directions == "") {
+            const text = (this.directions || '').trim();
+            if (!text) {
                 this.modalTitle = 'Error!';
                 this.modalDetail = 'Add directions first';
                 this.informModal = true;
-            }
-            else {
-                this.mealData.directions.push(this.directions);
+            } else {
+                this.mealData.directions.push(text);
                 this.directions = null;
             }
         },
-        removeDirection(i){
-            this.mealData.directions.splice(i,1);
+        removeDirection(index) {
+            this.mealData.directions.splice(index, 1);
         },
         acknowledged() {
             this.informModal = false;
@@ -817,7 +843,7 @@ export default {
             fd.append("id", this.mealData.id);
             fd.append("name", this.mealData.name);
             fd.append("prep_time", this.mealData.prep_time);
-            fd.append("cook_time", this.mealData.cook_time);
+            fd.append("cook_time", this.normalizeCookTime(this.mealData.cook_time));
             fd.append("suitable_for", JSON.stringify(this.mealData.suitable_for));
             fd.append("tags", JSON.stringify(this.mealData.tags));
             fd.append("contains", JSON.stringify(this.mealData.contains));

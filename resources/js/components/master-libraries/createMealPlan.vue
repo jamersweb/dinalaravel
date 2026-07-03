@@ -256,7 +256,7 @@
                     <p class="mb-1 fs-5">Recipe Makes</p>
                     <p class="mb-3 text-muted">{{selectedMealDetail.no_of_servings}} Servings</p>
                     <p class="mb-1 fs-5">Total prep time {{mealTotalPrepTime(selectedMealDetail)}} minutes</p>
-                    <p class="mb-0 text-muted">Preparation: {{selectedMealDetail.prep_time}} minutes / Cooking: {{selectedMealDetail.cook_time}} minutes</p>
+                    <p class="mb-0 text-muted">Preparation: {{selectedMealDetail.prep_time}} minutes<span v-if="hasCookTime(selectedMealDetail)"> / Cooking: {{selectedMealDetail.cook_time}} minutes</span></p>
                 </div>
             </div>
             <div class="row w-100 mx-0 mt-3">
@@ -612,6 +612,10 @@ export default {
         },
         mealTotalPrepTime(meal) {
             return (parseInt(meal.prep_time) || 0) + (parseInt(meal.cook_time) || 0);
+        },
+        hasCookTime(meal) {
+            const value = meal?.cook_time;
+            return value !== null && value !== undefined && value !== '' && value !== 0 && value !== '0';
         },
         dayMealSlots(dayDetail) {
             if (!dayDetail) {

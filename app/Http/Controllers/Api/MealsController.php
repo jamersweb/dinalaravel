@@ -29,7 +29,7 @@ class MealsController extends Controller
         $validate = Validator::make($request->all(),[
             'name' => 'required|string',
             'prep_time' => 'required|string',
-            'cook_time' => 'required|string',
+            'cook_time' => 'nullable|string',
             'suitable_for' => 'required',
             'tags' => 'required|string',
             'contains' => 'string',
@@ -68,7 +68,7 @@ class MealsController extends Controller
         $meal->name = $request->name;
         $meal->language = $request->language;
         $meal->prep_time = $request->prep_time;
-        $meal->cook_time = $request->cook_time;
+        $meal->cook_time = $this->normalizeCookTime($request->cook_time);
         $meal->suitable_for = $request->suitable_for;
         $meal->tags = $request->tags;
         $meal->contains = $request->contains;
@@ -95,7 +95,7 @@ class MealsController extends Controller
             $meal->name = $this->getTranslatedText($request->name, 'ar');
             $meal->language = 'ar';
             $meal->prep_time = $request->prep_time;
-            $meal->cook_time = $request->cook_time;
+            $meal->cook_time = $this->normalizeCookTime($request->cook_time);
             $meal->suitable_for = $request->suitable_for;
             $meal->tags = $request->tags;
             $meal->contains = $request->contains;
@@ -128,7 +128,7 @@ class MealsController extends Controller
             'id' => 'required|numeric|exists:meals,id',
             'name' => 'required|string',
             'prep_time' => 'required|string',
-            'cook_time' => 'required|string',
+            'cook_time' => 'nullable|string',
             'suitable_for' => 'required',
             'tags' => 'required|string',
             'contains' => 'string',
@@ -168,7 +168,7 @@ class MealsController extends Controller
         $meal->user_id = Auth::id();
         $meal->name = $request->name;
         $meal->prep_time = $request->prep_time;
-        $meal->cook_time = $request->cook_time;
+        $meal->cook_time = $this->normalizeCookTime($request->cook_time);
         $meal->suitable_for = $request->suitable_for;
         $meal->tags = $request->tags;
         $meal->contains = $request->contains;
@@ -905,5 +905,14 @@ class MealsController extends Controller
 
     function getTranslatedText(string $inputText, string $targetLanguage) {
         return app(GoogleTranslateService::class)->translate($inputText, 'en', $targetLanguage);
+    }
+
+    private function normalizeCookTime($value): ?string
+    {
+        if ($value === null || $value === '' || $value === '0' || $value === 0) {
+            return null;
+        }
+
+        return (string) $value;
     }
 }

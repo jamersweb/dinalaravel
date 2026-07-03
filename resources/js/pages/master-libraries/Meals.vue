@@ -146,8 +146,8 @@
                             <img src="../../../../public/images/Group57946.png" alt="Error" style="height:52px;width:52px;">
                         </div>
                         <div class="col-9 ms-2 mb-0" style="float:left;">
-                            <p class="m-0" style="font-size:20px;">Total prep time {{parseInt(mealDetails.prep_time)+parseInt(mealDetails.cook_time)}} minutes</p>
-                            <p class="m-0" style="font-size:10px;">Prepration: {{mealDetails.prep_time}} minutes /Cooking: {{mealDetails.cook_time}} minutes</p>
+                            <p class="m-0" style="font-size:20px;">Total prep time {{mealTotalPrepTime(mealDetails)}} minutes</p>
+                            <p class="m-0" style="font-size:10px;">Preparation: {{mealDetails.prep_time}} minutes<span v-if="hasCookTime(mealDetails)"> / Cooking: {{mealDetails.cook_time}} minutes</span></p>
                         </div>
                     </div>
                 </div>
@@ -255,6 +255,13 @@ export default {
         },
     },
     methods: {
+        mealTotalPrepTime(meal) {
+            return (parseInt(meal?.prep_time) || 0) + (parseInt(meal?.cook_time) || 0);
+        },
+        hasCookTime(meal) {
+            const value = meal?.cook_time;
+            return value !== null && value !== undefined && value !== '' && value !== 0 && value !== '0';
+        },
         truncatedString(title) {
         const maxLength = 40;
             if (title.length > maxLength) {
