@@ -19,6 +19,7 @@ class MediaController extends Controller
         'attachments',
         'exercises',
         'foods',
+        'introduction',
         'meals',
         'meal_photos',
         'messages_files',
@@ -57,6 +58,14 @@ class MediaController extends Controller
         // Build file path
         $filePath = $type . '/' . $filename;
         $disk = 'fwd_media';
+
+        // Introduction video may be stored at fwd_media/introduction.mp4 (root) on production.
+        if ($type === 'introduction' && !Storage::disk($disk)->exists($filePath)) {
+            $rootPath = $filename;
+            if (Storage::disk($disk)->exists($rootPath)) {
+                $filePath = $rootPath;
+            }
+        }
 
         // Legacy support: some old DB rows store image names without extension.
         // If exact file is missing and filename has no extension, try prefix match.
@@ -120,6 +129,37 @@ class MediaController extends Controller
         ];
 
         return response()->file($fullPath, $headers);
+    }
+
+    /**
+     * Returns the public API URL for the app introduction / guide video.
+     */
+    public function introductionVideoMeta()
+    {
+        $disk = 'fwd_media';
+        $candidates = ['introduction/introduction.mp4', 'introduction.mp4'];
+
+        $exists = false;
+        foreach ($candidates as $candidate) {
+            if (Storage::disk($disk)->exists($candidate)) {
+                $exists = true;
+                break;
+            }
+        }
+
+        if (!$exists) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Introduction video not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'url' => url('api/media/introduction/introduction.mp4'),
+            ],
+        ]);
     }
 
     /**
