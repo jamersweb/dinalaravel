@@ -4,6 +4,12 @@
         <Inform v-if="informModal" :msgTitle="modalTitle" :msgDetail="modalDetail" />
         <editExer v-if="exerciseDetail.visible" :exerciseData="exerciseDetail.data"/>
         <Confirm v-if="confirmModal" :msgTitle="modalTitle" :msgDetail="modalDetail"/>
+        <RoutineSectionTagModal
+            :open="routineTagModalOpen"
+            :routine-title="pendingRoutineImport?.title || ''"
+            @cancel="cancelRoutineImport"
+            @confirm="confirmRoutineImport"
+        />
         <Filters v-if="filters" :tags="tags" :prefillTags="selectedTagsForFilter"/>
         <AssignTags v-if="assignTag" tagType="workout" :prefilledTags="workoutDetail.tags"/>
 
@@ -55,7 +61,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-3 w-100" @dragenter.prevent @dragover.prevent>
+                    <div class="mt-3 w-100" @dragenter.prevent @dragover.prevent @drop="onDropCanvas">
                         <div v-if="workoutDetail.exs.length==0" class="mt-5 text-center">--Click on any Exercise to Add--</div>
                         <div class="position-relative" v-for="(item, index) in workoutDetail.exs" draggable="true"
                             @dragstart="startDrag1($event, item)" @drop="onDropSort1($event, item)">
@@ -198,39 +204,18 @@
                             <button class="scnd_btn px-2 py-1 brds-2 mx-2 my-1" @click="assignTagsShow()">Add/Remove</button>
                         </div>
                     </div>
-                    <div class="shd_card heavy_shd p-md-3 p-1">
-                        <div class="d-flex justify-content-between gray_bg p-3">
-                            <div class="position-relative w-100">
-                                <input @input="applySearch()" type="text" class="w-100 exSearch" placeholder="Search for an Exercise" v-model="search">
-                                <img src="/cms-assets/images/navbar-topbar/search.png" alt="search-icon" class="img-fluid position-absolute">
-                            </div>
-                            <div>
-                                <button class="trans_btn py-1 ps-3" @click="filters=true">
-                                    <img src="/cms-assets/images/master-libraries/filter.png" alt="" class="img-fluid">
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-4 p-3 d-flex justify-content-between shd_card">
-                            <!-- <button class="text-muted align-self-center trans_btn">+Add Exercise</button>
-                            <select>
-                                <option value="">Name</option>
-                            </select> -->
-                            <h5>Click on a Exercise to add</h5>
-                        </div>
-                        <div class="row">
-                            <div v-for="exr in visibleExercisesArray" class="col-xl-3 col-md-4 col-sm-6 col-12 mt-3">
-                                <div @click="addToWorkout(exr.id,exr.image,exr.title)" class="shd_card p-2 h-100" style="width:100%;cursor:pointer" draggable="true"
-                                @dragstart="startDrag2($event, exr)">
-                                    <div class="w-100 overflow-hidden" style="height:100px">
-                                        <img :src="exr.image" alt="" style="width: 100%; height: 73px;">
-                                        <div class="py-1" style="background:black;color:white;border-radius: 18px;width: 25px;height: 25px;padding-left: 5px;margin-top: 2px;font-size: 11px;">
-                                        {{this.modifyLanguage(exr.language)}}</div>
-                                    </div>
-                                    <div class="w-100 text-center mt-2 mb-0 fw-bold" style="max-height:50px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;" data-toggle="tooltip" :title="exr.title" @click="showExerDetailComponent(exr.id)" >{{exr.title}}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <WorkoutBuilderLibrary
+                        :language="workoutDetail.language"
+                        :exclude-workout-id="workoutDetail.id"
+                        :visible-exercises="visibleExercisesArray"
+                        v-model:search="search"
+                        @update:search="applySearch"
+                        @open-filters="filters = true"
+                        @exercise-click="(exr) => addToWorkout(exr.id, exr.image, exr.title)"
+                        @exercise-dragstart="startDrag2"
+                        @routine-click="handleRoutineClick"
+                        @routine-dragstart="startDragRoutine"
+                    />
                 </div>
             </div>
         </div>
@@ -245,8 +230,11 @@ import Confirm from "../../components/confirm.vue";
 import Filters from '../../components/filters.vue';
 import AssignTags from '../clients/assignTags.vue';
 import editExer from '../../components/master-libraries/editExercise.vue';
+import WorkoutBuilderLibrary from './WorkoutBuilderLibrary.vue';
+import RoutineSectionTagModal from './RoutineSectionTagModal.vue';
+import { flattenWorkoutExercises, buildRoutineGroup } from '../../utils/workoutRoutineHelpers';
 export default {
-    components: { Filters, Loader, Inform, Confirm, AssignTags, editExer },
+    components: { Filters, Loader, Inform, Confirm, AssignTags, editExer, WorkoutBuilderLibrary, RoutineSectionTagModal },
     props: ["workout"],
     data() {
         return {
@@ -299,7 +287,9 @@ export default {
                 stretching : false,
                 mobility : false,
                 abs : false
-            }
+            },
+            routineTagModalOpen: false,
+            pendingRoutineImport: null,
         };
     },
     mounted() {
@@ -325,6 +315,74 @@ export default {
             evt.dataTransfer.setData('itemTitle', item.title)
             evt.dataTransfer.setData('itemId', item.id)
             evt.dataTransfer.setData('itemImage', item.image)
+        },
+        startDragRoutine(evt, routine) {
+            evt.dataTransfer.dropEffect = 'copy'
+            evt.dataTransfer.effectAllowed = 'copy'
+            evt.dataTransfer.setData('routineId', String(routine.id))
+            evt.dataTransfer.setData('routineTitle', routine.title)
+        },
+        handleRoutineClick(routine) {
+            this.queueRoutineImport({
+                id: routine.id,
+                title: routine.title,
+                insertOrder: this.workoutDetail.exs.length,
+            });
+        },
+        queueRoutineImport({ id, title, insertOrder }) {
+            this.pendingRoutineImport = { id, title, insertOrder };
+            this.routineTagModalOpen = true;
+        },
+        cancelRoutineImport() {
+            this.routineTagModalOpen = false;
+            this.pendingRoutineImport = null;
+        },
+        confirmRoutineImport(sectionTag) {
+            const pending = this.pendingRoutineImport;
+            if (!pending) {
+                return;
+            }
+            this.routineTagModalOpen = false;
+            this.importWorkoutRoutineAt(pending.id, pending.title, pending.insertOrder, sectionTag);
+            this.pendingRoutineImport = null;
+        },
+        importWorkoutRoutineAt(routineId, routineTitle, insertOrder, sectionTag) {
+            this.loading = true;
+            this.loadingText = 'Loading routine';
+            axios.get(config.baseApiUrl + 'get-workout-detail/' + routineId, this.apiConfig)
+                .then((res) => {
+                    this.loading = false;
+                    if (!res.data.status) {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message || 'Could not load routine';
+                        this.informModal = true;
+                        return;
+                    }
+                    const items = flattenWorkoutExercises(res.data.data.exs);
+                    if (items.length === 0) {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = 'This workout routine has no exercises.';
+                        this.informModal = true;
+                        return;
+                    }
+                    const group = buildRoutineGroup({
+                        sectionTag,
+                        routineTitle,
+                        items,
+                        order: insertOrder,
+                        groupId: this.uuidv4(),
+                        routineId,
+                    });
+                    const insertAt = Math.min(insertOrder, this.workoutDetail.exs.length);
+                    this.workoutDetail.exs.splice(insertAt, 0, group);
+                    this.updateOrder();
+                })
+                .catch((er) => {
+                    this.loading = false;
+                    this.modalTitle = 'Failed!';
+                    this.modalDetail = er.message || 'Could not load routine';
+                    this.informModal = true;
+                });
         },
         getItemByOrder1(event){
             const itemOrder = event.dataTransfer.getData('itemOrder')
@@ -361,7 +419,15 @@ export default {
                 this.workoutDetail.exs.splice(itemPosition, 1)
                 this.workoutDetail.exs.splice(droppedItemPosition, 0, item)
                 this.updateOrder()
-            }else{
+            } else if (event.dataTransfer.getData('routineId')) {
+                const routineId = event.dataTransfer.getData('routineId');
+                const routineTitle = event.dataTransfer.getData('routineTitle');
+                this.queueRoutineImport({
+                    id: routineId,
+                    title: routineTitle,
+                    insertOrder: droppedItem.order,
+                });
+            } else {
                 const itemId = event.dataTransfer.getData('itemId')
                 const itemTitle = event.dataTransfer.getData('itemTitle')
                 const itemImage = event.dataTransfer.getData('itemImage')
@@ -388,6 +454,48 @@ export default {
                 this.workoutDetail.exs.splice(droppedItem.order, 0, tempData)
                 this.updateOrder()
             }
+        },
+        onDropCanvas(event) {
+            if (event.dataTransfer.getData('itemOrder')) {
+                return;
+            }
+            if (event.dataTransfer.getData('routineId')) {
+                const routineId = event.dataTransfer.getData('routineId');
+                const routineTitle = event.dataTransfer.getData('routineTitle');
+                this.queueRoutineImport({
+                    id: routineId,
+                    title: routineTitle,
+                    insertOrder: this.workoutDetail.exs.length,
+                });
+                return;
+            }
+            const itemId = event.dataTransfer.getData('itemId');
+            if (!itemId) {
+                return;
+            }
+            const itemTitle = event.dataTransfer.getData('itemTitle');
+            const itemImage = event.dataTransfer.getData('itemImage');
+            this.workoutDetail.exs.push({
+                type: 'simple',
+                item: {
+                    exercise_id: itemId,
+                    sets: 1,
+                    time: '5 sec',
+                    reps: 1,
+                    reps_type: 'text',
+                    rest_period: 0,
+                    exercise_detail: {
+                        title: itemTitle,
+                        image: itemImage,
+                        id: itemId,
+                    },
+                    description: null,
+                },
+                type_name: null,
+                items: null,
+                order: this.workoutDetail.exs.length,
+            });
+            this.updateOrder();
         },
         updateOrder(){
             for (let index = 0; index < this.workoutDetail.exs.length; index++) { 
