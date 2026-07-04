@@ -734,24 +734,28 @@ class ProgramSubTrackingController extends Controller
         $currentWeek = 1;
         if($programSub->status=='in-progress'){
             $startDate = $programSub->start_date ?? $programSub->subscribe_date;
-            $endate = Carbon::now();
-            $weeksPassed = $endate->diffInWeeks($startDate);
-            $currentWeek = max(1, $weeksPassed + 1);
+            if ($startDate) {
+                $weeksPassed = Carbon::now()->diffInWeeks(Carbon::parse($startDate));
+                $currentWeek = max(1, $weeksPassed + 1);
+            }
         }
         else if($programSub->status=='paused'){
             $startDate = $programSub->start_date ?? $programSub->subscribe_date;
             $endate = $programSub->pause_date;
-            $weeksPassed = Carbon::parse($endate)->diffInWeeks($startDate);
-            $currentWeek = max(1, $weeksPassed + 1);
+            if ($startDate && $endate) {
+                $weeksPassed = Carbon::parse($endate)->diffInWeeks(Carbon::parse($startDate));
+                $currentWeek = max(1, $weeksPassed + 1);
+            }
         }
         else if($programSub->status=='resumed'){
             $startDate1 = $programSub->start_date ?? $programSub->subscribe_date;
             $endate1 = $programSub->pause_date;
-            $weeksPassed1 = Carbon::parse($endate1)->diffInWeeks($startDate1);
             $startDate2 = $programSub->resume_date;
-            $endate2 = Carbon::now();
-            $weeksPassed2 = $endate2->diffInWeeks($startDate2);
-            $currentWeek = max(1, ($weeksPassed1+$weeksPassed2) + 1);
+            if ($startDate1 && $endate1 && $startDate2) {
+                $weeksPassed1 = Carbon::parse($endate1)->diffInWeeks(Carbon::parse($startDate1));
+                $weeksPassed2 = Carbon::now()->diffInWeeks(Carbon::parse($startDate2));
+                $currentWeek = max(1, ($weeksPassed1 + $weeksPassed2) + 1);
+            }
         }
         else if($programSub->status=='completed'){
             // Show all weeks for completed programs
