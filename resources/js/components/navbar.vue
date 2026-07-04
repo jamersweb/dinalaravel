@@ -159,7 +159,7 @@
                             style="height:25px;width:30px;">
                     </div>
                     <div>
-                        <span v-show="!collapsedMenu">App Subscriptions</span>
+                        <span v-show="!collapsedMenu">Orders</span>
                     </div>
                 </router-link>
                 <router-link class="menu_item px-4 mx-0" to="/cms/podcast">

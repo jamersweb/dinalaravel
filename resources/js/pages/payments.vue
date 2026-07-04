@@ -19,6 +19,9 @@
                 <div @click="activeTab='sales'" :class="{active:activeTab=='sales'}" class="grey_bg p-3 border-bottom" style="cursor:pointer;">
                     <h6 class="px-3" :class="{active:activeTab=='sales'}" style="font-weight:bold;">Sales</h6>
                 </div>
+                <div @click="activeTab='orders', showOrders()" :class="{active:activeTab=='orders'}" class="grey_bg p-3 border-bottom" style="cursor:pointer;">
+                    <h6 class="px-3" :class="{active:activeTab=='orders'}" style="font-weight:bold;">Orders</h6>
+                </div>
                 <div @click="activeTab='refund'" :class="{active:activeTab=='refund'}" class="grey_bg p-3 border-bottom" style="cursor:pointer;">
                     <h6 class="px-3" :class="{active:activeTab=='refund'}" style="font-weight:bold;">Refunds</h6>
                 </div>
@@ -192,6 +195,9 @@
             <div>
                 <sales :searchValue="searchForSales"/>
             </div>
+        </div>
+        <div v-if="activeTab=='orders'" class="position-relative float-start" style="width:calc(100% - 250px);height:100%;overflow:hidden;">
+            <StoreOrdersPanel title="Orders" :show-platform-filter="true" />
         </div>
         <div v-if="invoices" class="position-relative float-start" style="width:calc(100% - 250px);height:100%;overflow-y:auto;overflow-x:hidden">
             <div class="d-flex justify-content-between ps-3 pt-2" style="width:100%;min-height:50px;float:right;background-color: #eeeeee;">
@@ -519,12 +525,13 @@ import Inform from '../components/inform.vue';
 import sales from '../components/payments/sales.vue';
 import { ref } from "vue";
 import Refund from '../components/payments/refund.vue';
+import StoreOrdersPanel from '../components/payments/store_orders_panel.vue';
 import Datepicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 export default {
     emits: ['hideBarsEvent', 'showBarsEvent', 'adminCheckEvent', 'checkWindowEvent', 'getConvosEvent', 'activeConvoEvent', 'getMessagesEvent', 'activeGroupEvent', 'getGroupsEvent', 'getGroupMessagesEvent'],
     props: ['groupProps', 'chatProps', 'logInProps'],
-    components: { graph, addProduct, Vue3EasyDataTable, Loader, Inform, sales, Refund, Datepicker },
+    components: { graph, addProduct, Vue3EasyDataTable, Loader, Inform, sales, Refund, StoreOrdersPanel, Datepicker },
     data() {
         return {
             apiConfig: {
@@ -821,6 +828,9 @@ export default {
         },
         showSummary() {
             this.paymentsSummary();
+        },
+        showOrders() {
+            // StoreOrdersPanel loads data on mount.
         },
         showProducts() {
             this.pageLoading = true;

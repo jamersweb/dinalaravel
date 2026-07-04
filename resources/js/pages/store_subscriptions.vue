@@ -1,11 +1,8 @@
 <template>
-    <Loader v-if="pageLoading" :loadingText="loaderText" />
-    <Inform v-if="informModal" :msgTitle="modalTitle" :msgDetail="modalDetail" @acknowledged="acknowledged" />
-
     <div style="border: 1px solid #e7e7e7; border-radius: 1em; overflow: hidden; height: calc(100vh - 125px)">
         <div class="sideBar border-end float-start">
             <div class="p-3 d-flex justify-content-between align-items-center border-bottom">
-                <p class="mb-0 fw-bold" style="font-size: 14px;">In-App Purchases</p>
+                <p class="mb-0 fw-bold" style="font-size: 14px;">App Store Orders</p>
             </div>
             <div>
                 <div
@@ -24,296 +21,40 @@
         </div>
 
         <div class="position-relative float-start" style="width: calc(100% - 250px); height: 100%; overflow: hidden;">
-            <div class="d-flex justify-content-between ps-3 pt-2 align-items-center" style="width: 100%; min-height: 50px; background-color: #eeeeee;">
-                <div>
-                    <p class="m-0" style="font-size: 26px;">{{ activeTabLabel }}</p>
-                    <p class="m-0 mb-2" style="font-size: 11px; color: #707070;">
-                        Apple App Store and Google Play subscription verifications from the mobile app.
-                    </p>
-                </div>
-                <div class="d-flex align-items-center gap-2 pe-3">
-                    <select v-model="statusFilter" @change="loadRecords(1)" class="brds-1 px-2" style="height: 35px; font-size: 12px;">
-                        <option value="">All statuses</option>
-                        <option value="active">Active</option>
-                        <option value="expired">Expired</option>
-                        <option value="pending">Pending</option>
-                    </select>
-                    <div class="position-relative" style="width: 235px; height: 35px;">
-                        <input
-                            type="text"
-                            placeholder="Search client, order id, product"
-                            class="py-2 pe-2 ps-4 w-100"
-                            v-model="search"
-                            @keyup.enter="loadRecords(1)"
-                            style="background-color: white; border: 1px solid rgb(167, 166, 166); border-radius: 10px; font-size: 10px;"
-                        >
-                        <img src="/cms-assets/images/navbar-topbar/search.png" alt="search" class="img-fluid position-absolute" style="max-height: 12px; left: 7px; top: 10px;">
-                    </div>
-                    <button class="prim_btn py-1 px-3 brds-1" style="font-size: 12px;" @click="loadRecords(1)">Search</button>
-                </div>
-            </div>
-
-            <div class="px-3 pt-3 d-flex flex-wrap gap-3" v-if="summary">
-                <div class="tsl brds-2 px-3 py-2" style="min-width: 120px;">
-                    <p class="mb-0" style="font-size: 11px; color: #707070;">Total records</p>
-                    <p class="mb-0 fw-bold" style="font-size: 20px;">{{ summary.total }}</p>
-                </div>
-                <div class="tsl brds-2 px-3 py-2" style="min-width: 120px;">
-                    <p class="mb-0" style="font-size: 11px; color: #707070;">Active</p>
-                    <p class="mb-0 fw-bold" style="font-size: 20px; color: #198754;">{{ summary.active }}</p>
-                </div>
-                <div class="tsl brds-2 px-3 py-2" style="min-width: 120px;">
-                    <p class="mb-0" style="font-size: 11px; color: #707070;">Apple</p>
-                    <p class="mb-0 fw-bold" style="font-size: 20px;">{{ summary.ios }}</p>
-                </div>
-                <div class="tsl brds-2 px-3 py-2" style="min-width: 120px;">
-                    <p class="mb-0" style="font-size: 11px; color: #707070;">Google</p>
-                    <p class="mb-0 fw-bold" style="font-size: 20px;">{{ summary.android }}</p>
-                </div>
-            </div>
-
-            <div class="p-3" style="height: calc(100% - 170px); overflow: auto;">
-                <Vue3EasyDataTable
-                    :headers="headers"
-                    :items="items"
-                    table-class-name="customize-table"
-                >
-                    <template #item-platform_label="item">
-                        <span
-                            class="px-2 py-1 brds-2"
-                            :style="platformStyle(item.platform)"
-                        >
-                            {{ item.platform_label }}
-                        </span>
-                    </template>
-                    <template #item-status="item">
-                        <span
-                            class="px-2 py-1 brds-2 text-white"
-                            :style="{ backgroundColor: statusColor(item.status) }"
-                        >
-                            {{ item.status }}
-                        </span>
-                    </template>
-                    <template #item-actions="item">
-                        <button class="prim_btn py-1 px-3 brds-1" style="font-size: 12px;" @click="openDetail(item.id)">
-                            View
-                        </button>
-                    </template>
-                </Vue3EasyDataTable>
-
-                <div class="d-flex justify-content-between align-items-center mt-3" v-if="meta.total > 0">
-                    <p class="mb-0" style="font-size: 12px;">
-                        Page {{ meta.current_page }} of {{ meta.last_page }} ({{ meta.total }} records)
-                    </p>
-                    <div>
-                        <button
-                            class="prim_btn py-1 px-3 brds-1 me-2"
-                            style="font-size: 12px;"
-                            :disabled="meta.current_page <= 1"
-                            @click="loadRecords(meta.current_page - 1)"
-                        >
-                            Previous
-                        </button>
-                        <button
-                            class="prim_btn py-1 px-3 brds-1"
-                            style="font-size: 12px;"
-                            :disabled="meta.current_page >= meta.last_page"
-                            @click="loadRecords(meta.current_page + 1)"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div v-if="detailOpen" @click.self="detailOpen = false" class="my-popup-component">
-        <div class="brds-2 position-relative text-start p-4" style="width: 70vw; max-height: 85vh; background-color: white; overflow-y: auto;">
-            <button class="trans_btn float-end" @click="detailOpen = false" style="font-size: 25px;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <h5 class="fw-bold mb-3">Subscription / Order Detail</h5>
-            <div v-if="detail" class="row g-2" style="font-size: 13px;">
-                <div class="col-md-6"><strong>Client:</strong> {{ detail.client_name }}</div>
-                <div class="col-md-6"><strong>Email:</strong> {{ detail.client_email }}</div>
-                <div class="col-md-6"><strong>Platform:</strong> {{ detail.platform_label }}</div>
-                <div class="col-md-6"><strong>Product:</strong> {{ detail.product_label }} ({{ detail.product_id }})</div>
-                <div class="col-md-6"><strong>Order / Transaction ID:</strong> {{ detail.order_id || '—' }}</div>
-                <div class="col-md-6"><strong>Original transaction:</strong> {{ detail.original_transaction_id || '—' }}</div>
-                <div class="col-md-6"><strong>Status:</strong> {{ detail.status }}</div>
-                <div class="col-md-6"><strong>Base plan:</strong> {{ detail.base_plan_id || '—' }}</div>
-                <div class="col-md-6"><strong>Purchased:</strong> {{ detail.purchased_at || '—' }}</div>
-                <div class="col-md-6"><strong>Expires:</strong> {{ detail.expires_at || '—' }}</div>
-                <div class="col-md-6"><strong>Verified:</strong> {{ detail.verified_at || '—' }}</div>
-                <div class="col-12"><strong>Purchase token:</strong> <span style="word-break: break-all;">{{ detail.purchase_token || '—' }}</span></div>
-                <div class="col-12 mt-3">
-                    <strong>Store response (raw)</strong>
-                    <pre class="tsl brds-2 p-3 mt-2 mb-0" style="font-size: 11px; max-height: 280px; overflow: auto; white-space: pre-wrap;">{{ formattedRawPayload }}</pre>
-                </div>
-            </div>
+            <StoreOrdersPanel :platform-filter="activeTab" :title="activeTabLabel" />
         </div>
     </div>
 </template>
 
 <script>
-import Vue3EasyDataTable from 'vue3-easy-data-table';
-import 'vue3-easy-data-table/dist/style.css';
-import axios from 'axios';
-import config from '../config';
-import Loader from '../components/loader.vue';
-import Inform from '../components/inform.vue';
+import StoreOrdersPanel from '../components/payments/store_orders_panel.vue';
 
 export default {
-    components: { Vue3EasyDataTable, Loader, Inform },
+    components: { StoreOrdersPanel },
     emits: ['hideBarsEvent', 'showBarsEvent', 'adminCheckEvent', 'checkWindowEvent', 'getConvosEvent', 'activeConvoEvent', 'getMessagesEvent', 'activeGroupEvent', 'getGroupsEvent', 'getGroupMessagesEvent'],
     props: ['groupProps', 'chatProps', 'logInProps'],
     data() {
         return {
-            apiConfig: {
-                headers: {
-                    Authorization: 'Bearer ' + config.storage.getItem('fwd_session_token'),
-                },
-            },
             tabs: [
                 { id: 'all', label: 'All orders' },
                 { id: 'ios', label: 'Apple (iOS)' },
                 { id: 'android', label: 'Google (Android)' },
             ],
             activeTab: 'all',
-            statusFilter: '',
-            search: '',
-            summary: null,
-            items: [],
-            meta: {
-                current_page: 1,
-                last_page: 1,
-                per_page: 25,
-                total: 0,
-            },
-            headers: [
-                { text: 'Client', value: 'client_name', sortable: true },
-                { text: 'Email', value: 'client_email', sortable: true },
-                { text: 'Store', value: 'platform_label', sortable: true },
-                { text: 'Product', value: 'product_label', sortable: true },
-                { text: 'Order ID', value: 'order_id', sortable: true },
-                { text: 'Status', value: 'status', sortable: true },
-                { text: 'Purchased', value: 'purchased_at', sortable: true },
-                { text: 'Expires', value: 'expires_at', sortable: true },
-                { text: 'Verified', value: 'verified_at', sortable: true },
-                { text: '', value: 'actions' },
-            ],
-            pageLoading: false,
-            loaderText: '',
-            informModal: false,
-            modalTitle: '',
-            modalDetail: '',
-            detailOpen: false,
-            detail: null,
         };
     },
     computed: {
         activeTabLabel() {
             const tab = this.tabs.find((t) => t.id === this.activeTab);
-            return tab ? tab.label : 'In-App Purchases';
-        },
-        formattedRawPayload() {
-            if (!this.detail || !this.detail.raw_payload) {
-                return '—';
-            }
-            try {
-                return JSON.stringify(this.detail.raw_payload, null, 2);
-            } catch (e) {
-                return String(this.detail.raw_payload);
-            }
+            return tab ? tab.label : 'App Store Orders';
         },
     },
     mounted() {
         this.$emit('adminCheckEvent');
-        this.loadSummary();
-        this.loadRecords(1);
     },
     methods: {
         switchTab(tabId) {
             this.activeTab = tabId;
-            this.loadRecords(1);
-        },
-        platformStyle(platform) {
-            if (platform === 'ios') {
-                return { backgroundColor: '#e8f0fe', color: '#1a56db' };
-            }
-            return { backgroundColor: '#e6f4ea', color: '#137333' };
-        },
-        statusColor(status) {
-            if (status === 'active') return '#198754';
-            if (status === 'expired') return '#dc3545';
-            return '#6c757d';
-        },
-        loadSummary() {
-            axios.get(config.baseApiUrl + 'store-subscriptions/summary', this.apiConfig)
-                .then((res) => {
-                    if (res.data.status) {
-                        this.summary = res.data.data;
-                    }
-                })
-                .catch(() => {});
-        },
-        loadRecords(page) {
-            this.pageLoading = true;
-            this.loaderText = 'Loading subscriptions';
-            const params = new URLSearchParams();
-            params.set('page', page);
-            params.set('per_page', this.meta.per_page);
-            if (this.activeTab === 'ios' || this.activeTab === 'android') {
-                params.set('platform', this.activeTab);
-            }
-            if (this.statusFilter) {
-                params.set('status', this.statusFilter);
-            }
-            if (this.search.trim()) {
-                params.set('search', this.search.trim());
-            }
-
-            axios.get(config.baseApiUrl + 'store-subscriptions?' + params.toString(), this.apiConfig)
-                .then((res) => {
-                    this.pageLoading = false;
-                    if (res.data.status) {
-                        this.items = res.data.data;
-                        this.meta = res.data.meta || this.meta;
-                    } else {
-                        this.showError(res.data.message || 'Could not load records');
-                    }
-                })
-                .catch((er) => {
-                    this.pageLoading = false;
-                    this.showError(er.message);
-                });
-        },
-        openDetail(id) {
-            this.pageLoading = true;
-            this.loaderText = 'Loading detail';
-            axios.get(config.baseApiUrl + 'store-subscriptions/' + id, this.apiConfig)
-                .then((res) => {
-                    this.pageLoading = false;
-                    if (res.data.status) {
-                        this.detail = res.data.data;
-                        this.detailOpen = true;
-                    } else {
-                        this.showError(res.data.message || 'Could not load detail');
-                    }
-                })
-                .catch((er) => {
-                    this.pageLoading = false;
-                    this.showError(er.message);
-                });
-        },
-        showError(message) {
-            this.modalTitle = 'Error';
-            this.modalDetail = message;
-            this.informModal = true;
-        },
-        acknowledged() {
-            this.informModal = false;
         },
     },
 };
