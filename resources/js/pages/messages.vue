@@ -3,6 +3,21 @@
     <Inform v-if="informModal" :msgTitle="modalTitle" :msgDetail="modalDetail"/>
     <Confirm v-if="confirmModal" :msgTitle="modalTitle" :msgDetail="modalDetail"/>
     <Preview v-if="previewOn" :file="previewFile" :filetype="previewType"/>
+    <VoiceSendTargetModal
+        v-if="voiceTargetModal"
+        page-mode="messages"
+        :current-chat-id="chatProps.active ? chatProps.active.id : null"
+        @cancel="voiceTargetModal = false"
+        @record="startVoiceRecord"
+        @upload="startVoiceUpload"
+    />
+    <ForwardMessageModal
+        v-if="forwardModal"
+        :message="forwardMessageData"
+        source-type="chat"
+        @cancel="forwardModal = false"
+        @forwarded="onMessageForwarded"
+    />
     <Loader v-if="pageLoading" :loadingText="loadingText"/>
     <GetInput v-if="firstMsgVisi" :msgTitle="firstMsgTitle" :msgDetail="firstMsgDetail"/>
     <div v-if="tagsDiv" style="position:fixed;height:100vh;width:100vw;top:0;left:0;z-index:98" @click="tagsDiv=false"></div>
@@ -125,9 +140,10 @@
                                 <img style="max-height:25px" src="/cms-assets/images/document.png" class="img-fluid">
                             </button>
                             <input @change="getDocFile()" type="file" accept=".docx,.pdf,.txt,.doc" class="d-none" ref="docFileRef">
-                            <button class="trans_btn" @click="getAudioInput()">
+                            <button class="trans_btn" @click="openVoiceTargetModal()">
                                 <img style="max-height:25px" src="/cms-assets/images/audio.png" class="img-fluid">
                             </button>
+                            <input @change="getAudioFile()" type="file" accept=".mp3,.wav,.m4a,.webm,.ogg,.aac,audio/*" class="d-none" ref="audioFileRef">
                             <button @click="sendTextMessage()" class="trans_btn">
                                 <img style="max-height:35px" src="/cms-assets/images/send.png" class="img-fluid">
                             </button>
@@ -150,12 +166,14 @@ import Confirm from '../components/confirm.vue';
 import GetInput from '../components/getInput.vue';
 import Loader from '../components/loader.vue';
 import Preview from '../components/messages/preview.vue';
+import VoiceSendTargetModal from '../components/messages/VoiceSendTargetModal.vue';
+import ForwardMessageModal from '../components/messages/ForwardMessageModal.vue';
 import EmojiPicker from '../components/messages/EmojiPicker.vue';
 import axios from "axios";
 
 //  Vue.use(AudioRecorder);
 export default {
-    components: { ChatItem, MsgItem, Inform, Confirm, NewChat, Loader, Preview, GetInput, EmojiPicker },
+    components: { ChatItem, MsgItem, Inform, Confirm, NewChat, Loader, Preview, GetInput, EmojiPicker, VoiceSendTargetModal, ForwardMessageModal },
     emits: ['hideBarsEvent', 'showBarsEvent', 'adminCheckEvent', 'checkWindowEvent', 'getConvosEvent', 'activeConvoEvent', 'getMessagesEvent', 'activeGroupEvent', 'getGroupsEvent', 'getGroupMessagesEvent'],
     props: ['groupProps', 'chatProps', 'logInProps'],
     data() {
@@ -185,6 +203,10 @@ export default {
             messageOpt: 'active',
             tagsDiv: false,
             clientsTags: null,
+            voiceTargetModal: false,
+            voiceSendTarget: null,
+            forwardModal: false,
+            forwardMessageData: null,
         };
     },
     mounted() {
@@ -285,16 +307,45 @@ export default {
             }
             let fd = new FormData();
             fd.append('file', file);
-            fd.append('chat_id', this.chatProps.active.id);
-            axios.post(config.baseApiUrl + 'send-file-message', fd, apiCon).then(res => {
-                if (res.data.status)
-                    this.$emit('getMessagesEvent', res.data.sent_msg);
-                else {
+
+            const target = this.voiceSendTarget;
+            let endpoint = 'send-file-message';
+            if (target?.type === 'group') {
+                endpoint = 'send-group-file-message';
+                fd.append('group_id', target.groupId);
+            } else if (target?.type === 'program') {
+                endpoint = 'multiple-users-file-message';
+                target.userIds.forEach((id) => fd.append('user_ids[]', id));
+            } else {
+                const chatId = target?.chatId || (this.chatProps.active ? this.chatProps.active.id : null);
+                if (!chatId) {
+                    this.modalTitle = 'Error';
+                    this.modalDetail = 'Select a client chat before sending a file.';
+                    this.informModal = true;
+                    return;
+                }
+                fd.append('chat_id', chatId);
+            }
+
+            axios.post(config.baseApiUrl + endpoint, fd, apiCon).then(res => {
+                this.voiceSendTarget = null;
+                if (res.data.status) {
+                    if (endpoint === 'send-file-message') {
+                        this.$emit('getMessagesEvent', res.data.sent_msg);
+                    } else if (endpoint === 'send-group-file-message') {
+                        this.$emit('getGroupMessagesEvent', res.data.sent_msg);
+                    } else {
+                        this.modalTitle = 'Done';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                } else {
                     this.modalTitle = 'Failed!';
                     this.modalDetail = res.data.message;
                     this.informModal = true;
                 }
             }).catch(er => {
+                this.voiceSendTarget = null;
                 this.modalTitle = 'Error!';
                 this.modalDetail = 'Something Went Wrong';
                 this.informModal = true;
@@ -411,10 +462,38 @@ export default {
         openDocInput() {
             this.$refs.docFileRef.click();
         },
-        getAudioInput() {
+        openVoiceTargetModal() {
+            this.voiceTargetModal = true;
+        },
+        startVoiceRecord(target) {
+            this.voiceSendTarget = target;
+            this.voiceTargetModal = false;
             this.previewFile = null;
-            this.previewType = "audio";
+            this.previewType = 'audio';
             this.previewOn = true;
+        },
+        startVoiceUpload(target) {
+            this.voiceSendTarget = target;
+            this.voiceTargetModal = false;
+            this.$refs.audioFileRef.click();
+        },
+        openForwardMessage(message) {
+            this.forwardMessageData = message;
+            this.forwardModal = true;
+        },
+        onMessageForwarded(result) {
+            this.forwardModal = false;
+            this.modalTitle = 'Done';
+            this.modalDetail = result.message || 'Message forwarded.';
+            this.informModal = true;
+            if (result.target_type === 'chat') {
+                this.$emit('getConvosEvent', 1);
+            } else {
+                this.$emit('getGroupsEvent', 1);
+            }
+        },
+        getAudioInput() {
+            this.openVoiceTargetModal();
         },
         getImageFile() {
             let tempFile = this.$refs.imageFileRef.files[0];
@@ -439,6 +518,20 @@ export default {
                 this.previewType = "document";
                 this.previewOn = true;
             }
+        },
+        getAudioFile() {
+            const tempFile = this.$refs.audioFileRef.files[0];
+            if (!tempFile) {
+                return;
+            }
+            if (!this.voiceSendTarget) {
+                this.voiceTargetModal = true;
+                return;
+            }
+            this.previewFile = tempFile;
+            this.previewType = 'audio';
+            this.previewOn = true;
+            this.$refs.audioFileRef.value = '';
         },
         closeEmojiInput() {
             this.emojiPicker = false;

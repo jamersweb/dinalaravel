@@ -196,6 +196,9 @@ Route::group(['prefix' => 'cms'], function(){
         Route::post('send-text-message',[ChatsController::class,'sendTextMessageAdmin']);
         Route::post('send-file-message',[ChatsController::class,'sendFileMessageAdmin']);
         Route::post('multiple-users-message',[ChatsController::class,'multipleUsersMessage']);
+        Route::post('multiple-users-file-message',[ChatsController::class,'multipleUsersFileMessage']);
+        Route::post('forward-message',[ChatsController::class,'forwardMessage']);
+        Route::get('program-subscriber-ids/{id}',[ChatsController::class,'programSubscriberIds']);
         Route::get('delete-chat/{id}',[ChatsController::class,'deleteChat']);
         Route::get('archive-chat/{id}',[ChatsController::class,'archiveChat']);
         Route::get('unarchive-chat/{id}',[ChatsController::class,'unArchiveChat']);

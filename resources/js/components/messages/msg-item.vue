@@ -17,7 +17,7 @@
                 </svg>
               </button>
               <ul class="tsl dropdown-menu border-0">
-                  <!-- <li><button class="dropdown-item">Forward</button></li> -->
+                  <li><button class="dropdown-item" @click="forwardMessage(msgdet)">Forward</button></li>
                   <li><button class="dropdown-item" @click="deleteMessage(msgdet.id)">Delete</button></li>
               </ul>
           </div>
@@ -47,7 +47,7 @@
           </svg>
         </button>
         <ul class="tsl dropdown-menu border-0">
-            <!-- <li><button class="dropdown-item">Forward</button></li> -->
+            <li><button class="dropdown-item" @click="forwardMessage(msgdet)">Forward</button></li>
             <li><button class="dropdown-item" @click="deleteMessage(msgdet.id)">Delete</button></li>
         </ul>
     </div>
@@ -83,7 +83,7 @@
           </svg>
         </button>
         <ul class="tsl dropdown-menu border-0">
-            <!-- <li><button class="dropdown-item">Forward</button></li> -->
+            <li><button class="dropdown-item" @click="forwardMessage(msgdet)">Forward</button></li>
             <li><button class="dropdown-item" @click="deleteMessage(msgdet.id)">Delete</button></li>
         </ul>
     </div>
@@ -115,7 +115,7 @@
           </svg>
         </button>
         <ul class="tsl dropdown-menu border-0">
-            <!-- <li><button class="dropdown-item">Forward</button></li> -->
+            <li><button class="dropdown-item" @click="forwardMessage(msgdet)">Forward</button></li>
             <li><button class="dropdown-item" @click="deleteMessage(msgdet.id)">Delete</button></li>
         </ul>
     </div>
@@ -145,7 +145,7 @@
           </svg>
         </button>
         <ul class="tsl dropdown-menu border-0">
-            <!-- <li><button class="dropdown-item">Forward</button></li> -->
+            <li><button class="dropdown-item" @click="forwardMessage(msgdet)">Forward</button></li>
             <li><button class="dropdown-item" @click="deleteMessage(msgdet.id)">Delete</button></li>
         </ul>
     </div>
@@ -169,6 +169,11 @@ export default {
     methods: {
         deleteMessage(id) {
             this.$parent.deleteMessage(id);
+        },
+        forwardMessage(message) {
+            if (typeof this.$parent.openForwardMessage === 'function') {
+                this.$parent.openForwardMessage(message);
+            }
         }
     }
 }

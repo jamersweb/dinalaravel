@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\FileHandle;
 use App\Http\Controllers\Controller;
 use App\Models\Chat;
+use App\Models\Group;
+use App\Models\GroupMessage;
 use App\Models\Message;
+use App\Models\ProgramSub;
 use App\Models\User;
 use App\Models\UserDetail;
 use App\Models\Tag;
@@ -16,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ChatsController extends Controller
@@ -201,7 +205,7 @@ class ChatsController extends Controller
     function sendFileMessageAdmin(Request $request){
         $validate = Validator::make($request->all(),[
             'chat_id' => 'required|exists:chats,id',
-            'file' => 'required|mimes:png,jpg,jpeg,mp4,mkv,mov,m4v,pdf,docx,doc,txt,mp3,wav',
+            'file' => 'required|mimes:png,jpg,jpeg,mp4,mkv,mov,m4v,pdf,docx,doc,txt,mp3,wav,m4a,webm,ogg,aac',
         ]);
         if($validate->fails())
         return response()->json([
@@ -218,7 +222,7 @@ class ChatsController extends Controller
         $fileType = 'video';
         else if($extension==='pdf' || $extension==='docx' || $extension==='xlsx' || $extension==='txt')
         $fileType = 'document';
-        else if($extension==='mp3' || $extension==='wav')
+        else if($extension==='mp3' || $extension==='wav' || $extension==='m4a' || $extension==='webm' || $extension==='ogg' || $extension==='aac')
         $fileType = 'audio';
         else 
         return response()->json([
@@ -514,5 +518,207 @@ class ChatsController extends Controller
             Log::info("Error Detecting: (".$er->getMessage().")");
             return null; 
         }
+    }
+
+    function forwardMessage(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'source_type' => 'required|in:chat,group',
+            'message_id' => 'required|integer',
+            'target_type' => 'required|in:chat,group',
+            'target_id' => 'required|integer',
+        ]);
+        if ($validate->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validate->errors()->all()[0],
+            ]);
+        }
+
+        $sourceType = $request->input('source_type');
+        $targetType = $request->input('target_type');
+        $messageId = (int) $request->input('message_id');
+        $targetId = (int) $request->input('target_id');
+
+        if ($sourceType === 'chat') {
+            $source = Message::find($messageId);
+        } else {
+            $source = GroupMessage::find($messageId);
+        }
+
+        if (!$source) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Message not found.',
+            ]);
+        }
+
+        if ($targetType === 'chat') {
+            $chat = Chat::find($targetId);
+            if (!$chat) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Chat not found.',
+                ]);
+            }
+
+            $msg = new Message();
+            $msg->chat_id = $chat->id;
+            $msg->sender = 'admin';
+            $msg->content = $source->content;
+            $msg->content_ar = $source->content_ar ?? $source->content;
+            $msg->msg_type = $source->msg_type;
+            $msg->file_url = $source->msg_type === 'text' ? null : $source->getRawOriginal('file_url');
+            $msg->save();
+
+            $chat->last_message = substr((string) $msg->content, 0, 30);
+            $chat->last_type = $msg->msg_type;
+            $chat->updated_at = Carbon::now();
+            $chat->save();
+
+            $justSent = Message::find($msg->id);
+            $justSent->time = $justSent->created_at->diffForHumans();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Message forwarded.',
+                'sent_msg' => json_encode($justSent),
+                'target_type' => 'chat',
+                'target_id' => $chat->id,
+            ]);
+        }
+
+        $group = Group::find($targetId);
+        if (!$group) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Group not found.',
+            ]);
+        }
+
+        $msg = new GroupMessage();
+        $msg->group_id = $group->id;
+        $msg->from = Auth::id();
+        $msg->content = $source->content;
+        $msg->content_ar = $source->content_ar ?? $source->content;
+        $msg->msg_type = $source->msg_type;
+        $msg->file_url = $source->msg_type === 'text' ? null : $source->getRawOriginal('file_url');
+        $msg->save();
+
+        $group->last_message = substr((string) $msg->content, 0, 30);
+        $group->last_type = $msg->msg_type;
+        $group->save();
+
+        $justSent = GroupMessage::find($msg->id);
+        $justSent->time = $justSent->created_at->diffForHumans();
+        $justSent->from_name = $justSent->userName();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Message forwarded.',
+            'sent_msg' => json_encode($justSent),
+            'target_type' => 'group',
+            'target_id' => $group->id,
+        ]);
+    }
+
+    function multipleUsersFileMessage(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'user_ids' => 'required|array|min:1',
+            'file' => 'required|mimes:png,jpg,jpeg,mp4,mkv,mov,m4v,pdf,docx,doc,txt,mp3,wav,m4a,webm,ogg,aac',
+        ]);
+        if ($validate->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validate->errors()->all()[0],
+            ]);
+        }
+
+        $extension = strtolower($request->file->getClientOriginalExtension());
+        $fileType = $this->resolveMessageFileType($extension);
+        if ($fileType === null) {
+            return response()->json([
+                'status' => false,
+                'message' => 'File format is not valid. (' . $extension . ')',
+            ]);
+        }
+
+        $fileName = $request->file->getClientOriginalName();
+        $fileContents = file_get_contents($request->file->getRealPath());
+        $sentCount = 0;
+
+        foreach ($request->user_ids as $uId) {
+            $user = User::find($uId);
+            if (!$user) {
+                continue;
+            }
+
+            $chatId = Chat::where('user_id', $uId)->pluck('id')->first();
+            if (is_null($chatId)) {
+                $newChat = new Chat();
+                $newChat->user_id = $uId;
+                $newChat->save();
+                $chatId = $newChat->id;
+            }
+
+            $fileUrl = $chatId . '_message_file_' . time() . '_' . uniqid() . '.' . $extension;
+            Storage::disk('fwd_media')->put('messages_files/' . $fileUrl, $fileContents);
+
+            $newMessage = new Message();
+            $newMessage->chat_id = $chatId;
+            $newMessage->sender = 'admin';
+            $newMessage->content = $fileName;
+            $newMessage->content_ar = $fileName;
+            $newMessage->msg_type = $fileType;
+            $newMessage->file_url = $fileUrl;
+            $newMessage->save();
+
+            $chat = Chat::find($chatId);
+            $chat->last_message = substr($fileName, 0, 30);
+            $chat->last_type = $fileType;
+            $chat->updated_at = Carbon::now();
+            $chat->save();
+            $sentCount++;
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Voice message sent to ' . $sentCount . ' client(s).',
+            'sent_count' => $sentCount,
+        ]);
+    }
+
+    function programSubscriberIds($programId)
+    {
+        $ids = ProgramSub::where('program_id', $programId)
+            ->whereNull('complete_date')
+            ->pluck('user_id')
+            ->unique()
+            ->values()
+            ->all();
+
+        return response()->json([
+            'status' => true,
+            'data' => $ids,
+        ]);
+    }
+
+    private function resolveMessageFileType(string $extension): ?string
+    {
+        if (in_array($extension, ['png', 'jpg', 'jpeg'], true)) {
+            return 'image';
+        }
+        if (in_array($extension, ['mp4', 'mkv', 'mov', 'm4v'], true)) {
+            return 'video';
+        }
+        if (in_array($extension, ['pdf', 'docx', 'doc', 'txt', 'xlsx'], true)) {
+            return 'document';
+        }
+        if (in_array($extension, ['mp3', 'wav', 'm4a', 'webm', 'ogg', 'aac'], true)) {
+            return 'audio';
+        }
+
+        return null;
     }
 }

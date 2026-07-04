@@ -331,7 +331,7 @@ class GroupChatController extends Controller
     function sendFileMessageAdmin(Request $request){
         $validate = Validator::make($request->all(),[
             'group_id' => 'required|exists:groups,id',
-            'file' => 'required|mimes:png,jpg,jpeg,mp4,mkv,mov,m4v,pdf,docx,doc,txt,mp3,wav',
+            'file' => 'required|mimes:png,jpg,jpeg,mp4,mkv,mov,m4v,pdf,docx,doc,txt,mp3,wav,m4a,webm,ogg,aac',
         ]);
         if($validate->fails())
         return response()->json([
@@ -348,7 +348,7 @@ class GroupChatController extends Controller
         $fileType = 'video';
         else if($extension==='pdf' || $extension==='docx' || $extension==='xlsx' || $extension==='txt')
         $fileType = 'document';
-        else if($extension==='mp3' || $extension==='wav')
+        else if($extension==='mp3' || $extension==='wav' || $extension==='m4a' || $extension==='webm' || $extension==='ogg' || $extension==='aac')
         $fileType = 'audio';
         else 
         return response()->json([
