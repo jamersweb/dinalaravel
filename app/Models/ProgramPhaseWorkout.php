@@ -9,6 +9,14 @@ class ProgramPhaseWorkout extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'program_phase_id',
+        'workout_id',
+        'display_name',
+        'section_tag',
+        'sort_order',
+    ];
+
     protected static function newFactory()
     {
         return \Database\Factories\ProgramPhaseWorkoutFactory::new();

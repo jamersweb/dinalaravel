@@ -201,9 +201,11 @@ class ProgramsController extends Controller
         $phase = ProgramPhase::where('id', $id)
             ->select('id', 'program_id', 'phase_no', 'weeks', 'name', 'summary', 'created_at', 'updated_at')
             ->with(['phaseWorkouts' => function ($q) {
-                $q->select('id', 'workout_id', 'display_name', 'program_phase_id')->with(['workoutDetail' => function ($q2) {
-                    $q2->select('id', 'image')->withCount('workoutExercises');
-                }]);
+                $q->select('id', 'workout_id', 'display_name', 'section_tag', 'sort_order', 'program_phase_id')
+                    ->orderBy('sort_order')
+                    ->with(['workoutDetail' => function ($q2) {
+                        $q2->select('id', 'image', 'title')->withCount('workoutExercises');
+                    }]);
             }])->first();
         if (is_null($phase))
             return response()->json([
@@ -341,15 +343,19 @@ class ProgramsController extends Controller
                 ->toArray();
 
             $nameExists = [];
+            $nextSortOrder = (int) ProgramPhaseWorkout::where('program_phase_id', $request->program_phase_id)->max('sort_order');
             foreach ($request->workout_ids as $item) {
                 $wrkId = $item;
                 $workout = $workouts->get($wrkId);
                 $wrkName = $workout ? $workout->title : null;
                 if (!in_array($wrkName, $allWorksOfPhase)) {
+                    $nextSortOrder++;
                     $phaseWorkout = new ProgramPhaseWorkout();
                     $phaseWorkout->program_phase_id = $request->program_phase_id;
                     $phaseWorkout->workout_id = $wrkId;
                     $phaseWorkout->display_name = $wrkName;
+                    $phaseWorkout->section_tag = $request->input('section_tag', 'custom');
+                    $phaseWorkout->sort_order = $nextSortOrder;
                     $phaseWorkout->save();
                 } else {
                     array_push($nameExists, $wrkName);
@@ -416,6 +422,82 @@ class ProgramsController extends Controller
             'status' => true,
             'message' => 'Workout Display Name Changed Successfully'
         ]);
+    }
+
+    function addPhaseWorkoutRoutine(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'program_phase_id' => 'required|exists:program_phases,id',
+            'workout_id' => 'required|exists:workouts,id',
+            'section_tag' => 'required|string|max:64',
+        ]);
+        if ($validate->fails()) {
+            return $this->validationError($validate);
+        }
+
+        $workout = Workout::select('id', 'title')->find($request->workout_id);
+        if (!$workout) {
+            return $this->notFound('Workout not found.');
+        }
+
+        $nextSortOrder = ((int) ProgramPhaseWorkout::where('program_phase_id', $request->program_phase_id)->max('sort_order')) + 1;
+
+        $phaseWorkout = new ProgramPhaseWorkout();
+        $phaseWorkout->program_phase_id = $request->program_phase_id;
+        $phaseWorkout->workout_id = $workout->id;
+        $phaseWorkout->display_name = $workout->title;
+        $phaseWorkout->section_tag = $request->section_tag;
+        $phaseWorkout->sort_order = $nextSortOrder;
+        $phaseWorkout->save();
+
+        $programId = ProgramPhase::where('id', $request->program_phase_id)->value('program_id');
+        $program = Program::find($programId);
+        if ($program && empty($program->getRawOriginal('image'))) {
+            $image = DB::table('workouts')->where('id', $workout->id)->value('image');
+            if ($image) {
+                $program->image = $image;
+                $program->save();
+            }
+        }
+
+        return $this->success($phaseWorkout->fresh(), 'Workout routine added to program.');
+    }
+
+    function updatePhaseWorkoutSection(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'phase_workout_id' => 'required|exists:program_phase_workouts,id',
+            'section_tag' => 'required|string|max:64',
+        ]);
+        if ($validate->fails()) {
+            return $this->validationError($validate);
+        }
+
+        $phaseWorkout = ProgramPhaseWorkout::find($request->phase_workout_id);
+        $phaseWorkout->section_tag = $request->section_tag;
+        $phaseWorkout->save();
+
+        return $this->success($phaseWorkout, 'Section tag updated.');
+    }
+
+    function reorderPhaseWorkouts(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'program_phase_id' => 'required|exists:program_phases,id',
+            'ordered_ids' => 'required|array|min:1',
+            'ordered_ids.*' => 'integer|exists:program_phase_workouts,id',
+        ]);
+        if ($validate->fails()) {
+            return $this->validationError($validate);
+        }
+
+        foreach ($request->ordered_ids as $index => $phaseWorkoutId) {
+            ProgramPhaseWorkout::where('id', $phaseWorkoutId)
+                ->where('program_phase_id', $request->program_phase_id)
+                ->update(['sort_order' => $index]);
+        }
+
+        return $this->success(null, 'Workout order updated.');
     }
 
     function showBeginnerPrograms()

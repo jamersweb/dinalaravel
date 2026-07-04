@@ -95,6 +95,9 @@ Route::group(['prefix' => 'cms'], function(){
 		Route::get('delete-program/{id}',[ProgramsController::class,'deleteProgram']);
 		Route::post('add-program-discription',[ProgramsController::class,'addProgramDiscription']);
 		Route::post('add-phase-workout',[ProgramsController::class,'addPhaseWorkouts']);
+		Route::post('add-phase-workout-routine',[ProgramsController::class,'addPhaseWorkoutRoutine']);
+		Route::post('update-phase-workout-section',[ProgramsController::class,'updatePhaseWorkoutSection']);
+		Route::post('reorder-phase-workouts',[ProgramsController::class,'reorderPhaseWorkouts']);
 		Route::post('update-phase-workout-display-name',[ProgramsController::class,'changePhaseWorkoutDisplayName']);
         Route::get('get-all-programs',[ProgramsController::class,'getAllPrograms']);
         Route::get('get-program-detail/{id}',[ProgramsController::class,'getDetailWithSubscribers']);

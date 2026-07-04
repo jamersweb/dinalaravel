@@ -14,6 +14,6 @@ class ProgramPhase extends Model
         return \Database\Factories\ProgramPhaseFactory::new();
     }
     function phaseWorkouts(){
-        return $this->hasMany(ProgramPhaseWorkout::class,'program_phase_id','id');
+        return $this->hasMany(ProgramPhaseWorkout::class,'program_phase_id','id')->orderBy('sort_order');
     }
 }

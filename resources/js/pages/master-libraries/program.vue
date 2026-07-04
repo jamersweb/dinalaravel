@@ -258,33 +258,14 @@
                                 <button class="scnd_btn py-1 px-3 h7 me-2 rounded-1"
                                     @click="removeWorkout()">Delete</button>
                             </div>
-                            <div class="d-flex justify-content-start flex-wrap mt-3">
-                                <div class="shd_card p-2 m-2" v-for="phase in phaseDetail.phase_workouts">
-                                    <div class="position-relative">
-                                        <div v-if="phase.workout_detail != null">
-                                            <img v-if="phase.workout_detail.image != null"
-                                                :src="phase.workout_detail.image" alt="" class="img-fluid"
-                                                style="width: 180px; object-fit: contain; background: black; height: 160px;">
-                                            <img v-else src="/images/download1.png" alt="" class="img-fluid"
-                                                style="width: 180px; height: 160px;">
-                                        </div>
-                                        <img v-else src="/images/download1.png" alt="" class="img-fluid"
-                                            style="width: 180px; height: 160px;">
-                                        <input type="checkbox" class="position-absolute form-check-input"
-                                            style="top:5px;left:10px" v-model="toDeleteIds" :value="phase.id">
-                                        <p class="mb-0 fw-bold h7" style="cursor: pointer;" @click="openDetail(phase.workout_id)">{{ phase.display_name }}</p>
-                                        <div>
-                                            <p v-if="phase.workout_detail != null" class="mb-0 h8 float-start">
-                                                {{ phase.workout_detail.workout_exercises_count }} Exercises</p>
-                                            <p v-else class="mb-0 h8 float-start">0 Exercises</p>
-                                            <img @click="showEditName(phase.id, phase.display_name)"
-                                                src="/cms-assets/images/master-libraries/edit.png"
-                                                class="img-fluid float-end" title="Edit Display Name"
-                                                style="height: 20px;" alt="">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <ProgramPhaseRoutineBuilder
+                                v-if="phaseDetail.id"
+                                :phase-id="phaseDetail.id"
+                                :phase-workouts="phaseDetail.phase_workouts || []"
+                                :program-language="programLanguage || programDetail.language || 'en'"
+                                v-model:selected-delete-ids="toDeleteIds"
+                                @refresh="fetchPhaseDetail(null)"
+                            />
                         </div>
                     </div>
                 </div>
@@ -309,12 +290,13 @@ import Confirm from '../../components/confirm.vue';
 import Filters from '../../components/filters.vue';
 import Vue3EasyDataTable from 'vue3-easy-data-table';
 import WorkoutDetail from '../../components/master-libraries/workoutDetail.vue';
+import ProgramPhaseRoutineBuilder from '../../components/master-libraries/programPhaseRoutineBuilder.vue';
 import 'vue3-easy-data-table/dist/style.css';
 import { ref } from "vue";
 export default {
     emits: ['hideBarsEvent', 'showBarsEvent', 'adminCheckEvent', 'checkWindowEvent', 'getConvosEvent', 'activeConvoEvent', 'getMessagesEvent', 'activeGroupEvent', 'getGroupsEvent', 'getGroupMessagesEvent'],
     props: ['groupProps', 'chatProps', 'logInProps'],
-    components: { Filters,DataTable,NewWorkout,BuildWorkout, NewProgram, browseExerciseLibrary, GetInput, Inform, Confirm, ImportWorkout, SubUsers, Loader, Vue3EasyDataTable, WorkoutDetail },
+    components: { Filters,DataTable,NewWorkout,BuildWorkout, NewProgram, browseExerciseLibrary, GetInput, Inform, Confirm, ImportWorkout, SubUsers, Loader, Vue3EasyDataTable, WorkoutDetail, ProgramPhaseRoutineBuilder },
     data() {
         return {
             apiConfig: {
@@ -818,6 +800,12 @@ export default {
                 if (res.data.status) {
                     this.phaseDetail = res.data.data;
                     this.phaseSummary = this.phaseDetail.summary;
+                    if (!this.programLanguage && this.phaseDetail.program_id) {
+                        const program = this.programs.find((p) => p.id === this.phaseDetail.program_id);
+                        if (program) {
+                            this.programLanguage = program.language;
+                        }
+                    }
                 }
                 else {
                     this.modalTitle = 'Error!';
