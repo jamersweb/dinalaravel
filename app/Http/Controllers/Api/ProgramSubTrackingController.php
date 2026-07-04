@@ -174,12 +174,17 @@ class ProgramSubTrackingController extends Controller
                     break;
                 }
             }
-            $phaseWorkouts = ProgramPhaseWorkout::where('program_phase_id',$phaseId)->get();
+            $phaseWorkouts = ProgramPhaseWorkout::where('program_phase_id',$phaseId)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get();
             foreach ($phaseWorkouts as $pWrk) {
                 $weekly = new WeeklyWorkout();
                 $weekly->week_id = $proWeek->id;
                 $weekly->workout_id = $pWrk->workout_id;
                 $weekly->display_name = $pWrk->display_name;
+                $weekly->section_tag = $pWrk->section_tag;
+                $weekly->sort_order = $pWrk->sort_order ?? 0;
                 $weekly->save();
             }
         }

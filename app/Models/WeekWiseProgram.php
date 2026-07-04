@@ -11,6 +11,6 @@ class WeekWiseProgram extends Model
     public $timestamps = false;
 
     function weeklyWorkouts(){
-        return WeeklyWorkout::where('week_id',$this->id)->get();
+        return WeeklyWorkout::where('week_id',$this->id)->orderBy('sort_order')->orderBy('id')->get();
     }
 }
