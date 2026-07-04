@@ -121,10 +121,12 @@ class MediaController extends Controller
 
         // Explicit Content-Length prevents "Connection closed while receiving data" on some clients
         $fileSize = filesize($fullPath);
+        // Longer cache for large video assets; Accept-Ranges enables seeking without full download.
+        $isVideo = str_starts_with((string) $mimeType, 'video/');
         $headers = [
             'Content-Type' => $mimeType,
             'Content-Length' => $fileSize,
-            'Cache-Control' => 'public, max-age=86400',
+            'Cache-Control' => $isVideo ? 'public, max-age=604800' : 'public, max-age=86400',
             'Accept-Ranges' => 'bytes',
         ];
 
