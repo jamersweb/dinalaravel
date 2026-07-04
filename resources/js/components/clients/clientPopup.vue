@@ -396,7 +396,8 @@ import assignTags from './assignTags.vue';
 export default {
     name: 'clientPopup',
     components: { Loader, Inform, Vue3EasyDataTable, assignTags },
-    props: ['idForDetails', 'logInDetails'],
+    emits: ['close'],
+    props: ['idForDetails', 'logInDetails', 'initialTab'],
     data() {
         return {
             apiConfig: {
@@ -455,8 +456,11 @@ export default {
         this.getClientInvoices();
         this.getClientTags();
         this.getHabitLists();
-        if (this.logInDetails.role == 'Admin')
+        if (this.logInDetails?.role == 'Admin')
             this.getAttachments();
+        if (this.initialTab === 'invoices') {
+            this.$nextTick(() => this.showInvoices());
+        }
     },
     methods: {
         assignTagsShow() {
@@ -777,7 +781,12 @@ export default {
             this.sellProduct = false;
         },
         quitComponent() {
-            this.$parent.ClientPopup();
+            this.$emit('close');
+            if (this.$parent && typeof this.$parent.ClientPopup === 'function' && Object.prototype.hasOwnProperty.call(this.$parent, 'showClientPopup')) {
+                this.$parent.ClientPopup();
+            } else if (this.$parent && typeof this.$parent.ClientPopup === 'function' && Object.prototype.hasOwnProperty.call(this.$parent, 'clientPopupComponent')) {
+                this.$parent.ClientPopup();
+            }
         },
         acknowledged() {
             this.informModal = false;

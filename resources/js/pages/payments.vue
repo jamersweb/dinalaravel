@@ -197,7 +197,7 @@
             </div>
         </div>
         <div v-if="activeTab=='orders'" class="position-relative float-start" style="width:calc(100% - 250px);height:100%;overflow:hidden;">
-            <StoreOrdersPanel title="Orders" :show-platform-filter="true" />
+            <StoreOrdersPanel title="Orders" :show-platform-filter="true" :log-in-props="logInProps" />
         </div>
         <div v-if="invoices" class="position-relative float-start" style="width:calc(100% - 250px);height:100%;overflow-y:auto;overflow-x:hidden">
             <div class="d-flex justify-content-between ps-3 pt-2" style="width:100%;min-height:50px;float:right;background-color: #eeeeee;">

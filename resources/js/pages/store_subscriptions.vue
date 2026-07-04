@@ -21,7 +21,7 @@
         </div>
 
         <div class="position-relative float-start" style="width: calc(100% - 250px); height: 100%; overflow: hidden;">
-            <StoreOrdersPanel :platform-filter="activeTab" :title="activeTabLabel" />
+            <StoreOrdersPanel :platform-filter="activeTab" :title="activeTabLabel" :log-in-props="logInProps" />
         </div>
     </div>
 </template>

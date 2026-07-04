@@ -7,6 +7,8 @@ use App\Models\StoreSubscription;
 use App\Models\Subscription;
 use App\Models\UserDetail;
 use App\Models\UserSub;
+use App\Services\GooglePlayClient;
+use App\Services\StoreSubscriptionPricing;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,6 +66,13 @@ class StoreSubscriptionController extends Controller
 
         $storeSub = $this->storeVerification($request, $result, 'active');
         $this->activateBackendSubscription($productId, $result['purchased_at'], $result['expires_at']);
+
+        if ($platform === 'android' && $request->filled('purchase_token')) {
+            app(GooglePlayClient::class)->acknowledgeSubscription(
+                $productId,
+                $request->input('purchase_token')
+            );
+        }
 
         return response()->json([
             'status' => true,

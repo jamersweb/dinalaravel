@@ -20,6 +20,7 @@ use App\Models\ProgramsTracking;
 use App\Models\ProgramSub;
 use App\Models\ProgramSubscriber;
 use App\Models\Question;
+use App\Models\StoreSubscription;
 use App\Models\User;
 use App\Models\UserSetting;
 use App\Models\UserStat;
@@ -34,6 +35,8 @@ use App\Models\WeeklyWorkout;
 use App\Models\WeekWiseProgram;
 use App\Models\Workout;
 use App\Models\WorkoutCompilation;
+use App\Services\GooglePlayClient;
+use App\Services\StoreSubscriptionPricing;
 use App\Traits\ActivitiesTrait;
 use App\Traits\NotificationsTrait;
 use Carbon\Carbon;
@@ -433,12 +436,36 @@ class ClientsController extends Controller
 
     function clientInvoices($id){
         $subs = UserSub::where('user_id',$id)->where('status','!=','awaiting_payment')->orderBy('id','desc')->get();
+        $storeSubscriptions = StoreSubscription::where('user_id', $id)
+            ->orderByDesc('verified_at')
+            ->get();
         foreach ($subs as $sub) {
             $relatedPayment = Payment::find($sub->payment_id);
             $discount = DiscountCode::find($sub->discount_code);
             $sub->subscription = $sub->subscription();
-            $sub->amount_paid = $relatedPayment===null?'0':$relatedPayment->amount;
-            $sub->card = $relatedPayment===null?'-':$relatedPayment->card_used;
+            if ($relatedPayment === null) {
+                $storeSub = $this->matchingStoreSubscription($sub, $storeSubscriptions);
+                if ($storeSub) {
+                    $price = StoreSubscriptionPricing::fromPayload(
+                        $storeSub->raw_payload,
+                        $storeSub->platform,
+                        $storeSub->product_id
+                    );
+                    if (!$price && $storeSub->platform === 'android' && $storeSub->transaction_id) {
+                        $googlePlay = app(GooglePlayClient::class);
+                        $order = $googlePlay->fetchOrder($storeSub->transaction_id);
+                        $price = $googlePlay->pricingFromOrder($order, $storeSub->product_id);
+                    }
+                    $sub->amount_paid = $price['formatted'] ?? '—';
+                    $sub->card = $storeSub->platform === 'ios' ? 'Apple App Store' : 'Google Play';
+                } else {
+                    $sub->amount_paid = '—';
+                    $sub->card = 'App Store';
+                }
+            } else {
+                $sub->amount_paid = $relatedPayment->amount;
+                $sub->card = $relatedPayment->card_used;
+            }
             $sub->discount_used = $discount===null?'-':$discount->code;
             $sub->sub_start_date = is_null($sub->sub_start_date)?'':Carbon::parse($sub->sub_start_date)->format('d M, y');
             $sub->sub_expire_date = is_null($sub->sub_expire_date)?'':Carbon::parse($sub->sub_expire_date)->format('d M, y');
@@ -447,6 +474,30 @@ class ClientsController extends Controller
             'status' => true,
             'data' => $subs
         ]);
+    }
+
+    private function matchingStoreSubscription(UserSub $sub, $storeSubscriptions): ?StoreSubscription
+    {
+        if ($storeSubscriptions->isEmpty()) {
+            return null;
+        }
+
+        $startAt = $sub->sub_start_date ? Carbon::parse($sub->sub_start_date) : null;
+        if ($startAt) {
+            $matched = $storeSubscriptions->first(function (StoreSubscription $record) use ($startAt) {
+                if (!$record->purchased_at) {
+                    return false;
+                }
+                $purchasedAt = Carbon::parse($record->purchased_at);
+
+                return abs($purchasedAt->diffInHours($startAt)) <= 48;
+            });
+            if ($matched) {
+                return $matched;
+            }
+        }
+
+        return $storeSubscriptions->first();
     }
 
     function userConsults($id){

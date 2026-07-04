@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\StoreSubscription;
 use App\Models\User;
+use App\Services\GooglePlayClient;
+use App\Services\StoreSubscriptionPricing;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -96,6 +98,7 @@ class CmsStoreSubscriptionController extends Controller
 
         $payload = $this->formatRecord($record, true);
         $payload['raw_payload'] = $record->raw_payload;
+        $payload['price'] = $this->resolvePricing($record, true);
 
         return response()->json([
             'status' => true,
@@ -133,7 +136,26 @@ class CmsStoreSubscriptionController extends Controller
             'expires_at' => $this->formatDate($record->expires_at),
             'verified_at' => $this->formatDate($record->verified_at),
             'created_at' => $this->formatDate($record->created_at),
+            'price' => $this->resolvePricing($record, false),
         ];
+    }
+
+    private function resolvePricing(StoreSubscription $record, bool $fetchOrder = false): ?array
+    {
+        $price = StoreSubscriptionPricing::fromPayload(
+            $record->raw_payload,
+            $record->platform,
+            $record->product_id
+        );
+
+        if ($price || !$fetchOrder || $record->platform !== 'android' || !$record->transaction_id) {
+            return $price;
+        }
+
+        $googlePlay = app(GooglePlayClient::class);
+        $order = $googlePlay->fetchOrder($record->transaction_id);
+
+        return $googlePlay->pricingFromOrder($order, $record->product_id);
     }
 
     private function formatDate($value): ?string

@@ -68,6 +68,31 @@
                 :items="items"
                 table-class-name="customize-table"
             >
+                <template #item-client_name="item">
+                    <button
+                        v-if="item.user_id"
+                        type="button"
+                        class="client-link-btn"
+                        @click="openClientProfile(item.user_id, 'invoices')"
+                    >
+                        {{ item.client_name }}
+                    </button>
+                    <span v-else>{{ item.client_name }}</span>
+                </template>
+                <template #item-client_email="item">
+                    <button
+                        v-if="item.user_id && item.client_email && item.client_email !== '—'"
+                        type="button"
+                        class="client-link-btn"
+                        @click="openClientProfile(item.user_id, 'invoices')"
+                    >
+                        {{ item.client_email }}
+                    </button>
+                    <span v-else>{{ item.client_email }}</span>
+                </template>
+                <template #item-amount="item">
+                    {{ item.price?.formatted || '—' }}
+                </template>
                 <template #item-platform_label="item">
                     <span class="px-2 py-1 brds-2" :style="platformStyle(item.platform)">
                         {{ item.platform_label }}
@@ -121,8 +146,31 @@
                 </button>
                 <h5 class="fw-bold mb-3">Subscription / Order Detail</h5>
                 <div v-if="detail" class="row g-2" style="font-size: 13px;">
-                    <div class="col-md-6"><strong>Client:</strong> {{ detail.client_name }}</div>
-                    <div class="col-md-6"><strong>Email:</strong> {{ detail.client_email }}</div>
+                    <div class="col-md-6">
+                        <strong>Client:</strong>
+                        <button
+                            v-if="detail.user_id"
+                            type="button"
+                            class="client-link-btn ms-1"
+                            @click="openClientProfile(detail.user_id, 'invoices')"
+                        >
+                            {{ detail.client_name }}
+                        </button>
+                        <span v-else>{{ detail.client_name }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Email:</strong>
+                        <button
+                            v-if="detail.user_id && detail.client_email && detail.client_email !== '—'"
+                            type="button"
+                            class="client-link-btn ms-1"
+                            @click="openClientProfile(detail.user_id, 'invoices')"
+                        >
+                            {{ detail.client_email }}
+                        </button>
+                        <span v-else>{{ detail.client_email }}</span>
+                    </div>
+                    <div class="col-md-6"><strong>Amount:</strong> {{ detail.price?.formatted || '—' }}</div>
                     <div class="col-md-6"><strong>Platform:</strong> {{ detail.platform_label }}</div>
                     <div class="col-md-6"><strong>Product:</strong> {{ detail.product_label }} ({{ detail.product_id }})</div>
                     <div class="col-md-6"><strong>Order / Transaction ID:</strong> {{ detail.order_id || '—' }}</div>
@@ -140,6 +188,14 @@
                 </div>
             </div>
         </div>
+
+        <clientPopup
+            v-if="clientPopupOpen"
+            :idForDetails="selectedClientId"
+            :logInDetails="logInProps"
+            :initialTab="clientPopupTab"
+            @close="closeClientProfile"
+        />
     </div>
 </template>
 
@@ -150,9 +206,10 @@ import axios from 'axios';
 import config from '../../config';
 import Loader from '../loader.vue';
 import Inform from '../inform.vue';
+import clientPopup from '../clients/clientPopup.vue';
 
 export default {
-    components: { Vue3EasyDataTable, Loader, Inform },
+    components: { Vue3EasyDataTable, Loader, Inform, clientPopup },
     props: {
         platformFilter: {
             type: String,
@@ -165,6 +222,10 @@ export default {
         showPlatformFilter: {
             type: Boolean,
             default: false,
+        },
+        logInProps: {
+            type: Object,
+            default: null,
         },
     },
     data() {
@@ -190,6 +251,7 @@ export default {
                 { text: 'Email', value: 'client_email', sortable: true },
                 { text: 'Store', value: 'platform_label', sortable: true },
                 { text: 'Product', value: 'product_label', sortable: true },
+                { text: 'Amount', value: 'amount', sortable: false },
                 { text: 'Order ID', value: 'order_id', sortable: true },
                 { text: 'Status', value: 'status', sortable: true },
                 { text: 'Purchased', value: 'purchased_at', sortable: true },
@@ -204,6 +266,9 @@ export default {
             modalDetail: '',
             detailOpen: false,
             detail: null,
+            clientPopupOpen: false,
+            selectedClientId: null,
+            clientPopupTab: 'summary',
         };
     },
     computed: {
@@ -301,6 +366,18 @@ export default {
                     this.showError(er.response?.data?.message || er.message);
                 });
         },
+        openClientProfile(userId, tab = 'invoices') {
+            if (!userId) {
+                return;
+            }
+            this.selectedClientId = userId;
+            this.clientPopupTab = tab;
+            this.clientPopupOpen = true;
+        },
+        closeClientProfile() {
+            this.clientPopupOpen = false;
+            this.selectedClientId = null;
+        },
         showError(message) {
             this.modalTitle = 'Error';
             this.modalDetail = message;
@@ -312,3 +389,20 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.client-link-btn {
+    border: none;
+    background: transparent;
+    color: #f2a18c;
+    padding: 0;
+    font-size: inherit;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.client-link-btn:hover {
+    color: #d8846f;
+}
+</style>
