@@ -29,7 +29,9 @@ use App\Traits\NotificationsTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
 
@@ -216,7 +218,7 @@ class ProgramSubTrackingController extends Controller
         
         // BUSINESS RULE: only one program at a time - ENFORCE RULE
         $activeProgram = ProgramSub::where('user_id',$userId)
-            ->whereIn('status', ['subscribed', 'in-progress', 'resumed'])
+            ->whereIn('status', ['subscribed', 'in-progress', 'resumed', 'paused'])
             ->first();
         
         if($activeProgram) {
@@ -1005,9 +1007,9 @@ class ProgramSubTrackingController extends Controller
             'message' => "Can't Switch to this Program. (Partially Built)"
         ]);
 
-        // Get current active program
+        // Get current active program (includes paused — still counts as the user's active plan)
         $currentProgram = ProgramSub::where('user_id',$userId)
-            ->whereIn('status', ['subscribed', 'in-progress', 'resumed'])
+            ->whereIn('status', ['subscribed', 'in-progress', 'resumed', 'paused'])
             ->first();
 
         if(!$currentProgram) {
@@ -1024,7 +1026,6 @@ class ProgramSubTrackingController extends Controller
         }
 
         try {
-            // Save progress snapshot
             $progressSnapshot = [
                 'program_id' => $currentProgram->program_id,
                 'status' => $currentProgram->status,
@@ -1034,37 +1035,51 @@ class ProgramSubTrackingController extends Controller
                     ->count(),
             ];
 
-            // Create program history if model exists
-            if(class_exists('App\Models\ProgramHistory')) {
-                ProgramHistory::create([
+            $oldProgramTitle = Program::find($currentProgram->program_id)->title ?? 'Previous Program';
+
+            DB::transaction(function () use ($userId, $id, $currentProgram) {
+                $currentProgram->status = 'switched';
+                $currentProgram->save();
+
+                $proSub = new ProgramSub();
+                $proSub->user_id = $userId;
+                $proSub->program_id = $id;
+                $proSub->subscribe_date = Carbon::today();
+                $proSub->status = 'subscribed';
+                $proSub->save();
+
+                $this->generateTracking($proSub->id, $id);
+            });
+
+            // History + notification are best-effort; do not fail the switch if they error
+            try {
+                if (Schema::hasTable('program_history')) {
+                    ProgramHistory::create([
+                        'user_id' => $userId,
+                        'old_program_id' => $currentProgram->program_id,
+                        'new_program_id' => $id,
+                        'progress_snapshot' => $progressSnapshot,
+                        'switched_at' => Carbon::now(),
+                    ]);
+                }
+            } catch (\Throwable $historyError) {
+                Log::warning('program switch history not saved', [
                     'user_id' => $userId,
-                    'old_program_id' => $currentProgram->program_id,
-                    'new_program_id' => $id,
-                    'progress_snapshot' => json_encode($progressSnapshot),
-                    'switched_at' => Carbon::now(),
+                    'message' => $historyError->getMessage(),
                 ]);
             }
 
-            // Deactivate current program
-            $currentProgram->status = 'switched';
-            $currentProgram->save();
-
-            // Subscribe to new program
-            $proSub = new ProgramSub();
-            $proSub->user_id = $userId;
-            $proSub->program_id = $id;
-            $proSub->subscribe_date = Carbon::today();
-            $proSub->status = 'subscribed';
-            $proSub->save();
-
-            // Generate tracking for new program
-            $this->generateTracking($proSub->id, $id);
-
-            $adminId = User::where('role',2)->pluck('id')->first();
-            $notiTitle = 'Program Switched!';
-            $oldProgramTitle = Program::find($currentProgram->program_id)->title ?? 'Previous Program';
-            $notiContent = ucfirst(Auth::user()->name).' switched from '.$oldProgramTitle.' to '.strtoupper($newProgram->title).' program.';
-            $this->storeNotification($adminId,$notiTitle,null,$notiContent,null,$userId);
+            try {
+                $adminId = User::where('role',2)->pluck('id')->first();
+                $notiTitle = 'Program Switched!';
+                $notiContent = ucfirst(Auth::user()->name).' switched from '.$oldProgramTitle.' to '.strtoupper($newProgram->title).' program.';
+                $this->storeNotification($adminId,$notiTitle,null,$notiContent,null,$userId);
+            } catch (\Throwable $notiError) {
+                Log::warning('program switch notification not sent', [
+                    'user_id' => $userId,
+                    'message' => $notiError->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'status' => true,
@@ -1078,11 +1093,19 @@ class ProgramSubTrackingController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('switch-program failed', [
+                'user_id' => $userId,
+                'program_id' => $id,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
             return response()->json([
                 'status' => false,
                 'message' => 'Error switching program',
-                'error' => $e->getMessage()
-            ], 500);
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ]);
         }
     }
 

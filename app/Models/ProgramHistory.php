@@ -9,6 +9,8 @@ class ProgramHistory extends Model
 {
     use HasFactory;
 
+    protected $table = 'program_history';
+
     protected $fillable = [
         'user_id',
         'old_program_id',
