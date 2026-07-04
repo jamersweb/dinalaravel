@@ -143,6 +143,9 @@ class WorkoutController extends Controller
                     $data->category = $item['type'];
                     $data->group_id = $groupId;
                     $data->group_type = $groupType;
+                    if ($idx === 0 && ! empty($item['type_name'])) {
+                        $data->group_label = $item['type_name'];
+                    }
                     $data->group_order = $blockOrder;
                     $data->save();
                 }
@@ -220,7 +223,7 @@ class WorkoutController extends Controller
                 if($item['type']!=='simple'){
                     $groupId = $item['group_id'] ?? null;
                     $groupType = $item['type'];
-                    foreach ($item['items'] as $item2) {
+                    foreach ($item['items'] as $idx => $item2) {
                         $data = new WorkoutExercise();
                         $data->workout_id = $workout->id;
                         $data->exercise_id = $item2['exercise_id'];
@@ -235,6 +238,9 @@ class WorkoutController extends Controller
                         $data->category = $item['type'];
                         $data->group_id = $groupId;
                         $data->group_type = $groupType;
+                        if ($idx === 0 && ! empty($item['type_name'])) {
+                            $data->group_label = $item['type_name'];
+                        }
                         $data->group_order = $blockOrder;
                         $data->save();
                         $newCreated[] = $data->id;
@@ -645,9 +651,12 @@ class WorkoutController extends Controller
                     $group_count = 0;
                 }
                 if($group_count===0){
+                    $groupLabel = $ex->group_label ?? null;
                     $temp = new stdClass;
                     $temp->type = $group_type;
-                    $temp->type_name = $this->snakeToCapitalize($group_type);
+                    $temp->type_name = (! empty($groupLabel))
+                        ? $groupLabel
+                        : $this->snakeToCapitalize($group_type);
                     $temp->sets_rounds = $ex->sets_rounds;
                     $temp->group_id = $exGroupId;
                     unset($ex->sets_rounds);
@@ -655,6 +664,7 @@ class WorkoutController extends Controller
                     unset($ex->group_id);
                     unset($ex->group_type);
                     unset($ex->group_order);
+                    unset($ex->group_label);
                     $temp->order = $i;
                     $temp->items = [$ex];
                     $temp->item = null;
@@ -666,6 +676,7 @@ class WorkoutController extends Controller
                     unset($ex->group_id);
                     unset($ex->group_type);
                     unset($ex->group_order);
+                    unset($ex->group_label);
                     array_push($exs[sizeof($exs)-1]->items,$ex);
                 }
             }

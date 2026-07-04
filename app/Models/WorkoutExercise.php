@@ -12,7 +12,7 @@ class WorkoutExercise extends Model
     protected $fillable = [
         'workout_id', 'exercise_id', 'sets', 'reps', 'reps_type', 'time',
         'rest_period', 'description', 'sets_rounds', 'category',
-        'group_id', 'group_type', 'group_order',
+        'group_id', 'group_type', 'group_label', 'group_order',
     ];
 
     protected $casts = [

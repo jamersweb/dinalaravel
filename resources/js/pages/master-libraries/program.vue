@@ -253,8 +253,9 @@
                             <h4 class="mb-2">On-Demand Workouts</h4>
                             <div>
                                 <button class="prim_btn_rnd prim_btn py-1 px-3 h7 me-2" @click="toggleNewWorkout()"> New</button>
-                                <button class="scnd_btn py-1 px-3 h7 me-2 rounded-1"
-                                    @click="showWrkImport(phaseDetail.id)">Import</button>
+                                <button class="scnd_btn py-1 px-3 h7 me-2 rounded-1 opacity-75"
+                                    title="Bulk import without section tags (legacy)"
+                                    @click="showWrkImport(phaseDetail.id)">Import (bulk)</button>
                                 <button class="scnd_btn py-1 px-3 h7 me-2 rounded-1"
                                     @click="removeWorkout()">Delete</button>
                             </div>

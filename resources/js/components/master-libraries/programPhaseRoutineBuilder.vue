@@ -1,106 +1,124 @@
 <template>
-    <div class="row mt-3 g-3">
-        <div class="col-xl-7">
-            <p class="mb-2 h8 text-muted">Drag workout routines from the library into a section, or change the section tag after adding.</p>
-            <div
-                v-for="section in sections"
-                :key="section.id"
-                class="mb-3 p-3 brds-2"
-                style="border: 1px solid #d9d9d9; min-height: 120px;"
-                @dragenter.prevent
-                @dragover.prevent
-                @drop="onDrop(section.id)"
-            >
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="mb-0 fw-bold">{{ section.label }}</h6>
-                    <span class="h8 text-muted">{{ workoutsForSection(section.id).length }} routine(s)</span>
-                </div>
-                <div v-if="workoutsForSection(section.id).length === 0" class="text-center py-4 text-muted h8">
-                    Drop a workout routine here
-                </div>
-                <div class="d-flex flex-wrap">
-                    <div
-                        v-for="item in workoutsForSection(section.id)"
-                        :key="item.id"
-                        class="shd_card p-2 m-2 position-relative"
-                        style="width: 180px;"
-                    >
-                        <div v-if="item.workout_detail != null">
-                            <img
-                                v-if="item.workout_detail.image != null"
-                                :src="item.workout_detail.image"
-                                alt=""
-                                class="img-fluid"
-                                style="width: 100%; object-fit: contain; background: black; height: 120px;"
-                            >
+    <div>
+        <Filters v-if="filters" :tags="tags" :prefillTags="selectedTagsForFilter" />
+        <div class="row mt-3 g-3">
+            <div class="col-xl-7">
+                <p class="mb-2 h8 text-muted">Drag routines into a section, reorder within a section, or change the section tag.</p>
+                <div
+                    v-for="section in sections"
+                    :key="section.id"
+                    class="mb-3 p-3 brds-2"
+                    style="border: 1px solid #d9d9d9; min-height: 120px;"
+                    @dragenter.prevent
+                    @dragover.prevent
+                    @drop="onSectionDrop(section.id)"
+                >
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 fw-bold">{{ section.label }}</h6>
+                        <span class="h8 text-muted">{{ workoutsForSection(section.id).length }} routine(s)</span>
+                    </div>
+                    <div v-if="workoutsForSection(section.id).length === 0" class="text-center py-4 text-muted h8">
+                        Drop a workout routine here
+                    </div>
+                    <div class="d-flex flex-wrap">
+                        <div
+                            v-for="item in workoutsForSection(section.id)"
+                            :key="item.id"
+                            class="shd_card p-2 m-2 position-relative reorder-card"
+                            style="width: 180px;"
+                            draggable="true"
+                            @dragstart="startPhaseWorkoutDrag(item)"
+                            @dragover.prevent
+                            @drop.prevent="onReorderDrop(section.id, item)"
+                        >
+                            <div class="reorder-handle h8 text-muted mb-1">
+                                <i class="fa-solid fa-grip-vertical me-1"></i> Drag to reorder
+                            </div>
+                            <div v-if="item.workout_detail != null">
+                                <img
+                                    v-if="item.workout_detail.image != null"
+                                    :src="item.workout_detail.image"
+                                    alt=""
+                                    class="img-fluid"
+                                    style="width: 100%; object-fit: contain; background: black; height: 120px;"
+                                >
+                                <img v-else src="/images/download1.png" alt="" class="img-fluid" style="width: 100%; height: 120px;">
+                            </div>
                             <img v-else src="/images/download1.png" alt="" class="img-fluid" style="width: 100%; height: 120px;">
+                            <input
+                                type="checkbox"
+                                class="position-absolute form-check-input"
+                                style="top:5px;left:10px"
+                                :value="item.id"
+                                v-model="selectedIds"
+                            >
+                            <p class="mb-1 fw-bold h7">{{ item.display_name }}</p>
+                            <p class="mb-1 h8">
+                                {{ item.workout_detail?.workout_exercises_count ?? 0 }} exercises
+                            </p>
+                            <select
+                                class="form-select form-select-sm"
+                                :value="item.section_tag || 'custom'"
+                                @change="updateSectionTag(item.id, $event.target.value)"
+                            >
+                                <option v-for="opt in sections" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
+                            </select>
                         </div>
-                        <img v-else src="/images/download1.png" alt="" class="img-fluid" style="width: 100%; height: 120px;">
-                        <input
-                            type="checkbox"
-                            class="position-absolute form-check-input"
-                            style="top:5px;left:10px"
-                            :value="item.id"
-                            v-model="selectedIds"
-                        >
-                        <p class="mb-1 fw-bold h7">{{ item.display_name }}</p>
-                        <p class="mb-1 h8">
-                            {{ item.workout_detail?.workout_exercises_count ?? 0 }} exercises
-                        </p>
-                        <select
-                            class="form-select form-select-sm"
-                            :value="item.section_tag || 'custom'"
-                            @change="updateSectionTag(item.id, $event.target.value)"
-                        >
-                            <option v-for="opt in sections" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
-                        </select>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-xl-5">
-            <div class="shd_card p-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="mb-0">Workout routines</h5>
-                    <span class="h8 text-muted">Drag into a section</span>
-                </div>
-                <div class="position-relative mb-3">
-                    <input
-                        v-model="search"
-                        type="search"
-                        class="searchinput w-100"
-                        placeholder="Search workout routines"
-                        @input="applySearch"
-                    >
-                    <img class="searchab" src="/cms-assets/images/navbar-topbar/search.png" alt="search">
-                </div>
-                <div style="max-height: 420px; overflow-y: auto;">
-                    <div class="row">
-                        <div
-                            v-for="workout in visibleWorkouts"
-                            :key="workout.id"
-                            class="col-md-6 col-12 mt-2"
-                        >
-                            <div
-                                class="shd_card p-2 text-center drag-el h-100"
-                                draggable="true"
-                                @dragstart="startDrag(workout)"
-                                style="cursor: grab;"
+            <div class="col-xl-5">
+                <div class="shd_card p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Workout routines</h5>
+                        <span class="h8 text-muted">Drag into a section</span>
+                    </div>
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="position-relative flex-grow-1">
+                            <input
+                                v-model="search"
+                                type="search"
+                                class="searchinput w-100"
+                                placeholder="Search workout routines"
+                                @input="applySearch"
                             >
-                                <img
-                                    :src="workout.image || '/images/download1.png'"
-                                    alt=""
-                                    class="img-fluid mb-2"
-                                    style="height: 80px; width: 100%; object-fit: contain; background: #111;"
-                                >
-                                <p class="mb-0 h8 fw-bold" style="word-break: break-word;">{{ workout.title }}</p>
-                                <p class="mb-0 h8 text-muted">{{ workout.workout_exercises_count ?? 0 }} exercises</p>
-                            </div>
+                            <img class="searchab" src="/cms-assets/images/navbar-topbar/search.png" alt="search">
                         </div>
-                        <p v-if="!loading && visibleWorkouts.length === 0" class="text-center text-muted mt-3 h8 col-12">
-                            No workout routines found for this program language.
-                        </p>
+                        <button class="trans_btn py-1 px-2" @click="filters = true" title="Filter by tags">
+                            <img src="/cms-assets/images/master-libraries/filter.png" alt="" class="img-fluid">
+                        </button>
+                    </div>
+                    <p v-if="selectedTagsForFilter.length" class="h8 text-muted mb-2">
+                        Filtering by {{ selectedTagsForFilter.length }} tag(s)
+                    </p>
+                    <div style="max-height: 420px; overflow-y: auto;">
+                        <div class="row">
+                            <div
+                                v-for="workout in visibleWorkouts"
+                                :key="workout.id"
+                                class="col-md-6 col-12 mt-2"
+                            >
+                                <div
+                                    class="shd_card p-2 text-center drag-el h-100"
+                                    draggable="true"
+                                    @dragstart="startLibraryDrag(workout)"
+                                    style="cursor: grab;"
+                                >
+                                    <img
+                                        :src="workout.image || '/images/download1.png'"
+                                        alt=""
+                                        class="img-fluid mb-2"
+                                        style="height: 80px; width: 100%; object-fit: contain; background: #111;"
+                                    >
+                                    <p class="mb-0 h8 fw-bold" style="word-break: break-word;">{{ workout.title }}</p>
+                                    <p class="mb-0 h8 text-muted">{{ workout.workout_exercises_count ?? 0 }} exercises</p>
+                                </div>
+                            </div>
+                            <p v-if="!loading && visibleWorkouts.length === 0" class="text-center text-muted mt-3 h8 col-12">
+                                No workout routines found for this language or tag filter.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -111,8 +129,10 @@
 <script>
 import axios from 'axios';
 import config from '../../config';
+import Filters from '../filters.vue';
 
 export default {
+    components: { Filters },
     props: {
         phaseId: {
             type: [Number, String],
@@ -150,7 +170,11 @@ export default {
             visibleWorkouts: [],
             search: '',
             loading: false,
-            draggedWorkout: null,
+            filters: false,
+            tags: [],
+            selectedTagsForFilter: [],
+            draggedLibraryWorkout: null,
+            draggedPhaseWorkout: null,
         };
     },
     computed: {
@@ -170,15 +194,31 @@ export default {
     },
     mounted() {
         this.loadWorkouts();
+        this.loadTags();
     },
     methods: {
         workoutsForSection(sectionId) {
-            return (this.phaseWorkouts || []).filter((item) => (item.section_tag || 'custom') === sectionId);
+            return (this.phaseWorkouts || [])
+                .filter((item) => (item.section_tag || 'custom') === sectionId)
+                .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        },
+        loadTags() {
+            axios.get(config.baseApiUrl + 'get-tags?category=workout', this.apiConfig)
+                .then((res) => {
+                    if (res.data.status) {
+                        this.tags = res.data.data || [];
+                    }
+                })
+                .catch(() => {});
         },
         loadWorkouts() {
             this.loading = true;
             const lang = this.programLanguage || 'en';
-            axios.get(config.baseApiUrl + 'all-workouts-list?lang=' + lang, this.apiConfig)
+            let url = config.baseApiUrl + 'all-workouts-list?lang=' + lang;
+            if (this.selectedTagsForFilter.length > 0) {
+                url += '&tag_ids=' + this.selectedTagsForFilter.join(',');
+            }
+            axios.get(url, this.apiConfig)
                 .then((res) => {
                     this.loading = false;
                     if (res.data.status) {
@@ -190,6 +230,14 @@ export default {
                     this.loading = false;
                 });
         },
+        applyFilters(tagIds) {
+            this.selectedTagsForFilter = tagIds || [];
+            this.loadWorkouts();
+        },
+        clearFilters() {
+            this.selectedTagsForFilter = [];
+            this.loadWorkouts();
+        },
         applySearch() {
             const term = this.search.trim().toLowerCase();
             if (!term) {
@@ -200,28 +248,71 @@ export default {
                 String(item.title || '').toLowerCase().includes(term)
             );
         },
-        startDrag(workout) {
-            this.draggedWorkout = workout;
+        startLibraryDrag(workout) {
+            this.draggedLibraryWorkout = workout;
+            this.draggedPhaseWorkout = null;
         },
-        onDrop(sectionTag) {
-            if (!this.draggedWorkout) {
+        startPhaseWorkoutDrag(item) {
+            this.draggedPhaseWorkout = item;
+            this.draggedLibraryWorkout = null;
+        },
+        onSectionDrop(sectionTag) {
+            if (this.draggedPhaseWorkout) {
+                if ((this.draggedPhaseWorkout.section_tag || 'custom') !== sectionTag) {
+                    this.updateSectionTag(this.draggedPhaseWorkout.id, sectionTag);
+                }
+                this.draggedPhaseWorkout = null;
+                return;
+            }
+            if (!this.draggedLibraryWorkout) {
                 return;
             }
             const postData = {
                 program_phase_id: this.phaseId,
-                workout_id: this.draggedWorkout.id,
+                workout_id: this.draggedLibraryWorkout.id,
                 section_tag: sectionTag,
             };
             axios.post(config.baseApiUrl + 'add-phase-workout-routine', postData, this.apiConfig)
                 .then((res) => {
                     if (res.data.status) {
-                        this.draggedWorkout = null;
+                        this.draggedLibraryWorkout = null;
                         this.$emit('refresh');
                     }
                 })
                 .catch(() => {
-                    this.draggedWorkout = null;
+                    this.draggedLibraryWorkout = null;
                 });
+        },
+        onReorderDrop(sectionId, targetItem) {
+            if (!this.draggedPhaseWorkout || this.draggedPhaseWorkout.id === targetItem.id) {
+                return;
+            }
+            const sectionItems = [...this.workoutsForSection(sectionId)];
+            const fromIndex = sectionItems.findIndex((item) => item.id === this.draggedPhaseWorkout.id);
+            const toIndex = sectionItems.findIndex((item) => item.id === targetItem.id);
+            if (fromIndex < 0 || toIndex < 0) {
+                return;
+            }
+            const [moved] = sectionItems.splice(fromIndex, 1);
+            sectionItems.splice(toIndex, 0, moved);
+
+            const orderedIds = [];
+            this.sections.forEach((section) => {
+                const items = section.id === sectionId
+                    ? sectionItems
+                    : this.workoutsForSection(section.id);
+                items.forEach((item) => orderedIds.push(item.id));
+            });
+
+            this.draggedPhaseWorkout = null;
+            axios.post(config.baseApiUrl + 'reorder-phase-workouts', {
+                program_phase_id: this.phaseId,
+                ordered_ids: orderedIds,
+            }, this.apiConfig).then((res) => {
+                if (res.data.status) {
+                    this.$emit('refresh');
+                }
+            });
         },
         updateSectionTag(phaseWorkoutId, sectionTag) {
             axios.post(config.baseApiUrl + 'update-phase-workout-section', {
@@ -238,7 +329,11 @@ export default {
 </script>
 
 <style scoped>
-.drag-el:active {
+.drag-el:active,
+.reorder-card:active {
     cursor: grabbing;
+}
+.reorder-handle {
+    cursor: grab;
 }
 </style>
