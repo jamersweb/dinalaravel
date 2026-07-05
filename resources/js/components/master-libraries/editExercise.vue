@@ -13,21 +13,47 @@
             <div class="w-100 container-fluid">
                 <div class="row justify-content-center">
                     <div class="col-12 col-md-6 px-2">
-                        <div class="shd_card drag-drop-area w-100 p-2 mt-2" style="height:65%">
+                        <div
+                            class="shd_card drag-drop-area w-100 p-2 mt-2 position-relative"
+                            style="min-height:220px;"
+                            :class="{
+                                'upload-zone-active': postData.video_type === 'custom' || postData.video_type === 'image',
+                                'media-drag-active': mediaDragActive
+                            }"
+                            @dragenter.prevent="onMediaDragEnter"
+                            @dragover.prevent="onMediaDragOver"
+                            @dragleave.prevent="onMediaDragLeave"
+                            @drop.prevent="onMediaDrop"
+                            @click="onMediaZoneClick"
+                        >
                             <div v-if="postData.video_type=='youtube'" class="w-100 h-100 d-flex justify-content-center align-items-center">
                                 <iframe v-if="media.selected" :src="media.url" controls class="w-100 h-100 brds-2"></iframe>
                                 <h3 v-else>please provide the video link below</h3>
                             </div>
                             <div v-if="postData.video_type=='custom'" class="w-100 h-100 d-flex justify-content-center align-items-center">
                                 <video v-if="media.selected" :src="media.url" controls class="w-100 h-100 brds-2" 
-                                ref="videoPlayer" @loadedmetadata="getDuration()"></video>
-                                <h3 v-else>please upload the video</h3>
+                                ref="videoPlayer" @loadedmetadata="getDuration()" @click.stop></video>
+                                <h3 v-else class="upload-hint mb-0">Drop video here or click Browse Video</h3>
                             </div>
                             <div v-if="postData.video_type=='image'" class="w-100 h-100 d-flex justify-content-center align-items-center">
-                                <img v-if="media.selected" :src="media.url" controls class="w-100 h-100 brds-2">
-                                <h3 v-else>please upload the image</h3>
+                                <img v-if="media.selected" :src="media.url" controls class="w-100 h-100 brds-2" @click.stop>
+                                <h3 v-else class="upload-hint mb-0">Drop image here or click Browse Image</h3>
                             </div>
                         </div>
+                        <input
+                            ref="selectedVideo"
+                            type="file"
+                            class="d-none"
+                            accept="video/mp4,video/x-m4v,video/quicktime,video/x-matroska,video/webm,video/*,.mp4,.mkv,.mov,.m4v,.webm"
+                            @change="getVideo()"
+                        >
+                        <input
+                            ref="selectedImage"
+                            type="file"
+                            class="d-none"
+                            accept="image/jpeg,image/png,image/jpg,image/webp,image/*,.jpg,.jpeg,.png,.webp"
+                            @change="getImage()"
+                        >
                         <div class="mt-2" > 
                             <input v-if="postData.video_type=='youtube'" v-model="youtubeUrlInput" @input="getYoutubeVideo()" type="text" class="form-control" placeholder="YouTube link (watch, embed, Shorts, youtu.be…)">
                             <div v-if="postData.video_type=='youtube'" class="text-center cdzx brds-1 position-relative py-2 mt-2">
@@ -36,20 +62,16 @@
                                 <span class="h7">Custom thumbnail (optional — overrides YouTube)</span>
                             </div>
                             <p v-if="postData.video_type=='youtube'" class="small text-muted mt-1 mb-0 px-1" style="font-size:11px;">Shorts links are supported. Thumbnail tip: 16:9 (1280×720) matches most cards; 9:16 for vertical.</p>
-                            <div v-if="postData.video_type=='custom'" class="text-center cdzx brds-1 position-relative py-2">
-                                <input ref="selectedVideo" @change="getVideo()" type="file" style="left:0;top:0"
-                                accept="video/mp4,video/mkv" class="w-100 h-100 transparent position-absolute pointer">
+                            <div v-if="postData.video_type=='custom'" class="text-center cdzx brds-1 py-2 upload-btn" @click="openVideoPicker">
                                 <span>Browse Video</span>
                             </div>
                             <div v-if="postData.video_type=='custom'" class="text-center cdzx brds-1 position-relative py-2 mt-2">
-                                <input ref="customVideoThumbnail" @change="onCustomVideoThumbnail()" type="file" style="left:0;top:0"
-                                accept="image/jpeg,image/png,image/jpg,image/webp" class="w-100 h-100 transparent position-absolute pointer">
+                                <input ref="customVideoThumbnail" @change="onCustomVideoThumbnail()" type="file" style="left:0;top:0;z-index:2"
+                                accept="image/jpeg,image/png,image/jpg,image/webp" class="w-100 h-100 transparent position-absolute file-input-overlay">
                                 <span class="h7">Thumbnail image (optional — else a frame from the video)</span>
                             </div>
                             <p v-if="postData.video_type=='custom'" class="small text-muted mt-1 mb-0 px-1" style="font-size:11px;">Tip: 16:9 (e.g. 1280×720) matches most exercise cards; 9:16 works for vertical/Shorts-style. The app uses contain/fit so a little letterboxing is normal.</p>
-                            <div v-if="postData.video_type=='image'" class="text-center cdzx brds-1 position-relative py-2">
-                                <input ref="selectedImage" @change="getImage()" type="file" style="left:0;top:0"
-                                accept="image/jpg,image/png,image/jpeg" class="w-100 h-100 transparent position-absolute pointer">
+                            <div v-if="postData.video_type=='image'" class="text-center cdzx brds-1 py-2 upload-btn" @click="openImagePicker">
                                 <span>Browse Image</span>
                             </div>
                         </div>
@@ -201,7 +223,8 @@ export default {
             modalDetail: '',
             loaderText: '',
             tagsComp: false,
-            selectExerOn: false
+            selectExerOn: false,
+            mediaDragActive: false
         }
     },
     mounted(){
@@ -227,6 +250,84 @@ export default {
         }
     },
     methods: {
+        isVideoFile(file) {
+            if (!file) return false;
+            if (file.type && file.type.startsWith('video/')) return true;
+            const ext = (file.name || '').split('.').pop().toLowerCase();
+            return ['mp4', 'mkv', 'mov', 'm4v', 'webm', 'avi'].includes(ext);
+        },
+        isImageFile(file) {
+            if (!file) return false;
+            if (file.type && file.type.startsWith('image/')) return true;
+            const ext = (file.name || '').split('.').pop().toLowerCase();
+            return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+        },
+        openVideoPicker() {
+            if (this.postData.video_type !== 'custom') return;
+            const input = this.$refs.selectedVideo;
+            if (input) input.click();
+        },
+        openImagePicker() {
+            if (this.postData.video_type !== 'image') return;
+            const input = this.$refs.selectedImage;
+            if (input) input.click();
+        },
+        onMediaZoneClick() {
+            if (this.postData.video_type === 'custom' && !this.media.selected) {
+                this.openVideoPicker();
+            } else if (this.postData.video_type === 'image' && !this.media.selected) {
+                this.openImagePicker();
+            }
+        },
+        onMediaDragEnter() {
+            if (this.postData.video_type === 'custom' || this.postData.video_type === 'image') {
+                this.mediaDragActive = true;
+            }
+        },
+        onMediaDragOver() {
+            if (this.postData.video_type === 'custom' || this.postData.video_type === 'image') {
+                this.mediaDragActive = true;
+            }
+        },
+        onMediaDragLeave() {
+            this.mediaDragActive = false;
+        },
+        onMediaDrop(event) {
+            this.mediaDragActive = false;
+            const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+            if (!file) return;
+            if (this.postData.video_type === 'custom') {
+                this.assignVideoFile(file);
+            } else if (this.postData.video_type === 'image') {
+                this.assignImageFile(file);
+            }
+        },
+        assignVideoFile(file) {
+            this.error = null;
+            if (!this.isVideoFile(file)) {
+                this.error = 'please select a video file (mp4, mov, mkv, webm)';
+                this.media.selected = false;
+                this.postData.video = null;
+                this.media.url = '';
+                return;
+            }
+            this.postData.video = file;
+            this.media.url = URL.createObjectURL(file);
+            this.media.selected = true;
+        },
+        assignImageFile(file) {
+            this.error = null;
+            if (!this.isImageFile(file)) {
+                this.postData.image = null;
+                this.media.selected = false;
+                this.media.url = '';
+                this.error = 'please select an image';
+                return;
+            }
+            this.postData.image = file;
+            this.media.url = URL.createObjectURL(file);
+            this.media.selected = true;
+        },
         removeAlternates() {
             this.postData.alternates = [];
             this.postData.alterNames = [];
@@ -312,6 +413,13 @@ export default {
             if (this.$refs.customVideoThumbnail) {
                 this.$refs.customVideoThumbnail.value = '';
             }
+            if (this.$refs.selectedVideo) {
+                this.$refs.selectedVideo.value = '';
+            }
+            if (this.$refs.selectedImage) {
+                this.$refs.selectedImage.value = '';
+            }
+            this.mediaDragActive = false;
         },
         onYoutubeCustomThumbnail() {
             const el = this.$refs.youtubeCustomThumbnail;
@@ -333,24 +441,16 @@ export default {
             this.postData.tags = tags;
         },
         getVideo() {
-            this.error = null;
-            this.postData.video = this.$refs.selectedVideo.files[0];
-            if(this.postData.video==null){
+            const file = this.$refs.selectedVideo && this.$refs.selectedVideo.files
+                ? this.$refs.selectedVideo.files[0]
+                : null;
+            if (!file) {
                 this.media.selected = false;
                 this.media.url = '';
-                return;
-            }
-            if (!this.postData.video.type.includes("video")) {
-                this.error = 'please select a video';
-                this.media.selected = false;
                 this.postData.video = null;
-                this.media.url = '';
                 return;
             }
-            else {
-                this.media.url = URL.createObjectURL(this.postData.video);
-                this.media.selected = true;
-            }
+            this.assignVideoFile(file);
         },
         getDuration() {
             const videoPlayer = this.$refs.videoPlayer;
@@ -362,24 +462,16 @@ export default {
             }
         },
         getImage(){
-            this.error = null;
-            this.postData.image = this.$refs.selectedImage.files[0];
-            if(this.postData.image==null){
+            const file = this.$refs.selectedImage && this.$refs.selectedImage.files
+                ? this.$refs.selectedImage.files[0]
+                : null;
+            if (!file) {
                 this.media.selected = false;
                 this.media.url = '';
-                return;
-            }
-            if (!this.postData.image.type.includes("image")) {
                 this.postData.image = null;
-                this.media.selected = false;
-                this.media.url = '';
-                this.error = 'please select an image';
                 return;
             }
-            else {
-                this.media.url = URL.createObjectURL(this.postData.image);
-                this.media.selected = true;
-            }
+            this.assignImageFile(file);
         },
         checkForErrors() {
             if (this.postData.title.trim() == '') {
@@ -506,6 +598,31 @@ export default {
 <style scoped>
 .transparent{
     opacity: 0;
+}
+.file-input-overlay {
+    cursor: pointer;
+    z-index: 2;
+}
+.upload-btn {
+    cursor: pointer;
+    user-select: none;
+}
+.upload-btn:hover,
+.upload-zone-active:hover {
+    background-color: #e3e3e3;
+}
+.drag-drop-area.upload-zone-active {
+    cursor: pointer;
+}
+.drag-drop-area.media-drag-active {
+    border: 2px dashed #f2a18c !important;
+    background-color: #fff8f5;
+}
+.upload-hint {
+    color: #f2a18c;
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 0 12px;
 }
 .cdzx {
     background-color: #ececec;
