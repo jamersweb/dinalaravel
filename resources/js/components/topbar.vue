@@ -290,13 +290,14 @@ img.position-absolute {
 }
 
 .profile-name-heading {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     line-height: 1.1;
+    white-space: nowrap;
 }
 
 .profile-name-text {
     display: inline-block;
-    max-width: 170px;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

@@ -487,15 +487,20 @@ export default {
         }
     },
     methods: {
-        allowsZeroNutrition() {
-            return Array.isArray(this.mealData.suitable_for) && this.mealData.suitable_for.includes('drinks');
+        normalizeNutritionValue(value) {
+            if (value === null || value === undefined || value === '') {
+                return 0;
+            }
+            return Number(value);
         },
-        hasAllZeroNutrition() {
-            return Number(this.mealData.protein_per_serving || 0) === 0 &&
-                Number(this.mealData.fiber_per_serving || 0) === 0 &&
-                Number(this.mealData.calories_per_serving || 0) === 0 &&
-                Number(this.mealData.fat_per_serving || 0) === 0 &&
-                Number(this.mealData.carbs_per_serving || 0) === 0;
+        normalizedMacroValues() {
+            return {
+                protein_per_serving: this.normalizeNutritionValue(this.mealData.protein_per_serving),
+                fat_per_serving: this.normalizeNutritionValue(this.mealData.fat_per_serving),
+                calories_per_serving: this.normalizeNutritionValue(this.mealData.calories_per_serving),
+                fiber_per_serving: this.normalizeNutritionValue(this.mealData.fiber_per_serving),
+                carbs_per_serving: this.normalizeNutritionValue(this.mealData.carbs_per_serving),
+            };
         },
         normalizeCookTime(value) {
             if (value === null || value === undefined || value === '' || value === 0 || value === '0') {
@@ -766,13 +771,9 @@ export default {
             if (this.recipe2 == true && this.ingredientEntered !== null) {
                 this.mealData.ingredients = this.ingredientEntered.split(/\r?\n|\r|\n/g);
             }
+            const normalizedMacros = this.normalizedMacroValues();
             if (this.mealData.ingredients.length == 0 ||
                 this.mealData.no_of_servings === null || this.mealData.no_of_servings === "" ||
-                this.mealData.protein_per_serving === null || this.mealData.protein_per_serving === "" ||
-                this.mealData.fat_per_serving === null || this.mealData.fat_per_serving === "" ||
-                this.mealData.calories_per_serving === null || this.mealData.calories_per_serving === "" ||
-                this.mealData.fiber_per_serving === null || this.mealData.fiber_per_serving === "" ||
-                this.mealData.carbs_per_serving === null || this.mealData.carbs_per_serving === "" ||
                 this.mealData.language === null) 
              {
                 this.pageLoading = false;
@@ -781,14 +782,8 @@ export default {
                 this.informModal = true;
                 return;
             }
-            if (!this.allowsZeroNutrition() && this.hasAllZeroNutrition()) {
-                this.modalTitle = "Error";
-                this.modalDetail = "all macro nutrients cannot be zero";
-                this.informModal = true;
-                return;
-            }
-            if (this.mealData.no_of_servings < 0 || this.mealData.protein_per_serving < 0 || this.mealData.fiber_per_serving < 0 ||
-            this.mealData.calories_per_serving < 0 || this.mealData.fat_per_serving < 0 || this.mealData.carbs_per_serving < 0) {
+            if (this.mealData.no_of_servings < 0 || normalizedMacros.protein_per_serving < 0 || normalizedMacros.fiber_per_serving < 0 ||
+            normalizedMacros.calories_per_serving < 0 || normalizedMacros.fat_per_serving < 0 || normalizedMacros.carbs_per_serving < 0) {
                 this.pageLoading = false;
                 this.modalTitle = "Error";
                 this.modalDetail = "no value can be less than 0";
@@ -819,11 +814,11 @@ export default {
             fd.append("contains", JSON.stringify(this.mealData.contains));
             fd.append("file", this.mealData.file);
             fd.append("no_of_servings", this.mealData.no_of_servings);
-            fd.append("calories_per_serving", this.mealData.calories_per_serving);
-            fd.append("protein_per_serving", this.mealData.protein_per_serving);
-            fd.append("carbs_per_serving", this.mealData.carbs_per_serving);
-            fd.append("fat_per_serving", this.mealData.fat_per_serving);
-            fd.append("fiber_per_serving", this.mealData.fiber_per_serving);
+            fd.append("calories_per_serving", normalizedMacros.calories_per_serving);
+            fd.append("protein_per_serving", normalizedMacros.protein_per_serving);
+            fd.append("carbs_per_serving", normalizedMacros.carbs_per_serving);
+            fd.append("fat_per_serving", normalizedMacros.fat_per_serving);
+            fd.append("fiber_per_serving", normalizedMacros.fiber_per_serving);
             fd.append("file_type", this.mealData.file_type);
             fd.append("language", this.mealData.language);
             fd.append("meal_type", this.mealData.meal_type)

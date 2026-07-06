@@ -25,6 +25,15 @@ class MealsController extends Controller
 {
     use ApiResponse, ActivitiesTrait, ResolvesUserLanguage;
     //
+    private function normalizeNutritionValue($value): int|float
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        return is_numeric($value) ? $value + 0 : 0;
+    }
+
     function createMeal(Request $request){
         $validate = Validator::make($request->all(),[
             'name' => 'required|string',
@@ -37,11 +46,11 @@ class MealsController extends Controller
             'file_type' => 'required|in:image,video',
             'video_thumbnail' => 'mimes:jpg,JPG,jpeg,JPEG,png,PNG',
             'no_of_servings' => 'required|numeric',
-            'calories_per_serving' => 'required|numeric',
-            'protein_per_serving' => 'required|numeric',
-            'carbs_per_serving' => 'required|numeric',
-            'fat_per_serving' => 'required|numeric',
-            'fiber_per_serving' => 'required|numeric',
+            'calories_per_serving' => 'nullable|numeric',
+            'protein_per_serving' => 'nullable|numeric',
+            'carbs_per_serving' => 'nullable|numeric',
+            'fat_per_serving' => 'nullable|numeric',
+            'fiber_per_serving' => 'nullable|numeric',
             'ingredients' => 'required|string',
             'directions' => 'string',
             'meal_type' => 'required|in:auto,manual',
@@ -76,11 +85,11 @@ class MealsController extends Controller
         $meal->video_thumbnail = $url2;
         $meal->file_type = $request->file_type;
         $meal->no_of_servings = $request->no_of_servings;
-        $meal->calories_per_serving = $request->calories_per_serving;
-        $meal->protein_per_serving = $request->protein_per_serving;
-        $meal->carbs_per_serving = $request->carbs_per_serving;
-        $meal->fat_per_serving = $request->fat_per_serving;
-        $meal->fiber_per_serving = $request->fiber_per_serving;
+        $meal->calories_per_serving = $this->normalizeNutritionValue($request->calories_per_serving);
+        $meal->protein_per_serving = $this->normalizeNutritionValue($request->protein_per_serving);
+        $meal->carbs_per_serving = $this->normalizeNutritionValue($request->carbs_per_serving);
+        $meal->fat_per_serving = $this->normalizeNutritionValue($request->fat_per_serving);
+        $meal->fiber_per_serving = $this->normalizeNutritionValue($request->fiber_per_serving);
         $meal->ingredients = $request->ingredients;
         $meal->directions = $request->directions;
         if($request->has('nutrient')){
@@ -103,11 +112,11 @@ class MealsController extends Controller
             $meal->video_thumbnail = $url2;
             $meal->file_type = $request->file_type;
             $meal->no_of_servings = $request->no_of_servings;
-            $meal->calories_per_serving = $request->calories_per_serving;
-            $meal->protein_per_serving = $request->protein_per_serving;
-            $meal->carbs_per_serving = $request->carbs_per_serving;
-            $meal->fat_per_serving = $request->fat_per_serving;
-            $meal->fiber_per_serving = $request->fiber_per_serving;
+            $meal->calories_per_serving = $this->normalizeNutritionValue($request->calories_per_serving);
+            $meal->protein_per_serving = $this->normalizeNutritionValue($request->protein_per_serving);
+            $meal->carbs_per_serving = $this->normalizeNutritionValue($request->carbs_per_serving);
+            $meal->fat_per_serving = $this->normalizeNutritionValue($request->fat_per_serving);
+            $meal->fiber_per_serving = $this->normalizeNutritionValue($request->fiber_per_serving);
             $meal->ingredients = $request->ingredients;
             $meal->directions = $request->directions;
             if($request->has('nutrient')){
@@ -136,11 +145,11 @@ class MealsController extends Controller
             'file_type' => 'in:image,video',
             'video_thumbnail' => 'mimes:jpg,JPG,jpeg,JPEG,png,PNG',
             'no_of_servings' => 'required|numeric',
-            'calories_per_serving' => 'required|numeric',
-            'protein_per_serving' => 'required|numeric',
-            'carbs_per_serving' => 'required|numeric',
-            'fat_per_serving' => 'required|numeric',
-            'fiber_per_serving' => 'required|numeric',
+            'calories_per_serving' => 'nullable|numeric',
+            'protein_per_serving' => 'nullable|numeric',
+            'carbs_per_serving' => 'nullable|numeric',
+            'fat_per_serving' => 'nullable|numeric',
+            'fiber_per_serving' => 'nullable|numeric',
             'ingredients' => 'required|string',
             'directions' => 'string',
             'meal_type' => 'required|in:auto,manual',
@@ -173,11 +182,11 @@ class MealsController extends Controller
         $meal->tags = $request->tags;
         $meal->contains = $request->contains;
         $meal->no_of_servings = $request->no_of_servings;
-        $meal->calories_per_serving = $request->calories_per_serving;
-        $meal->protein_per_serving = $request->protein_per_serving;
-        $meal->carbs_per_serving = $request->carbs_per_serving;
-        $meal->fat_per_serving = $request->fat_per_serving;
-        $meal->fiber_per_serving = $request->fiber_per_serving;
+        $meal->calories_per_serving = $this->normalizeNutritionValue($request->calories_per_serving);
+        $meal->protein_per_serving = $this->normalizeNutritionValue($request->protein_per_serving);
+        $meal->carbs_per_serving = $this->normalizeNutritionValue($request->carbs_per_serving);
+        $meal->fat_per_serving = $this->normalizeNutritionValue($request->fat_per_serving);
+        $meal->fiber_per_serving = $this->normalizeNutritionValue($request->fiber_per_serving);
         $meal->ingredients = $request->ingredients;
         $meal->directions = $request->directions;
         $meal->language = $request->language;
