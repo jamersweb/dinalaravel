@@ -166,7 +166,7 @@ class ExerciseController extends Controller
         $validate = Validator::make($request->all(), [
             'id' => 'required|numeric',
             'type' => 'string',
-            'video' => 'mimes:mp4,MP4|max:51200',
+            'video' => 'mimes:mp4,MP4',
             'video_type' => 'in:custom,youtube,image',
             'video_duration' => 'numeric',
             'weights' => 'nullable|string',

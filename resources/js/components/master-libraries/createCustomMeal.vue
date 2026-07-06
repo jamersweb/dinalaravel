@@ -443,6 +443,7 @@ export default {
                 ingredients: [],
                 directions: [],
                 meal_type: 'auto',
+                language: 'en',
                 nutrient: {
                     saturated_fat: 0,
                     trans_fat: 0,
