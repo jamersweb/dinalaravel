@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Helpers\FileHandle;
+use App\Models\Concerns\AvailableInContentLocale;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Meal extends Model
 {
-    use HasFactory;
+    use HasFactory, AvailableInContentLocale;
 
     protected $casts = [
         'locale_translations' => 'array',

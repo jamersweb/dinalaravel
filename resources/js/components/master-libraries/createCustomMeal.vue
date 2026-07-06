@@ -17,13 +17,15 @@
                     </div>
                 </div>
                 <div class="div2" v-if="addDetails">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 mb-2">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="locale-tab-btn" :class="{ active: activeLocale === 'en' }" @click="setActiveLocale('en')">English</button>
+                            <button type="button" class="locale-tab-btn" :class="{ active: activeLocale === 'ar' }" @click="setActiveLocale('ar')">Arabic</button>
+                        </div>
+                        <button type="button" class="trans_btn small" @click="copyEnglishToArabic">Fill Arabic From English</button>
+                    </div>
                     <p class="ms-2 my-2" style="font-size:13px;">Meal Name <span style="color:red;">*</span></p>
-                    <input type="text" placeholder="Meal Name e.g" class="inp1" v-model="mealData.name">
-                    <p class="ms-2 my-2" style="font-size:13px;">Language <span style="color:red;">*</span></p>
-                    <select v-model="mealData.language" @change="getAllFoods()" style="white-space: nowrap; width: 100px">
-                        <option value="en">English</option>
-                        <option value="ar">Arabic</option>
-                    </select>
+                    <input type="text" placeholder="Meal Name e.g" class="inp1" v-model="localizedContent[activeLocale].name">
                     <p class="ms-2 my-2" style="font-size:13px;">Meal Prep Time </p>
                     <div class="col-12" style="height:50px">
                         <input type="number" placeholder="10" class="inp2" v-model="mealData.prep_time">
@@ -131,18 +133,18 @@
                                     </ul>
                             </div>
                             <div class="tsh " style="width:90%;height:200px;float:left;margin-top:20px;border-radius:30px;margin-left:10px;padding:5px;">
-                                <div style="height:95%;width:100%;justify-content:center;align-items:center;text-align:center;padding-top:30px;" v-if="mealData.ingredients.length==0">
+                                <div style="height:95%;width:100%;justify-content:center;align-items:center;text-align:center;padding-top:30px;" v-if="localizedContent[activeLocale].ingredients.length==0">
                                     <p style="font-size:18px;font-weight:bold;">No foods added yet</p>
                                     <p style="font-size:10px">Start adding foods to your custom recipe</p>
                                 </div>
                                 <div style="height:90%;width:100%;padding-top:10px;padding-bottom:10px;margin-bottom:10px;margin-top:10px;overflow-y:auto;" v-else>
-                                    <div style="width:100%;height:70px;border-bottom:1px solid #707070;margin-left:auto;margin-right:auto;padding:5px;" v-for="(item,index) in mealData.ingredients" :key="index">
+                                    <div style="width:100%;height:70px;border-bottom:1px solid #707070;margin-left:auto;margin-right:auto;padding:5px;" v-for="(item,index) in localizedContent[activeLocale].ingredients" :key="index">
                                         <div class="col-12 float-start" style="height:30px">
                                             <p style="font-size:10px;width:80%;float:left;">{{item.name}}</p>
                                             <p style="font-size:9px;float:right;margin-top:10px;">{{item.calories}} cal</p>
                                         </div>
                                         <div class="col-12 float-start" style="height:20px">
-                                            <select class="select1 float-start" style="width:auto;" v-model="mealData.ingredients[index].quantity1" @change="changeQuantity()">
+                                            <select class="select1 float-start" style="width:auto;" v-model="localizedContent[activeLocale].ingredients[index].quantity1" @change="changeQuantity()">
                                                 <option selected vlaue="0">0</option>
                                                 <option value="1">1</option>
                                                 <option value="2">2</option>
@@ -150,7 +152,7 @@
                                                 <option value="4">4</option>
                                                 <option value="5">5</option>
                                             </select>
-                                            <select class="select1 float-start" style="width:auto;" v-model="mealData.ingredients[index].quantity2" @change="changeQuantity()">
+                                            <select class="select1 float-start" style="width:auto;" v-model="localizedContent[activeLocale].ingredients[index].quantity2" @change="changeQuantity()">
                                                 <option selected value="0">0</option>
                                                 <option value="0.25">1/4</option>
                                                 <option value="0.33">1/3</option>
@@ -204,7 +206,7 @@
                                 <button style="font-size:13px;width:50%;height:auto;float:right;border:none;background-color:transparent" @click="autoMode">Go to Auto-calculate mode</button>
                             </div>
                             <p style="font-size:13px;color:#C5C5C5;">Copy and paste your premade list of ingredients with serving sizes</p>
-                            <textarea v-model="ingredientEntered" class="txt1" 
+                            <textarea v-model="localizedContent[activeLocale].ingredientEntered" class="txt1" 
                                 placeholder="Enter ingredients here.
                                 Take care that each ingredient is in new row, e.g:
                                 1 lbs boneless, skinless chicken breast
@@ -378,8 +380,8 @@
                         </div>
                         <button class="prim_btn h8 brds-1 py-1" @click="addDirection">Add next step</button>
                         <div class="mt-3 px-2 overflow-auto text-start" style="max-height:190px">
-                            <div v-for="(dir, index) in mealData.directions" :key="'direction-' + index" class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                <input type="text" class="brds-1 py-1 px-2 h8 tm-brdr flex-grow-1" v-model="mealData.directions[index]" :placeholder="'Step ' + (index + 1)">
+                            <div v-for="(dir, index) in localizedContent[activeLocale].directions" :key="'direction-' + index" class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <input type="text" class="brds-1 py-1 px-2 h8 tm-brdr flex-grow-1" v-model="localizedContent[activeLocale].directions[index]" :placeholder="'Step ' + (index + 1)">
                                 <button type="button" @click="removeDirection(index)" class="scnd_btn py-1 px-2 brds-1" title="Remove step">Delete</button>
                             </div>
                         </div>
@@ -424,11 +426,24 @@ export default {
             directions: null,
             videoURL: null,
             imageURL: null,
-            ingredientEntered: null,
+            activeLocale: 'en',
             tags: [],
             searchTag: '',
+            localizedContent: {
+                en: {
+                    name: null,
+                    ingredients: [],
+                    directions: [],
+                    ingredientEntered: null,
+                },
+                ar: {
+                    name: null,
+                    ingredients: [],
+                    directions: [],
+                    ingredientEntered: null,
+                },
+            },
             mealData: {
-                name: null,
                 prep_time: null,
                 cook_time: null,
                 suitable_for: [],
@@ -443,10 +458,7 @@ export default {
                 carbs_per_serving: 0,
                 fat_per_serving: 0,
                 fiber_per_serving: 0,
-                ingredients: [],
-                directions: [],
                 meal_type: 'auto',
-                language: 'en',
                 nutrient: {
                     saturated_fat: 0,
                     trans_fat: 0,
@@ -546,7 +558,55 @@ export default {
             }
         },
         filterMealsByLanguage() {
-            this.allFoods = this.allFoods.filter((item) => item.language == this.mealData.language);
+            this.allFoods = this.allFoods.filter((item) => item.language == this.activeLocale);
+        },
+        setActiveLocale(locale) {
+            this.activeLocale = locale;
+            this.getAllFoods();
+            if (this.mealData.meal_type === 'auto') {
+                this.changeQuantity();
+            }
+        },
+        copyEnglishToArabic() {
+            this.localizedContent.ar = JSON.parse(JSON.stringify(this.localizedContent.en));
+            if (this.activeLocale === 'ar' && this.mealData.meal_type === 'auto') {
+                this.changeQuantity();
+            }
+        },
+        getBaseLocale() {
+            return String(this.localizedContent.en.name || '').trim() !== '' ? 'en' : this.activeLocale;
+        },
+        syncManualIngredientsFromText() {
+            if (this.recipe2 !== true) {
+                return;
+            }
+
+            ['en', 'ar'].forEach((locale) => {
+                const text = String(this.localizedContent[locale].ingredientEntered || '').trim();
+                this.localizedContent[locale].ingredients = text === '' ? [] : text.split(/\r?\n|\r|\n/g);
+            });
+        },
+        buildLocaleTranslations(baseLocale) {
+            const translations = {};
+
+            ['en', 'ar'].forEach((locale) => {
+                if (locale === baseLocale) {
+                    return;
+                }
+
+                const content = this.localizedContent[locale];
+                const payload = {
+                    name: String(content.name || '').trim(),
+                    ingredients: JSON.stringify(content.ingredients || []),
+                    directions: JSON.stringify(content.directions || []),
+                };
+
+                if (payload.name !== '' || payload.ingredients !== '[]' || payload.directions !== '[]') {
+                    translations[locale] = payload;
+                }
+            });
+
+            return translations;
         },
         searchFoodApi(text){
             if(text == ''){
@@ -614,13 +674,14 @@ export default {
             this.mealData.carbs_per_serving = 0;
             this.mealData.calories_per_serving = 0;
             this.mealData.fiber_per_serving = 0;
-            for (let i = 0; i < this.mealData.ingredients.length; i++) {
-                let qty = parseFloat(this.mealData.ingredients[i].quantity1) + parseFloat(this.mealData.ingredients[i].quantity2);
-                this.mealData.protein_per_serving += (this.mealData.ingredients[i].protein * qty);
-                this.mealData.fat_per_serving += (this.mealData.ingredients[i].fat * qty);
-                this.mealData.carbs_per_serving += (this.mealData.ingredients[i].carbs * qty);
-                this.mealData.calories_per_serving += (this.mealData.ingredients[i].calories * qty);
-                this.mealData.fiber_per_serving += (this.mealData.ingredients[i].fiber * qty);
+            const activeIngredients = this.localizedContent[this.activeLocale].ingredients;
+            for (let i = 0; i < activeIngredients.length; i++) {
+                let qty = parseFloat(activeIngredients[i].quantity1) + parseFloat(activeIngredients[i].quantity2);
+                this.mealData.protein_per_serving += (activeIngredients[i].protein * qty);
+                this.mealData.fat_per_serving += (activeIngredients[i].fat * qty);
+                this.mealData.carbs_per_serving += (activeIngredients[i].carbs * qty);
+                this.mealData.calories_per_serving += (activeIngredients[i].calories * qty);
+                this.mealData.fiber_per_serving += (activeIngredients[i].fiber * qty);
             }
         },
         quitComponent() {
@@ -628,8 +689,7 @@ export default {
         },
         coverDiv() {
             if (
-                this.mealData.name == null ||
-                this.mealData.name == "" ||
+                (!this.localizedContent.en.name && !this.localizedContent.ar.name) ||
                 this.mealData.suitable_for.length == 0 ||
                 this.mealData.tags.length < 1 
             ) {
@@ -657,7 +717,7 @@ export default {
             }
         },
         manualMode() {
-            this.mealData.ingredients = [];
+            this.localizedContent[this.activeLocale].ingredients = [];
             this.mealData.protein_per_serving = 0;
             this.mealData.fat_per_serving = 0;
             this.mealData.calories_per_serving = 0;
@@ -669,7 +729,7 @@ export default {
             this.recipe2 = true;
         },
         autoMode() {
-            this.mealData.ingredients = [];
+            this.localizedContent[this.activeLocale].ingredients = [];
             this.mealData.protein_per_serving = 0;
             this.mealData.fat_per_serving = 0;
             this.mealData.calories_per_serving = 0;
@@ -754,11 +814,11 @@ export default {
         addFood(food) {
             food.quantity1 = 0;
             food.quantity2 = 0;
-            this.mealData.ingredients.push(food);
+            this.localizedContent[this.activeLocale].ingredients.push(food);
             this.changeQuantity();
         },
         removeFood(m) {
-            this.mealData.ingredients.splice(m, 1);
+            this.localizedContent[this.activeLocale].ingredients.splice(m, 1);
             this.changeQuantity();
         },
         addDirection() {
@@ -768,25 +828,24 @@ export default {
                 this.modalDetail = 'Add directions first';
                 this.informModal = true;
             } else {
-                this.mealData.directions.push(text);
+                this.localizedContent[this.activeLocale].directions.push(text);
                 this.directions = null;
             }
         },
         removeDirection(index) {
-            this.mealData.directions.splice(index, 1);
+            this.localizedContent[this.activeLocale].directions.splice(index, 1);
         },
         acknowledged() {
             this.informModal = false;
         },
         saveForm() {
-            // debugger;
-            if (this.recipe2 == true && this.ingredientEntered !== null) {
-                this.mealData.ingredients = this.ingredientEntered.split(/\r?\n|\r|\n/g);
-            }
+            this.syncManualIngredientsFromText();
             const normalizedMacros = this.normalizedMacroValues();
-            if (this.mealData.ingredients.length == 0 ||
+            const baseLocale = this.getBaseLocale();
+            const baseContent = this.localizedContent[baseLocale];
+            if (baseContent.ingredients.length == 0 ||
                 this.mealData.no_of_servings === null || this.mealData.no_of_servings === "" ||
-                this.mealData.language === null) 
+                String(baseContent.name || '').trim() === '') 
              {
                 this.pageLoading = false;
                 this.modalTitle = "Error";
@@ -818,7 +877,7 @@ export default {
                 return;
             }
             let fd = new FormData();
-            fd.append("name", this.mealData.name);
+            fd.append("name", baseContent.name);
             fd.append("prep_time", this.normalizeCookTime(this.mealData.prep_time));
             fd.append("cook_time", this.normalizeCookTime(this.mealData.cook_time));
             fd.append("suitable_for", JSON.stringify(this.mealData.suitable_for));
@@ -832,13 +891,14 @@ export default {
             fd.append("fat_per_serving", normalizedMacros.fat_per_serving);
             fd.append("fiber_per_serving", normalizedMacros.fiber_per_serving);
             fd.append("file_type", this.mealData.file_type);
-            fd.append("language", this.mealData.language);
+            fd.append("language", baseLocale);
             fd.append("meal_type", this.mealData.meal_type)
             if (this.mealData.file_type == 'video') {
                 fd.append("video_thumbnail", this.mealData.video_thumbnail);
             }
-            fd.append("ingredients", JSON.stringify(this.mealData.ingredients));
-            fd.append("directions", JSON.stringify(this.mealData.directions));
+            fd.append("ingredients", JSON.stringify(baseContent.ingredients));
+            fd.append("directions", JSON.stringify(baseContent.directions));
+            fd.append("locale_translations", JSON.stringify(this.buildLocaleTranslations(baseLocale)));
             if (this.recipe2 == true) {
                 fd.append("nutrient", JSON.stringify(this.mealData.nutrient));
             }
@@ -913,6 +973,20 @@ export default {
 .inp1::placeholder {
     font-size: 13px;
     color: #C5C5C5;
+}
+
+.locale-tab-btn {
+    border: 1px solid #f2a18c;
+    background: white;
+    color: #f2a18c;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+}
+
+.locale-tab-btn.active {
+    background: #f2a18c;
+    color: white;
 }
 
 .inp2 {

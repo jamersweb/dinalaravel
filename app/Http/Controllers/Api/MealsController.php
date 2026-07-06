@@ -25,6 +25,8 @@ class MealsController extends Controller
 {
     use ApiResponse, ActivitiesTrait, ResolvesUserLanguage;
     //
+    private const SUPPORTED_MEAL_LOCALES = ['en', 'ar'];
+
     private function normalizeNutritionValue($value): int|float
     {
         if ($value === null || $value === '') {
@@ -55,6 +57,7 @@ class MealsController extends Controller
             'directions' => 'string',
             'meal_type' => 'required|in:auto,manual',
             'language' => 'required|in:en,ar',
+            'locale_translations' => 'nullable|string',
         ]);
         if($validate->fails())
             return $this->validationError($validate);
@@ -73,9 +76,13 @@ class MealsController extends Controller
         }
 
         $meal = new Meal();
+        $localizedPayload = $this->extractLocalizedMealPayload($request);
+        $baseLocale = $this->resolveBaseLocale($request, $localizedPayload);
+        $basePayload = $localizedPayload[$baseLocale];
+        $translationPayload = $this->buildTranslationMap($localizedPayload, $baseLocale);
         $meal->user_id = Auth::id();
-        $meal->name = $request->name;
-        $meal->language = $request->language;
+        $meal->name = $basePayload['name'];
+        $meal->language = $baseLocale;
         $meal->prep_time = $this->normalizeCookTime($request->prep_time);
         $meal->cook_time = $this->normalizeCookTime($request->cook_time);
         $meal->suitable_for = $request->suitable_for;
@@ -90,41 +97,14 @@ class MealsController extends Controller
         $meal->carbs_per_serving = $this->normalizeNutritionValue($request->carbs_per_serving);
         $meal->fat_per_serving = $this->normalizeNutritionValue($request->fat_per_serving);
         $meal->fiber_per_serving = $this->normalizeNutritionValue($request->fiber_per_serving);
-        $meal->ingredients = $request->ingredients;
-        $meal->directions = $request->directions;
+        $meal->ingredients = $basePayload['ingredients'];
+        $meal->directions = $basePayload['directions'];
+        $meal->locale_translations = $translationPayload === [] ? null : $translationPayload;
         if($request->has('nutrient')){
             $meal->nutrient = $request->nutrient;
         }
         $meal->meal_type = $request->meal_type;
         $meal->save();
-
-        if($request->language == 'en'){
-            $meal = new Meal();
-            $meal->user_id = Auth::id();
-            $meal->name = $this->getTranslatedText($request->name, 'ar');
-            $meal->language = 'ar';
-            $meal->prep_time = $this->normalizeCookTime($request->prep_time);
-            $meal->cook_time = $this->normalizeCookTime($request->cook_time);
-            $meal->suitable_for = $request->suitable_for;
-            $meal->tags = $request->tags;
-            $meal->contains = $request->contains;
-            $meal->file = $url;
-            $meal->video_thumbnail = $url2;
-            $meal->file_type = $request->file_type;
-            $meal->no_of_servings = $request->no_of_servings;
-            $meal->calories_per_serving = $this->normalizeNutritionValue($request->calories_per_serving);
-            $meal->protein_per_serving = $this->normalizeNutritionValue($request->protein_per_serving);
-            $meal->carbs_per_serving = $this->normalizeNutritionValue($request->carbs_per_serving);
-            $meal->fat_per_serving = $this->normalizeNutritionValue($request->fat_per_serving);
-            $meal->fiber_per_serving = $this->normalizeNutritionValue($request->fiber_per_serving);
-            $meal->ingredients = $request->ingredients;
-            $meal->directions = $request->directions;
-            if($request->has('nutrient')){
-                $meal->nutrient = $request->nutrient;
-            }
-            $meal->meal_type = $request->meal_type;
-            $meal->save();
-        }
 
         return response()->json([
             'status' => true,
@@ -154,6 +134,7 @@ class MealsController extends Controller
             'directions' => 'string',
             'meal_type' => 'required|in:auto,manual',
             'language' => 'required|in:en,ar',
+            'locale_translations' => 'nullable|string',
         ]);
         if($validate->fails())
             return $this->validationError($validate);
@@ -174,8 +155,12 @@ class MealsController extends Controller
         }
 
         $meal = Meal::find($request->id);
+        $localizedPayload = $this->extractLocalizedMealPayload($request);
+        $baseLocale = $this->resolveBaseLocale($request, $localizedPayload, $meal->language);
+        $basePayload = $localizedPayload[$baseLocale];
+        $translationPayload = $this->buildTranslationMap($localizedPayload, $baseLocale, $meal->locale_translations);
         $meal->user_id = Auth::id();
-        $meal->name = $request->name;
+        $meal->name = $basePayload['name'];
         $meal->prep_time = $this->normalizeCookTime($request->prep_time);
         $meal->cook_time = $this->normalizeCookTime($request->cook_time);
         $meal->suitable_for = $request->suitable_for;
@@ -187,9 +172,10 @@ class MealsController extends Controller
         $meal->carbs_per_serving = $this->normalizeNutritionValue($request->carbs_per_serving);
         $meal->fat_per_serving = $this->normalizeNutritionValue($request->fat_per_serving);
         $meal->fiber_per_serving = $this->normalizeNutritionValue($request->fiber_per_serving);
-        $meal->ingredients = $request->ingredients;
-        $meal->directions = $request->directions;
-        $meal->language = $request->language;
+        $meal->ingredients = $basePayload['ingredients'];
+        $meal->directions = $basePayload['directions'];
+        $meal->language = $baseLocale;
+        $meal->locale_translations = $translationPayload === [] ? null : $translationPayload;
         if($request->has('nutrient')){
             $meal->nutrient = $request->nutrient;
         }
@@ -251,12 +237,8 @@ class MealsController extends Controller
             return $this->validationError($validate);
 
         $userLang = $this->currentUserLanguage();
-        $mealQuery = Meal::where('meal_by', 'admin');
-        if (in_array($userLang, ['en', 'ar'], true)) {
-            $mealQuery->where('language', $userLang);
-        } else {
-            $mealQuery->where('language', 'en');
-        }
+        $contentLocale = in_array($userLang, self::SUPPORTED_MEAL_LOCALES, true) ? $userLang : 'en';
+        $mealQuery = Meal::where('meal_by', 'admin')->availableInContentLocale($contentLocale);
         $meals = $mealQuery->orderBy('created_at', 'desc')->get();
         $returnData = [];
         
@@ -289,17 +271,7 @@ class MealsController extends Controller
         }
         
         foreach ($meals as $meal) {
-            if ($meal->language !== $userLang) {
-                $translations = $meal->locale_translations;
-                if (is_array($translations) && isset($translations[$userLang]) && is_array($translations[$userLang])) {
-                    $p = $translations[$userLang];
-                    foreach (ContentLocaleResolver::MEAL_FIELDS as $f) {
-                        if (! empty($p[$f]) && is_string($p[$f])) {
-                            $meal->{$f} = $p[$f];
-                        }
-                    }
-                }
-            }
+            $this->applyMealLocaleOverlay($meal, $contentLocale);
 
             $suitableFor = json_decode($meal->suitable_for, true);
             if (!is_array($suitableFor)) {
@@ -361,17 +333,7 @@ class MealsController extends Controller
             Log::info('discoverMeals - Tag filter returned 0 meals, falling back to all meals');
             $returnData = [];
             foreach ($meals as $meal) {
-                if ($meal->language !== $userLang) {
-                    $translations = $meal->locale_translations;
-                    if (is_array($translations) && isset($translations[$userLang]) && is_array($translations[$userLang])) {
-                        $p = $translations[$userLang];
-                        foreach (ContentLocaleResolver::MEAL_FIELDS as $f) {
-                            if (! empty($p[$f]) && is_string($p[$f])) {
-                                $meal->{$f} = $p[$f];
-                            }
-                        }
-                    }
-                }
+                $this->applyMealLocaleOverlay($meal, $contentLocale);
                 $suitableFor = json_decode($meal->suitable_for, true);
                 if (!is_array($suitableFor)) continue;
                 if ($requestType === 'all' || in_array($requestType, $suitableFor)) {
@@ -837,17 +799,8 @@ class MealsController extends Controller
             'message' => 'No Meal Found',
         ]);
         $userLang = $this->currentUserLanguage();
-        if ($meal->language !== $userLang) {
-            $translations = $meal->locale_translations;
-            if (is_array($translations) && isset($translations[$userLang]) && is_array($translations[$userLang])) {
-                $p = $translations[$userLang];
-                foreach (ContentLocaleResolver::MEAL_FIELDS as $f) {
-                    if (! empty($p[$f]) && is_string($p[$f])) {
-                        $meal->{$f} = $p[$f];
-                    }
-                }
-            }
-        }
+        $contentLocale = in_array($userLang, self::SUPPORTED_MEAL_LOCALES, true) ? $userLang : 'en';
+        $this->applyMealLocaleOverlay($meal, $contentLocale);
         return response()->json([
             'status' => true,
             'data' => $meal,
@@ -923,5 +876,130 @@ class MealsController extends Controller
         }
 
         return (string) $value;
+    }
+
+    private function applyMealLocaleOverlay(Meal $meal, string $locale): void
+    {
+        $locale = strtolower($locale);
+        if ($meal->language === $locale) {
+            return;
+        }
+
+        $translations = $meal->locale_translations;
+        if (! is_array($translations) || ! isset($translations[$locale]) || ! is_array($translations[$locale])) {
+            return;
+        }
+
+        $patch = $translations[$locale];
+        foreach (ContentLocaleResolver::MEAL_FIELDS as $field) {
+            if (array_key_exists($field, $patch) && is_string($patch[$field]) && $patch[$field] !== '') {
+                $meal->{$field} = $patch[$field];
+            }
+        }
+    }
+
+    private function extractLocalizedMealPayload(Request $request): array
+    {
+        $translations = $this->decodeTranslationPayload($request->locale_translations);
+        $payload = [];
+
+        foreach ($translations as $locale => $fields) {
+            $locale = strtolower((string) $locale);
+            if (! in_array($locale, self::SUPPORTED_MEAL_LOCALES, true) || ! is_array($fields)) {
+                continue;
+            }
+
+            $payload[$locale] = [
+                'name' => isset($fields['name']) ? trim((string) $fields['name']) : '',
+                'ingredients' => isset($fields['ingredients']) ? (string) $fields['ingredients'] : '[]',
+                'directions' => isset($fields['directions']) ? (string) $fields['directions'] : '[]',
+            ];
+        }
+
+        $fallbackLocale = strtolower((string) ($request->language ?: 'en'));
+        if (! in_array($fallbackLocale, self::SUPPORTED_MEAL_LOCALES, true)) {
+            $fallbackLocale = 'en';
+        }
+
+        $payload[$fallbackLocale] = [
+            'name' => trim((string) $request->name),
+            'ingredients' => (string) $request->ingredients,
+            'directions' => (string) $request->directions,
+        ];
+
+        return $payload;
+    }
+
+    private function decodeTranslationPayload($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (! is_string($value) || trim($value) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function resolveBaseLocale(Request $request, array $payload, ?string $currentBaseLocale = null): string
+    {
+        if (isset($payload['en']) && trim((string) ($payload['en']['name'] ?? '')) !== '') {
+            return 'en';
+        }
+
+        $requestedLocale = strtolower((string) ($request->language ?: $currentBaseLocale ?: 'en'));
+        if (isset($payload[$requestedLocale]) && trim((string) ($payload[$requestedLocale]['name'] ?? '')) !== '') {
+            return $requestedLocale;
+        }
+
+        foreach (self::SUPPORTED_MEAL_LOCALES as $locale) {
+            if (isset($payload[$locale]) && trim((string) ($payload[$locale]['name'] ?? '')) !== '') {
+                return $locale;
+            }
+        }
+
+        return $currentBaseLocale && in_array($currentBaseLocale, self::SUPPORTED_MEAL_LOCALES, true)
+            ? $currentBaseLocale
+            : 'en';
+    }
+
+    private function buildTranslationMap(array $payload, string $baseLocale, $existingTranslations = null): array
+    {
+        $map = is_array($existingTranslations) ? $existingTranslations : [];
+
+        foreach (self::SUPPORTED_MEAL_LOCALES as $locale) {
+            if ($locale === $baseLocale) {
+                unset($map[$locale]);
+                continue;
+            }
+
+            $fields = $payload[$locale] ?? null;
+            if (! is_array($fields)) {
+                continue;
+            }
+
+            $bucket = [];
+            foreach (['name', 'ingredients', 'directions'] as $field) {
+                $value = $fields[$field] ?? '';
+                if (is_string($value) && $value !== '') {
+                    $bucket[$field] = $value;
+                }
+            }
+
+            if ($bucket === []) {
+                unset($map[$locale]);
+                continue;
+            }
+
+            $map[$locale] = array_merge(
+                is_array($map[$locale] ?? null) ? $map[$locale] : [],
+                $bucket
+            );
+        }
+
+        return $map;
     }
 }
