@@ -58,11 +58,13 @@
                     </div>
                     <div class="mt-3">
                         <h5 class="m-0">Tags <span class="text-danger">*</span></h5>
+                        <input type="text" placeholder="Search tags" class="inp1 mt-2" v-model="searchTag">
                         <div class="row w-100 mt-2">
-                            <div class="col-3 mb-1" v-for="(item, index) in tags" :key="index">
+                            <div class="col-3 mb-1" v-for="(item, index) in filteredTags" :key="index">
                                 <input class="form-check-input tsl m-0" :id="'chktg'+index" type="checkbox" :value="item.id" v-model="mealData.tags">
                                 <label class="ms-2 d-inline wb-all pointer text-capitalize" :for="'chktg'+index">{{item.name}}</label>
                             </div>
+                            <p v-if="filteredTags.length < 1" class="mb-0">No tags found</p>
                         </div>
                     </div>
                     <div class="mt-3">
@@ -424,6 +426,7 @@ export default {
             imageURL: null,
             ingredientEntered: null,
             tags: [],
+            searchTag: '',
             mealData: {
                 name: null,
                 prep_time: null,
@@ -481,6 +484,16 @@ export default {
     mounted() {
         this.getAllFoods();
         this.getAllTags();
+    },
+    computed: {
+        filteredTags() {
+            const query = String(this.searchTag || '').trim().toLowerCase();
+            if (!query) {
+                return this.tags;
+            }
+
+            return this.tags.filter((item) => String(item.name || '').toLowerCase().includes(query));
+        }
     },
     watch: {
         searchFood(newValue, oldValue) {
