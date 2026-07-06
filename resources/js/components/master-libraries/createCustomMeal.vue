@@ -487,6 +487,16 @@ export default {
         }
     },
     methods: {
+        allowsZeroNutrition() {
+            return Array.isArray(this.mealData.suitable_for) && this.mealData.suitable_for.includes('drinks');
+        },
+        hasAllZeroNutrition() {
+            return Number(this.mealData.protein_per_serving || 0) === 0 &&
+                Number(this.mealData.fiber_per_serving || 0) === 0 &&
+                Number(this.mealData.calories_per_serving || 0) === 0 &&
+                Number(this.mealData.fat_per_serving || 0) === 0 &&
+                Number(this.mealData.carbs_per_serving || 0) === 0;
+        },
         normalizeCookTime(value) {
             if (value === null || value === undefined || value === '' || value === 0 || value === '0') {
                 return '';
@@ -771,14 +781,13 @@ export default {
                 this.informModal = true;
                 return;
             }
-            if(this.mealData.protein_per_serving == 0 && this.fiber_per_serving == 0 || this.mealData.calories_per_serving == 0 
-                && this.mealData.fat_per_serving == 0 && this.mealData.carbs_per_serving == 0) {
+            if (!this.allowsZeroNutrition() && this.hasAllZeroNutrition()) {
                 this.modalTitle = "Error";
                 this.modalDetail = "all macro nutrients cannot be zero";
                 this.informModal = true;
                 return;
             }
-            if (this.mealData.no_of_servings < 0 || this.mealData.protein_per_serving < 0 || this.fiber_per_serving < 0 ||
+            if (this.mealData.no_of_servings < 0 || this.mealData.protein_per_serving < 0 || this.mealData.fiber_per_serving < 0 ||
             this.mealData.calories_per_serving < 0 || this.mealData.fat_per_serving < 0 || this.mealData.carbs_per_serving < 0) {
                 this.pageLoading = false;
                 this.modalTitle = "Error";

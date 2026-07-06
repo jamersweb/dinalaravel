@@ -42,17 +42,26 @@ export default {
         this.selectedTags = this.prefillTags;
     },
     methods: {
+        closeParentFilters(){
+            if (this.$parent && Object.prototype.hasOwnProperty.call(this.$parent, 'filters')) {
+                this.$parent.filters = false;
+                return;
+            }
+            if (this.$parent && Object.prototype.hasOwnProperty.call(this.$parent, 'filtersOpen')) {
+                this.$parent.filtersOpen = false;
+            }
+        },
         applyFilters(){
             this.$parent.applyFilters(this.selectedTags);
-            this.$parent.filters = false;
+            this.closeParentFilters();
         },
         resetFilters(){
             this.selectedTags = [];
             this.$parent.clearFilters();
-            this.$parent.filters = false;
+            this.closeParentFilters();
         },
         closeFilters(){
-            this.$parent.filters = false;
+            this.closeParentFilters();
         },
         expandToggle(index){
             this.expanded[index] = !this.expanded[index];
