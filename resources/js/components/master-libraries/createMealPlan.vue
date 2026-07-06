@@ -228,7 +228,6 @@
                                         <div v-else class="p-2">
                                             <img :src="item.image" alt="" style="height:80px;width:100%;">
                                         </div>
-                                        <p class="mb-0 col-12" style="word-break:break-all;" data-toggle="tooltip" :title="item.name">{{this.truncatedString(item.name,15)}}</p>
                                     </div>
                                 </div>
                                 <p v-if="filteredMeals.length==0" class="mt-3 fw-bold">No Meals to display regarding the filter</p>
