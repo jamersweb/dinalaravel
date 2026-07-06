@@ -35,7 +35,7 @@
                             <option value="20">20 min</option>
                             <option value="25">25 min</option>
                         </select> -->
-                        <p style="font-size:13px;float:left;margin:5px;margin-top:11px;">Prep<span style="color:red;">*</span></p>
+                        <p style="font-size:13px;float:left;margin:5px;margin-top:11px;">Prep (optional)</p>
                         <input type="number" placeholder="10" class="inp2" v-model="mealData.cook_time">
                         <!-- <select class="inp2" id="" v-model="mealData.cook_time">
                             <option disabled selected >Choose from the list</option>
@@ -616,8 +616,6 @@ export default {
             if (
                 this.mealData.name == null ||
                 this.mealData.name == "" ||
-                this.mealData.prep_time == null ||
-                this.mealData.prep_time == "" ||
                 this.mealData.suitable_for.length == 0 ||
                 this.mealData.tags.length < 1 
             ) {
@@ -807,7 +805,7 @@ export default {
             }
             let fd = new FormData();
             fd.append("name", this.mealData.name);
-            fd.append("prep_time", this.mealData.prep_time);
+            fd.append("prep_time", this.normalizeCookTime(this.mealData.prep_time));
             fd.append("cook_time", this.normalizeCookTime(this.mealData.cook_time));
             fd.append("suitable_for", JSON.stringify(this.mealData.suitable_for));
             fd.append("tags", JSON.stringify(this.mealData.tags));

@@ -37,7 +37,7 @@ class MealsController extends Controller
     function createMeal(Request $request){
         $validate = Validator::make($request->all(),[
             'name' => 'required|string',
-            'prep_time' => 'required|string',
+            'prep_time' => 'nullable|string',
             'cook_time' => 'nullable|string',
             'suitable_for' => 'required',
             'tags' => 'required|string',
@@ -76,7 +76,7 @@ class MealsController extends Controller
         $meal->user_id = Auth::id();
         $meal->name = $request->name;
         $meal->language = $request->language;
-        $meal->prep_time = $request->prep_time;
+        $meal->prep_time = $this->normalizeCookTime($request->prep_time);
         $meal->cook_time = $this->normalizeCookTime($request->cook_time);
         $meal->suitable_for = $request->suitable_for;
         $meal->tags = $request->tags;
@@ -103,7 +103,7 @@ class MealsController extends Controller
             $meal->user_id = Auth::id();
             $meal->name = $this->getTranslatedText($request->name, 'ar');
             $meal->language = 'ar';
-            $meal->prep_time = $request->prep_time;
+            $meal->prep_time = $this->normalizeCookTime($request->prep_time);
             $meal->cook_time = $this->normalizeCookTime($request->cook_time);
             $meal->suitable_for = $request->suitable_for;
             $meal->tags = $request->tags;
@@ -136,7 +136,7 @@ class MealsController extends Controller
         $validate = Validator::make($request->all(),[
             'id' => 'required|numeric|exists:meals,id',
             'name' => 'required|string',
-            'prep_time' => 'required|string',
+            'prep_time' => 'nullable|string',
             'cook_time' => 'nullable|string',
             'suitable_for' => 'required',
             'tags' => 'required|string',
@@ -176,7 +176,7 @@ class MealsController extends Controller
         $meal = Meal::find($request->id);
         $meal->user_id = Auth::id();
         $meal->name = $request->name;
-        $meal->prep_time = $request->prep_time;
+        $meal->prep_time = $this->normalizeCookTime($request->prep_time);
         $meal->cook_time = $this->normalizeCookTime($request->cook_time);
         $meal->suitable_for = $request->suitable_for;
         $meal->tags = $request->tags;

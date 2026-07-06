@@ -22,10 +22,21 @@
                 </div>
                 <button @click="showTagPopup()" class="px-4 prim_bg border-0 brds-2">Add a new tag</button>
             </div>
+            <div class="w-90 mx-auto my-3">
+                <div class="position-relative tag-search-box">
+                    <img src="/cms-assets/images/navbar-topbar/search.png" alt="search-icon" class="img-fluid position-absolute tag-search-icon">
+                    <input
+                        v-model="search"
+                        type="text"
+                        class="w-100 tag-search-input"
+                        placeholder="Search tags by initials or name"
+                    >
+                </div>
+            </div>
             <div class="mx-auto" style="width:95%;">
                 <Vue3EasyDataTable
                     :headers="headers"
-                    :items="items"
+                    :items="filteredItems"
                     >
                     <template #item-actions="item">
                         <button @click="editTag(item)" class="border-0 brds-1 px-3 prim_bg" style="font-size:15px;">Edit</button>
@@ -103,11 +114,26 @@ export default {
             type: null,
             saveType: 'new',
             tagsFor: 'client',
+            search: '',
             postData: {
                 name: null,
                 category: '',
             }
         }
+    },
+    computed: {
+        filteredItems() {
+            const query = String(this.search || '').trim().toLowerCase();
+            if (!query) {
+                return this.items;
+            }
+
+            return this.items.filter((item) => {
+                const name = String(item.name || '').toLowerCase();
+                const type = String(item.type || '').toLowerCase();
+                return name.includes(query) || type.includes(query);
+            });
+        },
     },
     mounted() {
         this.getTags();
@@ -241,6 +267,7 @@ export default {
         getTags() {
             this.pageLoading = true;
             this.loaderText = 'Fetching';
+            this.search = '';
             axios.get(config.baseApiUrl + 'get-uncategorized-tags?category=' + this.tagsFor, this.apiConfig).then(res => {
                 this.pageLoading = false;
                 if (res.data.status) {
@@ -264,6 +291,21 @@ export default {
     }
 }
 </script>
-<style lang="">
+<style scoped>
+.tag-search-box {
+    max-width: 420px;
+}
 
+.tag-search-icon {
+    left: 12px;
+    top: 12px;
+    max-height: 16px;
+}
+
+.tag-search-input {
+    border: 1px solid #C5C5C5;
+    border-radius: 12px;
+    padding: 10px 14px 10px 38px;
+    outline: none;
+}
 </style>
