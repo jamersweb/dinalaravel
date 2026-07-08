@@ -35,6 +35,31 @@ class ExerciseController extends Controller
     use ActivitiesTrait;
     use ResolvesUserLanguage;
 
+    private function isSupportedUploadedVideo($file): bool
+    {
+        if (! $file) {
+            return false;
+        }
+
+        $extension = strtolower((string) $file->getClientOriginalExtension());
+        $clientMime = strtolower((string) $file->getClientMimeType());
+        $serverMime = strtolower((string) $file->getMimeType());
+
+        $allowedExtensions = ['mp4', 'm4v', 'mov', 'webm', 'mkv'];
+        $allowedMimes = [
+            'video/mp4',
+            'video/quicktime',
+            'video/x-m4v',
+            'video/webm',
+            'video/x-matroska',
+            'application/octet-stream',
+        ];
+
+        return in_array($extension, $allowedExtensions, true)
+            || in_array($clientMime, $allowedMimes, true)
+            || in_array($serverMime, $allowedMimes, true);
+    }
+
     function testDelete($code)
     {
         if ($code == 1289) {
@@ -65,7 +90,7 @@ class ExerciseController extends Controller
         $validate = Validator::make($request->all(), [
             'title' => 'required',
             'type' => 'required|string',
-            // 'video' => 'mimes:mp4,MP4|max:51200',
+            'video' => 'nullable|file|max:51200',
             'video_type' => 'required|in:custom,youtube,image',
             // 'video_duration' => 'required|numeric',
             'weights' => 'nullable|string',
@@ -89,15 +114,11 @@ class ExerciseController extends Controller
             ]);
         }
         $uploadedVideo = $request->file('video');
-        if ($uploadedVideo) {
-            $extension = $uploadedVideo->getClientOriginalExtension();
-            $allowedVideoExtensions = ['mp4', 'MP4'];
-            if (!in_array(strtolower($extension), $allowedVideoExtensions)) {
-                return response()->json([
-                    'status' => false,
-                    'message' => "Video type is not MP4"
-                ]);
-            }
+        if ($request->video_type === 'custom' && $uploadedVideo && ! $this->isSupportedUploadedVideo($uploadedVideo)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unsupported video file. Please upload MP4, M4V, MOV, WEBM, or MKV.'
+            ]);
         }
         if ($request->video_type == "youtube") {
             $videoDuration = 0;
@@ -166,7 +187,7 @@ class ExerciseController extends Controller
         $validate = Validator::make($request->all(), [
             'id' => 'required|numeric',
             'type' => 'string',
-            'video' => 'mimes:mp4,MP4',
+            'video' => 'nullable|file|max:51200',
             'video_type' => 'in:custom,youtube,image',
             'video_duration' => 'numeric',
             'weights' => 'nullable|string',
@@ -186,6 +207,14 @@ class ExerciseController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => $validate->errors()->all()[0]
+            ]);
+        }
+
+        $uploadedVideo = $request->file('video');
+        if ($request->video_type === 'custom' && $uploadedVideo && ! $this->isSupportedUploadedVideo($uploadedVideo)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unsupported video file. Please upload MP4, M4V, MOV, WEBM, or MKV.'
             ]);
         }
 
