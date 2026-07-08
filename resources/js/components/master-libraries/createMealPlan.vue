@@ -144,7 +144,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" :value="index" v-model="selectedItems">
                                             <img  :src="weeks[index].image" alt="" style="height:80px;width:80%; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="weeks[index].name">{{this.truncatedString(weeks[index].name,20)}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -159,7 +158,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" :value="index" v-model="selectedItems">
                                             <img :src="plan[index].image" alt="" style="height:80px;width:80%; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="plan[index].name">{{this.truncatedString(plan[index].name,20)}}</p>
                                         </div>
                                     </div>
                                 </div>

@@ -144,7 +144,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day1" v-model="selectedItems">
                                             <img  :src="DWPdetails.meal_day1_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.meal_day1_detail.name">{{this.truncatedString(DWPdetails.meal_day1_detail.name,15)}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -157,7 +156,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day2" v-model="selectedItems">
                                             <img  :src="DWPdetails.meal_day2_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.meal_day2_detail.name">{{this.truncatedString(DWPdetails.meal_day2_detail.name,15)}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -170,7 +168,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day3" v-model="selectedItems">
                                             <img  :src="DWPdetails.meal_day3_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.meal_day3_detail.name">{{this.truncatedString(DWPdetails.meal_day3_detail.name,15)}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -183,7 +180,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day4" v-model="selectedItems">
                                             <img  :src="DWPdetails.meal_day4_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.meal_day4_detail.name">{{this.truncatedString(DWPdetails.meal_day4_detail.name,15)}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -196,7 +192,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day5" v-model="selectedItems">
                                             <img  :src="DWPdetails.meal_day5_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.meal_day5_detail.name">{{this.truncatedString(DWPdetails.meal_day5_detail.name,15)}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -209,7 +204,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day6" v-model="selectedItems">
                                             <img  :src="DWPdetails.meal_day6_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.meal_day6_detail.name">{{this.truncatedString(DWPdetails.meal_day6_detail.name,15)}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -222,7 +216,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day7" v-model="selectedItems">
                                             <img  :src="DWPdetails.meal_day7_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.meal_day7_detail.name">{{this.truncatedString(DWPdetails.meal_day7_detail.name,15)}}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -237,7 +230,6 @@
                                         <div v-else class="position-relative text-center">
                                             <input type="checkbox" class="form-check-input position-absolute" :value="index" v-model="selectedItems">
                                             <img :src="item.image" alt="" style="height:80px;width:80%; object-fit: contain; background: white;">
-                                            <p class="mb-0 mt-2" data-toggle="tooltip" :title="item.name">{{this.truncatedString(item.name,20)}}</p>
                                         </div>
                                     </div>
                                 </div>
