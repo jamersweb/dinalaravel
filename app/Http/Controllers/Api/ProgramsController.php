@@ -133,6 +133,49 @@ class ProgramsController extends Controller
         }
     }
 
+    function duplicateProgram(Request $request)
+    {
+        try {
+            $validate = Validator::make($request->all(), [
+                'id' => 'required|exists:programs,id',
+            ]);
+            if ($validate->fails()) {
+                return $this->validationError($validate);
+            }
+
+            $program = Program::with(['programPhases.phaseWorkouts'])->find($request->id);
+            if (is_null($program)) {
+                return $this->notFound('Program Not Found');
+            }
+
+            $newProgram = null;
+            DB::transaction(function () use ($program, &$newProgram) {
+                $newProgram = $program->replicate();
+                $newProgram->title = $program->title . ' (Copy)';
+                $newProgram->content_code = null;
+                $newProgram->save();
+
+                foreach ($program->programPhases as $phase) {
+                    $newPhase = $phase->replicate();
+                    $newPhase->program_id = $newProgram->id;
+                    $newPhase->save();
+
+                    foreach ($phase->phaseWorkouts as $phaseWorkout) {
+                        $newPhaseWorkout = $phaseWorkout->replicate();
+                        $newPhaseWorkout->program_phase_id = $newPhase->id;
+                        $newPhaseWorkout->save();
+                    }
+                }
+            });
+
+            return $this->success([
+                'id' => $newProgram->id,
+            ], 'Program duplicated successfully.');
+        } catch (Exception $er) {
+            return $this->error($er->getMessage() . '---------Line# ' . $er->getLine(), 500);
+        }
+    }
+
     function deleteProgram($id)
     {
         try {

@@ -371,6 +371,40 @@ class ExerciseController extends Controller
         ]);
     }
 
+    public function duplicateExercise(Request $request)
+    {
+        $validate = Validator::make($request->all(), [
+            'id' => 'required|numeric|exists:exercises,id',
+        ]);
+        if ($validate->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validate->errors()->all()[0]
+            ]);
+        }
+
+        $exercise = Exercise::find($request->id);
+        if (is_null($exercise)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Exercise Not Found'
+            ]);
+        }
+
+        $newExercise = $exercise->replicate();
+        $newExercise->title = $exercise->title . ' (Copy)';
+        $newExercise->content_code = null;
+        $newExercise->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Exercise duplicated successfully.',
+            'data' => [
+                'id' => $newExercise->id
+            ]
+        ]);
+    }
+
     public function searchExercise(Request $request)
     {
         $validate = Validator::make($request->all(), [

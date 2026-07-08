@@ -30,6 +30,7 @@
                 <div class="d-flex justify-content-between flex-wrap">
                     <div class="bar-btns">
                         <button @click="toggleExerciseComponent" class="prim_btn mx-1 py-1"><!--<input type="checkbox" class="me-2 form-check-input">--> New</button>
+                        <button class="scnd_btn mx-1 py-1" style="font-size:15px" @click="duplicateSelectedExercise">Duplicate</button>
                         <button class="scnd_btn mx-1 py-1" style="font-size:15px" @click="showConfirmModal">Delete</button>
                         <!-- <select class="scnd_btn mx-1 py-1">
                             <option value="male">Male</option>
@@ -255,6 +256,39 @@ export default {
                 this.modalDetail = 'Something Went Wrong';
                 this.informModal = true;
             })
+        },
+        duplicateSelectedExercise() {
+            if (this.idsToDelete.length !== 1) {
+                this.modalTitle = 'Error!';
+                this.modalDetail = 'Select only 1 exercise to duplicate';
+                this.informModal = true;
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Duplicating';
+            axios.post(config.baseApiUrl + 'duplicate-exercise', {
+                id: this.idsToDelete[0]
+            }, this.apiConfig).then(res => {
+                this.pageLoading = false;
+                if (res.data.status) {
+                    this.idsToDelete = [];
+                    this.modalTitle = 'Done!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                    this.getAllExercises();
+                }
+                else {
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                }
+            }).catch(er => {
+                this.pageLoading = false;
+                this.modalTitle = 'Failed!';
+                this.modalDetail = er.message || 'Something Went Wrong';
+                this.informModal = true;
+            });
         },
         showConfirmModal(i) {
             if (this.idsToDelete.length == 0) {

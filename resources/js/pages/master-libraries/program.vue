@@ -78,6 +78,8 @@
                                     <li><button class="dropdown-item"
                                             @click="showRenamePopup(prog.id, 'program', prog.title)">Rename</button>
                                     </li>
+                                    <li><button class="dropdown-item" @click="duplicateProgram(prog.id)">Duplicate</button>
+                                    </li>
                                     <li><button class="dropdown-item" @click="showConfirmModal(prog.id)">Delete</button>
                                     </li>
                                     <li><button class="dropdown-item" @click="toggleSubsAdd(prog.id)">Add
@@ -124,7 +126,7 @@
                     <span v-else>(None)</span>
                 </h3>
                 <div class="float-end mx-2">
-
+                    <button class="scnd_btn py-1 px-3 h7 mt-2" @click="duplicateProgram(programDetail.id)">Duplicate</button>
                 </div>
             </div>
             <div style="margin-top: 20%" v-if="!(programDetailVisible || phaseDetailVisible)">
@@ -856,6 +858,31 @@ export default {
                 this.informModal = true;
                 console.log("Error in rename program", er.error);
             })
+        },
+        duplicateProgram(id) {
+            this.pageLoading = true;
+            this.loaderText = 'Duplicating';
+            axios.post(config.baseApiUrl + 'duplicate-program', {
+                id: id
+            }, this.apiConfig).then(res => {
+                this.pageLoading = false;
+                if (res.data.status) {
+                    this.modalTitle = 'Done!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                    this.getAllPrograms();
+                }
+                else {
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                }
+            }).catch(er => {
+                this.pageLoading = false;
+                this.modalTitle = 'Failed!';
+                this.modalDetail = er.message || 'Something Went Wrong';
+                this.informModal = true;
+            });
         },
         deleteProgram() {
             this.pageLoading = true;

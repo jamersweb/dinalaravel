@@ -73,6 +73,7 @@ Route::group(['prefix' => 'cms'], function(){
 		Route::post('create-exercise', [ExerciseController::class,'createExercise']);
 		Route::post('update-exercise', [ExerciseController::class,'updateExercise']);
 		Route::post('assign-tags-to-exercises', [ExerciseController::class,'assignTagsToExercises']);
+		Route::post('duplicate-exercise', [ExerciseController::class,'duplicateExercise']);
 		Route::post('delete-exercises', [ExerciseController::class,'deleteExercises']);
 		Route::get('get-all-exercises', [ExerciseController::class,'getAllExercises']);
         Route::get('get-exercise-detail/{id}',[ExerciseController::class,'getExerciseDetail']);
@@ -91,6 +92,7 @@ Route::group(['prefix' => 'cms'], function(){
 		// Programs routes
 		Route::post('create-new-program',[ProgramsController::class,'createProgram']);
 		Route::post('rename-program',[ProgramsController::class,'renameProgram']);
+		Route::post('duplicate-program',[ProgramsController::class,'duplicateProgram']);
 		Route::post('update-program-image',[ProgramsController::class,'updateProgramImage']);
 		Route::get('delete-program/{id}',[ProgramsController::class,'deleteProgram']);
 		Route::post('add-program-discription',[ProgramsController::class,'addProgramDiscription']);
