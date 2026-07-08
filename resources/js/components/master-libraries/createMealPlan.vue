@@ -94,7 +94,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" :value="0+' Breakfast'" v-model="selectedItems">
                                         <img v-if="days[0].Breakfast.file_type=='image'" :src="days[0].Breakfast.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="days[0].Breakfast.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="days[0].Breakfast.name" style="word-break:break-all;">{{this.truncatedString(days[0].Breakfast.name,15)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-2 brds-2 p-2 text-center" @drop="onDrop(0,'Lunch')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
@@ -103,7 +102,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" :value="0+' Lunch'" v-model="selectedItems">
                                         <img v-if="days[0].Lunch.file_type=='image'" :src="days[0].Lunch.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="days[0].Lunch.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="days[0].Lunch.name" style="word-break:break-all;">{{this.truncatedString(days[0].Lunch.name,15)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-2 brds-2 p-2 text-center" @drop="onDrop(0,'Dinner')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
@@ -112,7 +110,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" :value="0+' Dinner'" v-model="selectedItems">
                                         <img v-if="days[0].Dinner.file_type=='image'" :src="days[0].Dinner.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="days[0].Dinner.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="days[0].Dinner.name" style="word-break:break-all;">{{this.truncatedString(days[0].Dinner.name,15)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-2 brds-2 p-2 text-center" @drop="onDrop(0,'Snacks')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
@@ -121,7 +118,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" :value="0+' Snacks'" v-model="selectedItems">
                                         <img v-if="days[0].Snacks.file_type=='image'" :src="days[0].Snacks.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="days[0].Snacks.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="days[0].Snacks.name" style="word-break:break-all;">{{this.truncatedString(days[0].Snacks.name,15)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-2 brds-2 p-2 text-center" @drop="onDrop(0,'Drink')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
@@ -130,7 +126,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" :value="0+' Drink'" v-model="selectedItems">
                                         <img v-if="days[0].Drink.file_type=='image'" :src="days[0].Drink.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="days[0].Drink.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="days[0].Drink.name" style="word-break:break-all;">{{this.truncatedString(days[0].Drink.name,15)}}</p>
                                     </div>
                                 </div>
                             </div>

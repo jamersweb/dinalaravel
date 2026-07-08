@@ -94,7 +94,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" value="breakfast" v-model="selectedItems">
                                         <img v-if="DWPdetails.breakfast_detail.file_type=='image'" :src="DWPdetails.breakfast_detail.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="DWPdetails.breakfast_detail.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.breakfast_detail.name" style="word-break:break-all;">{{this.truncatedString(DWPdetails.breakfast_detail.name,15)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-2 brds-2 p-2 text-center" @drop="onDrop('lunch')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
@@ -103,7 +102,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" value="lunch" v-model="selectedItems">
                                         <img v-if="DWPdetails.lunch_detail.file_type=='image'" :src="DWPdetails.lunch_detail.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="DWPdetails.lunch_detail.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.lunch_detail.name" style="word-break:break-all;">{{this.truncatedString(DWPdetails.lunch_detail.name,15)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-2 brds-2 p-2 text-center" @drop="onDrop('dinner')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
@@ -112,7 +110,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" value="dinner" v-model="selectedItems">
                                         <img v-if="DWPdetails.dinner_detail.file_type=='image'" :src="DWPdetails.dinner_detail.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="DWPdetails.dinner_detail.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.dinner_detail.name" style="word-break:break-all;">{{this.truncatedString(DWPdetails.dinner_detail.name,15)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-2 brds-2 p-2 text-center" @drop="onDrop('snacks')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
@@ -121,7 +118,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" value="snacks" v-model="selectedItems">
                                         <img v-if="DWPdetails.snacks_detail.file_type=='image'" :src="DWPdetails.snacks_detail.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="DWPdetails.snacks_detail.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.snacks_detail.name" style="word-break:break-all;">{{this.truncatedString(DWPdetails.snacks_detail.name,15)}}</p>
                                     </div>
                                 </div>
                                 <div class="col-2 brds-2 p-2 text-center" @drop="onDrop('drinks')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
@@ -130,7 +126,6 @@
                                         <input type="checkbox" class="form-check-input position-absolute" value="drinks" v-model="selectedItems">
                                         <img v-if="DWPdetails.drinks_detail.file_type=='image'" :src="DWPdetails.drinks_detail.file" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
                                         <img v-else :src="DWPdetails.drinks_detail.video_thumbnail" alt="" style="height:80px;width:100%; object-fit: contain; background: white;">
-                                        <p class="mb-0 mt-2" data-toggle="tooltip" :title="DWPdetails.drinks_detail.name" style="word-break:break-all;">{{this.truncatedString(DWPdetails.drinks_detail.name,15)}}</p>
                                     </div>
                                 </div>
                             </div>
