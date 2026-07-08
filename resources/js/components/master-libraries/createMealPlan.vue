@@ -204,9 +204,9 @@
                                     </button>
                                 </div>
                             </div>
-                            <div v-if="type=='days'" class="meal-filter-select-wrap">
+                            <div class="meal-filter-select-wrap">
                                 <select v-model="selectedMealLibraryTag" class="meal-filter-select">
-                                    <option value="">All meal tags</option>
+                                    <option value="">{{ mealLibraryFilterLabel }}</option>
                                     <option v-for="tag in mealLibraryTags" :key="tag" :value="tag">{{ tag }}</option>
                                 </select>
                             </div>
@@ -417,11 +417,16 @@ export default {
         }
     },
     computed: {
-        mealLibraryTags() {
-            if (this.type !== 'days') {
-                return [];
+        mealLibraryFilterLabel() {
+            if (this.type === 'weeks') {
+                return 'All day tags';
             }
-
+            if (this.type === 'plan') {
+                return 'All week tags';
+            }
+            return 'All meal tags';
+        },
+        mealLibraryTags() {
             return [...new Set(
                 (this.allMeals || [])
                     .flatMap((item) => Array.isArray(item.tagNames) ? item.tagNames : [])
@@ -429,7 +434,7 @@ export default {
             )].sort((a, b) => a.localeCompare(b));
         },
         baseFilteredMeals() {
-            if (this.type !== 'days' || !this.selectedMealLibraryTag) {
+            if (!this.selectedMealLibraryTag) {
                 return this.allMeals;
             }
 
