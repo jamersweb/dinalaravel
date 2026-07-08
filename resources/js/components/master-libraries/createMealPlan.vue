@@ -179,7 +179,7 @@
                     </div>
                     <div class="shd_card heavy_shd my-2 p-md-3 p-1">
                         <div class="d-flex justify-content-between brds-1 gray_bg p-3">
-                            <div class="position-relative w-100">
+                            <div class="position-relative w-100 me-2">
                                 <input
                                     type="text"
                                     class="w-100 exSearch"
@@ -204,11 +204,12 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- <div>
-                                <button class="trans_btn py-2">
-                                    <img src="/cms-assets/images/master-libraries/filter.png" alt="" class="img-fluid">
-                                </button>
-                            </div> -->
+                            <div v-if="type=='days'" class="meal-filter-select-wrap">
+                                <select v-model="selectedMealLibraryTag" class="meal-filter-select">
+                                    <option value="">All meal tags</option>
+                                    <option v-for="tag in mealLibraryTags" :key="tag" :value="tag">{{ tag }}</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="mt-4 p-3 d-flex justify-content-between shd_card">
                             <!-- <button class="text-muted align-self-center trans_btn">+Add Exercise</button>
@@ -392,6 +393,7 @@ export default {
             allMealsForSearch: [],
             tempItem: null,
             search: "",
+            selectedMealLibraryTag: "",
             showTags: false,
             tags: [],
             selectedTags: [],
@@ -415,10 +417,28 @@ export default {
         }
     },
     computed: {
+        mealLibraryTags() {
+            if (this.type !== 'days') {
+                return [];
+            }
+
+            return [...new Set(
+                (this.allMeals || [])
+                    .flatMap((item) => Array.isArray(item.tagNames) ? item.tagNames : [])
+                    .filter((tag) => String(tag || '').trim() !== '')
+            )].sort((a, b) => a.localeCompare(b));
+        },
+        baseFilteredMeals() {
+            if (this.type !== 'days' || !this.selectedMealLibraryTag) {
+                return this.allMeals;
+            }
+
+            return (this.allMeals || []).filter((item) => this.mealHasLibraryTag(item, this.selectedMealLibraryTag));
+        },
         filteredMeals() {
             const searchValue = this.normalizeSearchText(this.search);
             if (searchValue === '') {
-                return this.allMeals;
+                return this.baseFilteredMeals;
             }
 
             return this.getSearchResults(this.getMealSearchPool(searchValue), searchValue);
@@ -529,9 +549,15 @@ export default {
                 ? terms.every((term) => name.includes(term))
                 : terms.some((term) => name.includes(term));
         },
+        mealHasLibraryTag(item, tagName) {
+            const normalizedTag = this.normalizeSearchText(tagName);
+            const itemTags = Array.isArray(item.tagNames) ? item.tagNames : [];
+
+            return itemTags.some((tag) => this.normalizeSearchText(tag) === normalizedTag);
+        },
         getMealSearchPool(searchValue) {
-            const languageMatches = this.allMeals || [];
-            const allMeals = this.allMealsForSearch.length > 0 ? this.allMealsForSearch : languageMatches;
+            const languageMatches = this.baseFilteredMeals || [];
+            const allMeals = languageMatches;
 
             if (searchValue === '') {
                 return languageMatches;
@@ -1154,6 +1180,22 @@ export default {
     top: 10px;
     left: 10px;
     max-width: 15px;
+}
+
+.meal-filter-select-wrap {
+    min-width: 180px;
+    max-width: 220px;
+}
+
+.meal-filter-select {
+    width: 100%;
+    height: 100%;
+    min-height: 38px;
+    border: 1px solid rgb(197, 197, 197);
+    border-radius: 5px;
+    background-color: white;
+    color: rgb(108, 108, 108);
+    padding: 5px 10px;
 }
 
 .drag-el {
