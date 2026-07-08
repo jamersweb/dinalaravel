@@ -107,7 +107,7 @@
                         <div class="mt-3">
                             <div class="text-center mt-3 d-flex">
                                 <span class="me-3 fw-bold mt-2 w-30">Language: </span>
-                                <select @change="removeAlternates()" class="form-control" v-model="postData.language" style="white-space: nowrap;">
+                                <select class="form-control" v-model="postData.language" style="white-space: nowrap;">
                                     <option value="en">English</option>
                                     <option value="ar">Arabic</option>
                                     <option value="no">No Audio</option>
@@ -327,10 +327,6 @@ export default {
             this.postData.image = file;
             this.media.url = URL.createObjectURL(file);
             this.media.selected = true;
-        },
-        removeAlternates() {
-            this.postData.alternates = [];
-            this.postData.alterNames = [];
         },
         assignAlternativeExercises(m, n) {
             this.postData.alternates = m;

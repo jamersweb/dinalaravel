@@ -191,26 +191,26 @@ class ExerciseController extends Controller
 
         $data = Exercise::where('id', $request->id)->first();
         if ($data) {
-            if (isset($request->tags)) {
-                $data->tags = $request->tags;
+            if ($request->exists('tags')) {
+                $data->tags = $request->input('tags');
             }
-            if (isset($request->title)) {
-                $data->title = $request->title;
+            if ($request->exists('title')) {
+                $data->title = $request->input('title');
             }
-            if (isset($request->type)) {
-                $data->type = $request->type;
+            if ($request->exists('type')) {
+                $data->type = $request->input('type');
             }
             if ($request->has('weights')) {
                 $data->weights = is_null($request->weights) ? '' : $request->weights;
             }
-            if (isset($request->language)) {
-                $data->language = $request->language;
+            if ($request->exists('language')) {
+                $data->language = $request->input('language');
             }
-            if ($request->instructions) {
-                $data->instructions = $request->instructions;
+            if ($request->exists('instructions')) {
+                $data->instructions = $request->input('instructions');
             }
-            if ($request->alternates) {
-                $data->alternates = $request->alternates;
+            if ($request->exists('alternates')) {
+                $data->alternates = $request->input('alternates');
             }
             if (isset($request->video_type)) {
                 $videoUrl = '';
