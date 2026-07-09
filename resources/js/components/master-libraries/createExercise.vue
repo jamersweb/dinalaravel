@@ -31,7 +31,11 @@
                                 <h3 v-else>please provide the video link below</h3>
                             </div>
                             <div v-if="postData.video_type=='custom'" class="w-100 h-100 d-flex justify-content-center align-items-center">
-                                <video v-if="media.selected" :src="media.url" :poster="mediaPosterUrl" controls class="w-100 h-100 brds-2" 
+                                <div v-if="mediaThumbnailUrl" class="w-100 h-100 position-relative">
+                                    <img :src="mediaThumbnailUrl" alt="Video thumbnail preview" class="w-100 h-100 brds-2 media-preview-image" @click.stop>
+                                    <span class="preview-badge">Thumbnail Preview</span>
+                                </div>
+                                <video v-else-if="media.selected" :src="media.url" :poster="mediaPosterUrl" controls class="w-100 h-100 brds-2" 
                                 ref="videoPlayer" @loadedmetadata="getDuration()" @click.stop></video>
                                 <h3 v-else class="upload-hint mb-0">Drop video here or click Browse Video</h3>
                             </div>
@@ -196,6 +200,7 @@ export default {
                 url : ''
             },
             existingThumbnailUrl: '',
+            generatedThumbnailUrl: '',
             postData: {
                 title: '',
                 type: '--select--',
@@ -233,6 +238,12 @@ export default {
                 return '';
             }
             return this.existingThumbnailUrl || '';
+        },
+        mediaThumbnailUrl() {
+            if (this.postData.video_type !== 'custom') {
+                return '';
+            }
+            return this.existingThumbnailUrl || this.generatedThumbnailUrl || '';
         }
     },
     methods: {
@@ -288,7 +299,7 @@ export default {
                 this.assignImageFile(file);
             }
         },
-        assignVideoFile(file) {
+        async assignVideoFile(file) {
             this.error = null;
             if (!this.isVideoFile(file)) {
                 this.error = 'please select a video file (mp4, mov, mkv, webm)';
@@ -300,6 +311,9 @@ export default {
             this.postData.video = file;
             this.media.url = URL.createObjectURL(file);
             this.media.selected = true;
+            if (!this.postData.manualVideoThumbnail) {
+                this.generatedThumbnailUrl = await this.buildGeneratedThumbnailUrl(file);
+            }
         },
         assignImageFile(file) {
             this.error = null;
@@ -400,6 +414,7 @@ export default {
             this.media.selected = false;
             this.media.url = '';
             this.existingThumbnailUrl = '';
+            this.generatedThumbnailUrl = '';
             this.postData.video = null;
             this.postData.image = null;
             this.postData.customThumbnail = null;
@@ -433,6 +448,7 @@ export default {
             this.postData.manualVideoThumbnail = f || null;
             if (f) {
                 this.existingThumbnailUrl = URL.createObjectURL(f);
+                this.generatedThumbnailUrl = '';
             }
         },
         toggleTagsComponent() {
@@ -591,6 +607,10 @@ export default {
                 };
             });
         },
+        async buildGeneratedThumbnailUrl(file) {
+            const blob = await this.generateThumbnail(file);
+            return blob ? URL.createObjectURL(blob) : '';
+        },
         acknowledged() {
             this.informModal = false;
         },
@@ -625,6 +645,20 @@ export default {
     font-size: 1.1rem;
     text-align: center;
     padding: 0 12px;
+}
+.media-preview-image {
+    object-fit: contain;
+    background: #111;
+}
+.preview-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 11px;
+    padding: 6px 10px;
 }
 .cdzx {
     background-color: #ececec;
