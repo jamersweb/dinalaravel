@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\StoreSubscription;
-use App\Models\User;
 use App\Services\GooglePlayClient;
 use App\Services\StoreSubscriptionPricing;
 use Carbon\Carbon;
@@ -34,6 +33,95 @@ class CmsStoreSubscriptionController extends Controller
                 'ios' => StoreSubscription::where('platform', 'ios')->count(),
                 'android' => StoreSubscription::where('platform', 'android')->count(),
             ],
+        ]);
+    }
+
+    public function legacySummary(Request $request)
+    {
+        $duration = (string) $request->query('duration', 'month');
+        [$startDate, $endDate, $bucketCount, $bucketUnit, $labelFormat] = $this->resolveLegacyDuration($duration);
+
+        $records = StoreSubscription::query()
+            ->whereBetween('purchased_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+            ->get();
+
+        $labels = [];
+        $grossDataset = [];
+        $netDataset = [];
+        $salesDataset = [];
+        $activeDataset = [];
+
+        for ($index = 0; $index < $bucketCount; $index++) {
+            $bucketStart = $startDate->copy()->add($index, $bucketUnit)->startOfDay();
+            $bucketEnd = $bucketStart->copy()->endOf($bucketUnit);
+
+            if ($bucketEnd->greaterThan($endDate)) {
+                $bucketEnd = $endDate->copy()->endOfDay();
+            }
+
+            $bucketRecords = $records->filter(function (StoreSubscription $record) use ($bucketStart, $bucketEnd) {
+                return $record->purchased_at !== null
+                    && $record->purchased_at->between($bucketStart, $bucketEnd);
+            });
+
+            $gross = round($bucketRecords->sum(fn (StoreSubscription $record) => $this->extractAmount($record)), 2);
+            $net = round($gross * 0.85, 2);
+            $sales = $bucketRecords->count();
+            $active = $bucketRecords->filter(fn (StoreSubscription $record) => $this->isActiveForMoment($record, $bucketEnd))->count();
+
+            $labels[] = $bucketStart->format($labelFormat);
+            $grossDataset[] = $gross;
+            $netDataset[] = $net;
+            $salesDataset[] = $sales;
+            $activeDataset[] = $active;
+        }
+
+        return response()->json([
+            'status' => true,
+            'start_date' => $startDate->format('d M Y'),
+            'end_date' => $endDate->format('d M Y'),
+            'labels' => $labels,
+            'gross_dataset' => $grossDataset,
+            'net_dataset' => $netDataset,
+            'sales_dataset' => $salesDataset,
+            'active_dataset' => $activeDataset,
+            'gross_revenue' => '$' . number_format(array_sum($grossDataset), 2),
+            'net_revenue' => '$' . number_format(array_sum($netDataset), 2),
+            'total_sales' => array_sum($salesDataset),
+            'total_active' => !empty($activeDataset) ? end($activeDataset) : 0,
+        ]);
+    }
+
+    public function legacySalesData()
+    {
+        $records = StoreSubscription::query()
+            ->with(['user:id,email,name'])
+            ->orderByDesc('purchased_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $data = $records->map(function (StoreSubscription $record) {
+            $user = $record->user;
+            $price = $this->resolvePricing($record, false);
+
+            return [
+                'id' => $record->id,
+                'product' => self::PRODUCT_LABELS[$record->product_id] ?? $record->product_id,
+                'client' => trim((string) ($user?->name ?? 'Unknown Client')) ?: 'Unknown Client',
+                'status' => ucfirst((string) $record->status),
+                'date_added' => $this->formatDate($record->created_at),
+                'date_start' => $this->formatDate($record->purchased_at),
+                'date_end' => $this->formatDate($record->expires_at),
+                'next_inv' => $record->status === 'active' ? ($this->formatDate($record->expires_at) ?? '-') : '-',
+                'platform' => $record->platform,
+                'amount' => $price['formatted'] ?? '-',
+                'transaction_id' => $record->transaction_id,
+            ];
+        })->values();
+
+        return response()->json([
+            'status' => true,
+            'data' => $data,
         ]);
     }
 
@@ -120,8 +208,8 @@ class CmsStoreSubscriptionController extends Controller
         return [
             'id' => $record->id,
             'user_id' => $record->user_id,
-            'client_name' => $clientName !== '' ? $clientName : '—',
-            'client_email' => $user?->email ?? '—',
+            'client_name' => $clientName !== '' ? $clientName : '-',
+            'client_email' => $user?->email ?? '-',
             'platform' => $record->platform,
             'platform_label' => $record->platform === 'ios' ? 'Apple' : 'Google',
             'product_id' => $record->product_id,
@@ -177,6 +265,39 @@ class CmsStoreSubscriptionController extends Controller
             return $token;
         }
 
-        return substr($token, 0, 6) . '…' . substr($token, -6);
+        return substr($token, 0, 6) . '...' . substr($token, -6);
+    }
+
+    private function resolveLegacyDuration(string $duration): array
+    {
+        $endDate = now();
+
+        return match ($duration) {
+            '3months' => [$endDate->copy()->subMonths(2)->startOfMonth(), $endDate, 3, 'month', 'M Y'],
+            '6months' => [$endDate->copy()->subMonths(5)->startOfMonth(), $endDate, 6, 'month', 'M Y'],
+            'year' => [$endDate->copy()->subMonths(11)->startOfMonth(), $endDate, 12, 'month', 'M Y'],
+            default => [$endDate->copy()->subWeeks(3)->startOfWeek(), $endDate, 4, 'week', 'd M'],
+        };
+    }
+
+    private function extractAmount(StoreSubscription $record): float
+    {
+        $price = $this->resolvePricing($record, false);
+
+        return isset($price['amount']) ? (float) $price['amount'] : 0.0;
+    }
+
+    private function isActiveForMoment(StoreSubscription $record, Carbon $moment): bool
+    {
+        if ($record->status !== 'active' || $record->purchased_at === null) {
+            return false;
+        }
+
+        if ($record->expires_at === null) {
+            return $record->purchased_at->lessThanOrEqualTo($moment);
+        }
+
+        return $record->purchased_at->lessThanOrEqualTo($moment)
+            && $record->expires_at->greaterThan($moment);
     }
 }

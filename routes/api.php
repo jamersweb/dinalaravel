@@ -217,6 +217,7 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 		Route::post('set-resting-heartrate-data', [BodyStatsController::class, 'setRestingHeartRate']);
 		Route::post('set-blood-pressure-data', [BodyStatsController::class, 'setBloodPressure']);
 		Route::post('set-body-weight', [BodyStatsController::class, 'setWeight']);
+		Route::post('set-lean-body-mass-data', [BodyStatsController::class, 'setWeight']);
 		Route::post('get-specific-body-stats', [BodyStatsController::class, 'getbodyStatsByDate']);
 		Route::post('get-steps-by-date', [BodyStatsController::class, 'getsStepsByDate']);
 		Route::post('get-sleep-by-date', [BodyStatsController::class, 'getSleepByDate']);

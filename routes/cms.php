@@ -232,6 +232,8 @@ Route::group(['prefix' => 'cms'], function(){
 
         //Payments Routes
         // Stripe/refund removed - RevenueCat only
+        Route::get('payments-summary', [CmsStoreSubscriptionController::class, 'legacySummary']);
+        Route::get('payments-sales-data', [CmsStoreSubscriptionController::class, 'legacySalesData']);
         Route::get('get-all-products',[SubscriptionsController::class,'allProducts']);
         Route::post('create-product',[SubscriptionsController::class,'createProduct']);
         Route::post('edit-product',[SubscriptionsController::class,'editProduct']);

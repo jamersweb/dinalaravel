@@ -2,6 +2,9 @@
     <Loader v-if="pageLoading" :loadingText="loaderText" />
     <Inform v-if="informModal" :msgTitle="modalTitle" :msgDetail="modalDetail" />
     <div style="padding:5px;height:calc(100vh - 210px);overflow:auto;">
+        <div class="mx-3 mb-3 p-3 brds-2" style="background-color:#f8f8f8;border:1px solid #ececec;">
+            Refund requests are not available in the current RevenueCat store-subscription flow.
+        </div>
         <Vue3EasyDataTable :headers="headers" :items="items"
         :search-field="searchField"
             :search-value="searchValue">
@@ -112,24 +115,7 @@ export default {
     },
     methods: {
         getAllRefunds() {
-            this.pageLoading = true;
-            this.loaderText = 'Fetching';
-            axios.get(config.baseApiUrl + 'refund-requests', this.apiConfig).then(res => {
-                this.pageLoading = false;
-                if (res.data.status) {
-                    this.items = res.data.data;
-                }
-                else {
-                    this.modalTitle = 'Error!';
-                    this.modalDetail = res.data.message;
-                    this.informModal = true;
-                }
-            }).catch(er => {
-                this.pageLoading = false;
-                this.modalTitle = 'Error';
-                this.modalDetail = er;
-                this.informModal = true;
-            })
+            this.items = [];
         },
         quitComponent() {
             this.postData.refund_id = null;
@@ -147,64 +133,17 @@ export default {
                 this.refundPopup = true;
             }
             else {
-                this.pageLoading = true;
-                this.loaderText = 'Rejecting';
-                axios.post(config.baseApiUrl + 'reject-refund-request', this.postData, this.apiConfig).then(res => {
-                    this.pageLoading = false;
-                    if (res.data.status) {
-                        this.getAllRefunds();
-                        this.quitComponent();
-                    }
-                    else {
-                        this.modalTitle = 'Error!';
-                        this.modalDetail = res.data.message;
-                        this.informModal = true;
-                    }
-                }).catch(er => {
-                    this.pageLoading = false;
-                    this.modalTitle = 'Error';
-                    this.modalDetail = er;
-                    this.informModal = true;
-                })
+                this.modalTitle = 'Not Available';
+                this.modalDetail = 'Refund approvals are not available in the current RevenueCat store-subscription flow.';
+                this.informModal = true;
+                this.quitComponent();
             }
         },
         approveRequest() {
-            if (this.refundType == 'partial') {
-                if (this.postData1.refund_amount > this.amountPaid) {
-                    this.modalDetail = 'Error';
-                    this.modalDetail = 'Refund amount cannot be greater than amount paid';
-                    this.informModal = true;
-                    return
-                }
-                if (this.postData1.refund_amount == null || this.postData1.refund_amount == '') {
-                    this.modalTitle = 'Error';
-                    this.modalDetail = 'Please enter ammount to refund';
-                    this.informModal = true;
-                    return
-                }
-            }
-            else {
-                this.postData1.refund_amount = this.amountPaid;
-            }
-            this.pageLoading = true;
-            this.loaderText = 'Approving';
-            axios.post(config.baseApiUrl + 'approve-refund-request', this.postData1, this.apiConfig).then(res => {
-                this.pageLoading = false;
-                if (res.data.status) {
-                    this.getAllRefunds();
-                    this.quitComponent();
-                }
-                else {
-                    this.modalTitle = 'Error!';
-                    this.modalDetail = res.data.message;
-                    this.informModal = true;
-                }
-            }).catch(er => {
-                this.pageLoading = false;
-                this.modalTitle = 'Error';
-                this.modalDetail = er;
-                this.informModal = true;
-            })
+            this.modalTitle = 'Not Available';
+            this.modalDetail = 'Refund approvals are not available in the current RevenueCat store-subscription flow.';
+            this.informModal = true;
+            this.quitComponent();
         },
         approvalPopup(m) {
             this.postData1.refund_id = m.id;
