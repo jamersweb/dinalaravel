@@ -6,11 +6,11 @@
             <p class="ms-4" style="font-size:26px;font-weight:bold;margin-top:7px;">Localization</p>
         </div>
         <div class="p-3">
-            <p class="text-muted small">Manage app languages (mobile picker + API validation). Bulk translate uses Google Cloud Translation. Select <strong>multiple target languages</strong> below; by default the job is <strong>queued</strong> (set <code>QUEUE_CONNECTION=database</code> in <code>.env</code>, run <code>php artisan migrate</code> for the jobs table, then <code>php artisan queue:work</code>). Check <code>storage/logs/laravel.log</code> for per-locale progress. Use <strong>Run in browser (slow)</strong> only for small tests. <strong>API content</strong> (meals, exercises, programs, workouts) uses <code>locale_translations</code> and follows the user&rsquo;s language after login. Flutter <strong>static UI</strong> ships with placeholder ARBs for many locales (English text until you replace ARBs or add real translations).</p>
+            <p class="text-muted small">Manage app languages (mobile picker + API validation). Bulk translate uses Google Cloud Translation. Select <strong>multiple target languages</strong> below; by default the job is <strong>queued</strong> (set <code>QUEUE_CONNECTION=database</code> or <code>redis</code> in <code>.env</code>, run <code>php artisan migrate</code> for the jobs table if needed, then start <code>php artisan queue:work</code>). Check <code>storage/logs/laravel.log</code> for per-locale progress. Use <strong>Run in browser (slow)</strong> only for small tests. <strong>API content</strong> (meals, exercises, programs, workouts) uses <code>locale_translations</code> and follows the user's language after login. Flutter <strong>static UI</strong> ships with placeholder ARBs for many locales (English text until you replace ARBs or add real translations).</p>
 
             <h5 class="mt-4">Flutter UI strings (for translation / MT)</h5>
             <p class="text-muted small mb-2">Download all <code>app_en.arb</code> message keys as JSON (flat map). Default ARB path: sibling repo <code>fitnesswithdina_mobile/lib/l10n/app_en.arb</code>; override with <code>FLUTTER_EN_ARB_PATH</code> in API <code>.env</code> if needed. After translating, fold values into <code>lib/l10n/app_<em>locale</em>.arb</code> and run <code>flutter gen-l10n</code>.</p>
-            <button type="button" class="btn btn-outline-primary btn-sm" :disabled="exportUiLoading" @click="exportEnUiStringsJson">{{ exportUiLoading ? 'Preparing…' : 'Download en UI strings (JSON)' }}</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" :disabled="exportUiLoading" @click="exportEnUiStringsJson">{{ exportUiLoading ? 'Preparing...' : 'Download en UI strings (JSON)' }}</button>
             <p v-if="exportUiHint" class="small text-muted mt-2 mb-0">{{ exportUiHint }}</p>
 
             <h5 class="mt-4">Add language</h5>
@@ -84,12 +84,12 @@
             <div class="d-flex flex-wrap gap-3 mb-2 p-2 brds-3" style="background:#fafafa;border:1px solid #ddd;">
                 <div v-for="l in bulkTargetChoices" :key="'bt-'+l.id" class="form-check">
                     <input class="form-check-input" type="checkbox" :id="'bt-'+l.id" :value="l.code" v-model="bulk.target_locales" />
-                    <label class="form-check-label" :for="'bt-'+l.id">{{ l.code }} — {{ l.native_label }}</label>
+                    <label class="form-check-label" :for="'bt-'+l.id">{{ l.code }} - {{ l.native_label }}</label>
                 </div>
                 <span v-if="!bulkTargetChoices.length" class="text-muted small">Add languages above (targets must differ from source).</span>
             </div>
             <div>
-                <button class="btn btn-warning btn-sm" :disabled="bulkRunning" @click="runBulk">{{ bulkRunning ? 'Submitting…' : (bulk.runSync ? 'Run bulk translate (browser)' : 'Queue bulk translate') }}</button>
+                <button class="btn btn-warning btn-sm" :disabled="bulkRunning" @click="runBulk">{{ bulkRunning ? 'Submitting...' : (bulk.runSync ? 'Run bulk translate (browser)' : 'Queue bulk translate') }}</button>
             </div>
             <p v-if="bulkResult" class="small mt-2 mb-0">{{ bulkResult }}</p>
 
@@ -99,7 +99,7 @@
                     <p class="mb-1 small fw-bold">Meal</p>
                     <input v-model="mealEdit.id" class="form-control form-control-sm mb-1" placeholder="Meal ID" />
                     <select v-model="mealEdit.locale" class="form-select form-select-sm mb-1">
-                        <option value="">Locale…</option>
+                        <option value="">Locale...</option>
                         <option v-for="l in languages" :key="'m-'+l.id" :value="l.code">{{ l.code }}</option>
                     </select>
                     <textarea v-model="mealEdit.json" class="form-control form-control-sm font-monospace" rows="6" placeholder='{"name":"...","ingredients":"...","directions":"..."}'></textarea>
@@ -109,7 +109,7 @@
                     <p class="mb-1 small fw-bold">Exercise</p>
                     <input v-model="exEdit.id" class="form-control form-control-sm mb-1" placeholder="Exercise ID" />
                     <select v-model="exEdit.locale" class="form-select form-select-sm mb-1">
-                        <option value="">Locale…</option>
+                        <option value="">Locale...</option>
                         <option v-for="l in languages" :key="'e-'+l.id" :value="l.code">{{ l.code }}</option>
                     </select>
                     <textarea v-model="exEdit.json" class="form-control form-control-sm font-monospace" rows="6" placeholder='{"title":"...","instructions":"..."}'></textarea>
@@ -119,7 +119,7 @@
                     <p class="mb-1 small fw-bold">Program</p>
                     <input v-model="progEdit.id" class="form-control form-control-sm mb-1" placeholder="Program ID" />
                     <select v-model="progEdit.locale" class="form-select form-select-sm mb-1">
-                        <option value="">Locale…</option>
+                        <option value="">Locale...</option>
                         <option v-for="l in languages" :key="'p-'+l.id" :value="l.code">{{ l.code }}</option>
                     </select>
                     <textarea v-model="progEdit.json" class="form-control form-control-sm font-monospace" rows="6" placeholder='{"title":"...","discription":"..."}'></textarea>
@@ -129,7 +129,7 @@
                     <p class="mb-1 small fw-bold">Workout (master)</p>
                     <input v-model="wrkEdit.id" class="form-control form-control-sm mb-1" placeholder="Workout ID" />
                     <select v-model="wrkEdit.locale" class="form-select form-select-sm mb-1">
-                        <option value="">Locale…</option>
+                        <option value="">Locale...</option>
                         <option v-for="l in languages" :key="'w-'+l.id" :value="l.code">{{ l.code }}</option>
                     </select>
                     <textarea v-model="wrkEdit.json" class="form-control form-control-sm font-monospace" rows="6" placeholder='{"title":"...","instructions":"...","daily_summary":"..."}'></textarea>
@@ -144,6 +144,7 @@ import axios from 'axios';
 import config from '../config';
 import Loader from '../components/loader.vue';
 import Inform from '../components/inform.vue';
+
 export default {
     components: { Loader, Inform },
     data() {
@@ -168,8 +169,8 @@ export default {
     },
     computed: {
         bulkTargetChoices() {
-            const s = (this.bulk.source_locale || 'en').toLowerCase();
-            return this.languages.filter((l) => (l.code || '').toLowerCase() !== s);
+            const sourceLocale = (this.bulk.source_locale || 'en').toLowerCase();
+            return this.languages.filter((language) => (language.code || '').toLowerCase() !== sourceLocale);
         },
     },
     mounted() {
@@ -177,7 +178,7 @@ export default {
     },
     methods: {
         selectAllBulkTargets() {
-            this.bulk.target_locales = this.bulkTargetChoices.map((l) => l.code);
+            this.bulk.target_locales = this.bulkTargetChoices.map((language) => language.code);
         },
         clearBulkTargets() {
             this.bulk.target_locales = [];
@@ -193,6 +194,25 @@ export default {
         acknowledged() {
             this.informModal = false;
         },
+        apiErrorMessage(error, fallback = 'Request failed.') {
+            const response = error?.response?.data;
+            if (response?.message) {
+                const extras = [];
+                if (response.configured_path) extras.push('Configured path: ' + response.configured_path);
+                if (response.queue_connection) extras.push('Queue connection: ' + response.queue_connection);
+                if (Array.isArray(response.missing) && response.missing.length) {
+                    extras.push('Missing config: ' + response.missing.join(', '));
+                }
+
+                return extras.length ? response.message + '\n' + extras.join('\n') : response.message;
+            }
+
+            if (error?.code === 'ECONNABORTED') {
+                return 'The request timed out. Use queue mode for large translation runs.';
+            }
+
+            return error?.message || fallback;
+        },
         async loadLanguages() {
             this.pageLoading = true;
             this.loaderText = 'Loading languages';
@@ -201,7 +221,7 @@ export default {
                 if (res.data.status) this.languages = res.data.data;
                 else this.showInform('Error', res.data.message || 'Failed');
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.showInform('Error', this.apiErrorMessage(e));
             } finally {
                 this.pageLoading = false;
             }
@@ -215,21 +235,24 @@ export default {
                     this.showInform('Export failed', res.data.message || 'Unknown error');
                     return;
                 }
+
                 const payload = { meta: res.data.meta, strings: res.data.strings };
                 const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'flutter_app_en_ui_strings.json';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = 'flutter_app_en_ui_strings.json';
+                document.body.appendChild(anchor);
+                anchor.click();
+                document.body.removeChild(anchor);
                 URL.revokeObjectURL(url);
-                const mc = res.data.meta && res.data.meta.message_count;
-                const sf = res.data.meta && res.data.meta.source_file;
-                this.exportUiHint = mc != null && sf ? `Downloaded ${mc} keys from ${sf}.` : 'Download complete.';
+
+                const messageCount = res.data.meta && res.data.meta.message_count;
+                const sourceFile = res.data.meta && res.data.meta.source_file;
+                this.exportUiHint = messageCount != null && sourceFile ? `Downloaded ${messageCount} keys from ${sourceFile}.` : 'Download complete.';
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.exportUiHint = e?.response?.data?.configured_path ? 'Configured path: ' + e.response.data.configured_path : '';
+                this.showInform('Export failed', this.apiErrorMessage(e));
             } finally {
                 this.exportUiLoading = false;
             }
@@ -245,9 +268,11 @@ export default {
                     this.showInform('OK', 'Language added.');
                     this.newLang = { code: '', label: '', native_label: '', sort_order: 99, is_active: true };
                     await this.loadLanguages();
-                } else this.showInform('Error', res.data.message || 'Failed');
+                } else {
+                    this.showInform('Error', res.data.message || 'Failed');
+                }
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.showInform('Error', this.apiErrorMessage(e));
             }
         },
         async updateLanguage(row) {
@@ -261,7 +286,7 @@ export default {
                 if (res.data.status) this.showInform('OK', 'Updated ' + row.code);
                 else this.showInform('Error', res.data.message || 'Failed reload');
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.showInform('Error', this.apiErrorMessage(e));
             }
         },
         async runBulk() {
@@ -270,7 +295,8 @@ export default {
             if (this.bulk.doExercises) scopes.push('exercises');
             if (this.bulk.doPrograms) scopes.push('programs');
             if (this.bulk.doWorkouts) scopes.push('workouts');
-            const targets = [...new Set((this.bulk.target_locales || []).map((c) => (c || '').toString().trim()))].filter(Boolean);
+
+            const targets = [...new Set((this.bulk.target_locales || []).map((code) => (code || '').toString().trim()))].filter(Boolean);
             if (!targets.length) {
                 this.showInform('Validation', 'Select at least one target language.');
                 return;
@@ -279,6 +305,7 @@ export default {
                 this.showInform('Validation', 'Select at least one scope.');
                 return;
             }
+
             this.bulkRunning = true;
             this.bulkResult = '';
             const timeout = this.bulk.runSync ? 3600000 : 120000;
@@ -294,12 +321,14 @@ export default {
                         this.bulkResult = res.data.message || 'Queued.';
                         this.showInform('Queued', this.bulkResult + '\nTargets: ' + (res.data.target_locales || []).join(', '));
                     } else {
-                        this.bulkResult = (res.data.message || 'Done') + ' — meals: ' + (res.data.meals_updated ?? 0) + ', exercises: ' + (res.data.exercises_updated ?? 0) + ', programs: ' + (res.data.programs_updated ?? 0) + ', workouts: ' + (res.data.workouts_updated ?? 0);
+                        this.bulkResult = (res.data.message || 'Done') + ' - meals: ' + (res.data.meals_updated ?? 0) + ', exercises: ' + (res.data.exercises_updated ?? 0) + ', programs: ' + (res.data.programs_updated ?? 0) + ', workouts: ' + (res.data.workouts_updated ?? 0);
                         this.showInform('Bulk translate', this.bulkResult);
                     }
-                } else this.showInform('Error', res.data.message || 'Failed');
+                } else {
+                    this.showInform('Error', res.data.message || 'Failed');
+                }
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.showInform('Error', this.apiErrorMessage(e));
             } finally {
                 this.bulkRunning = false;
             }
@@ -321,7 +350,7 @@ export default {
                 if (res.data.status) this.showInform('OK', 'Meal translations saved.');
                 else this.showInform('Error', res.data.message || 'Failed');
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.showInform('Error', this.apiErrorMessage(e));
             }
         },
         async saveProgramTranslations() {
@@ -341,7 +370,7 @@ export default {
                 if (res.data.status) this.showInform('OK', 'Program translations saved.');
                 else this.showInform('Error', res.data.message || 'Failed');
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.showInform('Error', this.apiErrorMessage(e));
             }
         },
         async saveWorkoutTranslations() {
@@ -361,7 +390,7 @@ export default {
                 if (res.data.status) this.showInform('OK', 'Workout translations saved.');
                 else this.showInform('Error', res.data.message || 'Failed');
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.showInform('Error', this.apiErrorMessage(e));
             }
         },
         async saveExerciseTranslations() {
@@ -381,7 +410,7 @@ export default {
                 if (res.data.status) this.showInform('OK', 'Exercise translations saved.');
                 else this.showInform('Error', res.data.message || 'Failed');
             } catch (e) {
-                this.showInform('Error', e.response?.data?.message || e.message);
+                this.showInform('Error', this.apiErrorMessage(e));
             }
         },
     },

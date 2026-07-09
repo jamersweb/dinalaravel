@@ -121,6 +121,14 @@ class CmsLocalizationController extends Controller
         $runSync = $request->boolean('sync', false)
             || Config::get('queue.default') === 'sync';
 
+        if ($missingTranslationConfig = $this->missingTranslationConfig()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Google Cloud Translation is not configured for bulk translation. Set the missing values and try again.',
+                'missing' => $missingTranslationConfig,
+            ], 422);
+        }
+
         if ($runSync) {
             set_time_limit(0);
             $mealsTotal = 0;
@@ -155,9 +163,10 @@ class CmsLocalizationController extends Controller
         return response()->json([
             'status' => true,
             'queued' => true,
-            'message' => 'Bulk translate queued for '.count($targets).' locale(s). Run `php artisan queue:work` (set QUEUE_CONNECTION=database or redis in .env). Check storage/logs for progress.',
+            'message' => 'Bulk translate queued for '.count($targets).' locale(s). Start a queue worker with `php artisan queue:work` and watch storage/logs/laravel.log for progress.',
             'target_locales' => $targets,
             'source_locale' => $source,
+            'queue_connection' => (string) Config::get('queue.default', 'sync'),
         ]);
     }
 
@@ -284,11 +293,9 @@ class CmsLocalizationController extends Controller
     {
         $path = config('localization.flutter_en_arb_path');
         if (! is_string($path) || $path === '' || ! is_readable($path)) {
-            return response()->json([
-                'status' => false,
-                'message' => 'English ARB not readable. Set FLUTTER_EN_ARB_PATH in .env to the full path of app_en.arb, or place fitnesswithdina_mobile next to this API (default: ../fitnesswithdina_mobile/lib/l10n/app_en.arb).',
-                'configured_path' => $path,
-            ], 404);
+            return $this->arbPathErrorResponse(
+                'English ARB not readable. Set FLUTTER_EN_ARB_PATH in .env to the full path of app_en.arb, or place fitnesswithdina_mobile next to this API.'
+            );
         }
 
         $raw = file_get_contents($path);
@@ -344,8 +351,8 @@ class CmsLocalizationController extends Controller
         if (! is_readable($sourcePath)) {
             return response()->json([
                 'status' => false,
-                'message' => 'Source ARB not found or not readable: app_'.$sourceLocale.'.arb (configure FLUTTER_L10N_DIR / FLUTTER_EN_ARB_PATH).',
-                'path' => $sourcePath,
+                'message' => 'Source ARB not found or not readable: app_'.$sourceLocale.'.arb. Configure FLUTTER_L10N_DIR or FLUTTER_EN_ARB_PATH.',
+                'configured_path' => $sourcePath,
             ], 404);
         }
 
@@ -462,10 +469,7 @@ class CmsLocalizationController extends Controller
         $targetLocale = strtolower(trim($request->target_locale));
         $enPath = config('localization.flutter_en_arb_path');
         if (! is_string($enPath) || ! is_readable($enPath)) {
-            return response()->json([
-                'status' => false,
-                'message' => 'English ARB not readable for export.',
-            ], 404);
+            return $this->arbPathErrorResponse('English ARB not readable for export.');
         }
 
         $sourceStrings = $this->parseArbStringsFromPath($enPath);
@@ -504,10 +508,7 @@ class CmsLocalizationController extends Controller
         }
 
         if ($arb->loadTemplateStrings() === []) {
-            return response()->json([
-                'status' => false,
-                'message' => 'English template ARB not readable. Set FLUTTER_EN_ARB_PATH.',
-            ], 404);
+            return $this->arbPathErrorResponse('English template ARB not readable. Set FLUTTER_EN_ARB_PATH.');
         }
 
         if (! class_exists(ZipArchive::class)) {
@@ -607,5 +608,32 @@ class CmsLocalizationController extends Controller
         }
 
         return $strings;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function missingTranslationConfig(): array
+    {
+        $missing = [];
+
+        if (! config('app.google_trans_baseUrl')) {
+            $missing[] = 'google_trans_baseUrl';
+        }
+
+        if (! config('app.google_api_key')) {
+            $missing[] = 'google_api_key';
+        }
+
+        return $missing;
+    }
+
+    private function arbPathErrorResponse(string $message)
+    {
+        return response()->json([
+            'status' => false,
+            'message' => $message.' Expected app_en.arb under FLUTTER_EN_ARB_PATH or the default sibling mobile repo path.',
+            'configured_path' => config('localization.flutter_en_arb_path'),
+        ], 404);
     }
 }
