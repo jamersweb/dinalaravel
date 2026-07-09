@@ -31,7 +31,7 @@
                                 <h3 v-else>please provide the video link below</h3>
                             </div>
                             <div v-if="postData.video_type=='custom'" class="w-100 h-100 d-flex justify-content-center align-items-center">
-                                <video v-if="media.selected" :src="media.url" controls class="w-100 h-100 brds-2" 
+                                <video v-if="media.selected" :src="media.url" :poster="mediaPosterUrl" controls class="w-100 h-100 brds-2" 
                                 ref="videoPlayer" @loadedmetadata="getDuration()" @click.stop></video>
                                 <h3 v-else class="upload-hint mb-0">Drop video here or click Browse Video</h3>
                             </div>
@@ -195,6 +195,7 @@ export default {
                 selected : false,
                 url : ''
             },
+            existingThumbnailUrl: '',
             postData: {
                 id : null,
                 title: '',
@@ -242,11 +243,20 @@ export default {
         this.postData.alternates = tempObj.alternates;
         this.postData.alterNames = tempObj.altNames;
         this.postData.video_duration = tempObj.video_duration;
-        this.media.selected = true;
-        this.media.url = tempObj.video_url;
+        this.existingThumbnailUrl = tempObj.image || '';
+        this.media.selected = !!(tempObj.video_type === 'image' ? tempObj.image : tempObj.video_url);
+        this.media.url = tempObj.video_type === 'image' ? (tempObj.image || '') : (tempObj.video_url || '');
         if(tempObj.video_type=='youtube'){
             this.youtubeUrlInput = tempObj.video_url;
             this.postData.video = extractYoutubeVideoId(tempObj.video_url) || null;
+        }
+    },
+    computed: {
+        mediaPosterUrl() {
+            if (this.postData.video_type !== 'custom') {
+                return '';
+            }
+            return this.existingThumbnailUrl || '';
         }
     },
     methods: {
@@ -327,6 +337,7 @@ export default {
             this.postData.image = file;
             this.media.url = URL.createObjectURL(file);
             this.media.selected = true;
+            this.existingThumbnailUrl = this.media.url;
         },
         assignAlternativeExercises(m, n) {
             this.postData.alternates = m;
@@ -398,6 +409,7 @@ export default {
         changeMediaType() {
             this.media.selected = false;
             this.media.url = '';
+            this.existingThumbnailUrl = '';
             this.postData.video = null;
             this.postData.image = null;
             this.postData.customThumbnail = null;
@@ -421,11 +433,17 @@ export default {
             const el = this.$refs.youtubeCustomThumbnail;
             const f = el && el.files && el.files[0];
             this.postData.customThumbnail = f || null;
+            if (f) {
+                this.existingThumbnailUrl = URL.createObjectURL(f);
+            }
         },
         onCustomVideoThumbnail() {
             const el = this.$refs.customVideoThumbnail;
             const f = el && el.files && el.files[0];
             this.postData.manualVideoThumbnail = f || null;
+            if (f) {
+                this.existingThumbnailUrl = URL.createObjectURL(f);
+            }
         },
         toggleTagsComponent() {
             this.tagsComp = !this.tagsComp;

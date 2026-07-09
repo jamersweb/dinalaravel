@@ -10,8 +10,11 @@
             </button>
             <div style="overflow-y:auto;height:95%;margin-top:20px;" class="w-100">
                 <div class="shd_card drag-drop-area w-60 mx-auto my-3" style="min-width:280px;">
-                    <iframe height="250" width="100%" :src="exercise.video_url">
+                    <iframe v-if="exercise.video_type==='youtube'" height="250" width="100%" :src="exercise.video_url">
                     </iframe>
+                    <video v-else-if="exercise.video_type==='custom'" height="250" width="100%" :src="exercise.video_url" :poster="exercise.image" controls style="background:black;">
+                    </video>
+                    <img v-else-if="exercise.image" :src="exercise.image" alt="" class="img-fluid w-100" style="height:250px;object-fit:contain;background:black;">
                     <div class="text-center mt-3 fw-bold" style="font-size:28px;">
                         {{exercise.title}}
                         <!-- <input readonly class="title-field border-0" type="text" style="text-align:center;font-size:31px;font-weight:bold;" placeholder="Enter Title" :value="exercise.title"> -->

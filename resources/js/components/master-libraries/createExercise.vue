@@ -31,7 +31,7 @@
                                 <h3 v-else>please provide the video link below</h3>
                             </div>
                             <div v-if="postData.video_type=='custom'" class="w-100 h-100 d-flex justify-content-center align-items-center">
-                                <video v-if="media.selected" :src="media.url" controls class="w-100 h-100 brds-2" 
+                                <video v-if="media.selected" :src="media.url" :poster="mediaPosterUrl" controls class="w-100 h-100 brds-2" 
                                 ref="videoPlayer" @loadedmetadata="getDuration()" @click.stop></video>
                                 <h3 v-else class="upload-hint mb-0">Drop video here or click Browse Video</h3>
                             </div>
@@ -195,6 +195,7 @@ export default {
                 selected : false,
                 url : ''
             },
+            existingThumbnailUrl: '',
             postData: {
                 title: '',
                 type: '--select--',
@@ -224,6 +225,14 @@ export default {
             tagsComp: false,
             selectExerOn: false,
             mediaDragActive: false
+        }
+    },
+    computed: {
+        mediaPosterUrl() {
+            if (this.postData.video_type !== 'custom') {
+                return '';
+            }
+            return this.existingThumbnailUrl || '';
         }
     },
     methods: {
@@ -304,6 +313,7 @@ export default {
             this.postData.image = file;
             this.media.url = URL.createObjectURL(file);
             this.media.selected = true;
+            this.existingThumbnailUrl = this.media.url;
         },
         removeAlternates() {
             this.postData.alternates = [];
@@ -389,6 +399,7 @@ export default {
         changeMediaType() {
             this.media.selected = false;
             this.media.url = '';
+            this.existingThumbnailUrl = '';
             this.postData.video = null;
             this.postData.image = null;
             this.postData.customThumbnail = null;
@@ -412,11 +423,17 @@ export default {
             const el = this.$refs.youtubeCustomThumbnail;
             const f = el && el.files && el.files[0];
             this.postData.customThumbnail = f || null;
+            if (f) {
+                this.existingThumbnailUrl = URL.createObjectURL(f);
+            }
         },
         onCustomVideoThumbnail() {
             const el = this.$refs.customVideoThumbnail;
             const f = el && el.files && el.files[0];
             this.postData.manualVideoThumbnail = f || null;
+            if (f) {
+                this.existingThumbnailUrl = URL.createObjectURL(f);
+            }
         },
         toggleTagsComponent() {
             this.tagsComp = !this.tagsComp;
