@@ -39,7 +39,7 @@ class MediaController extends Controller
      * @param string $filename Filename
      * @return BinaryFileResponse|\Illuminate\Http\JsonResponse
      */
-    public function show(string $type, string $filename)
+    public function show(Request $request, string $type, string $filename)
     {
         // Validate type is in whitelist
         if (!in_array($type, self::ALLOWED_TYPES)) {
@@ -122,9 +122,9 @@ class MediaController extends Controller
      * Serve media files for CMS (web authenticated)
      * Same logic but accessible via web routes
      */
-    public function showWeb(string $type, string $filename)
+    public function showWeb(Request $request, string $type, string $filename)
     {
-        return $this->show($type, $filename);
+        return $this->show($request, $type, $filename);
     }
 
     private function resolveMediaMetadata(string $type, string $filename): ?array
