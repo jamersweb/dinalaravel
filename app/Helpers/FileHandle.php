@@ -64,7 +64,7 @@ class FileHandle
         // Extract just the filename (last part after /)
         $filename = basename($file);
         
-        // Serve via API route so media works even when /fwd_media symlink is missing on production.
-        return url("/api/media/{$folder}/{$filename}");
+        // Use the web media route so image traffic does not consume API throttle budget.
+        return url("/media/{$folder}/{$filename}");
     }
 }

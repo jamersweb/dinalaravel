@@ -76,7 +76,10 @@ Route::get('languages', [LanguageController::class, 'index']);
 Route::get('get-all-tags-by-types', [ExerciseController::class, 'getTagsByTypes']);
 
 // Media routes: public so images load (exercise thumbnails, meals, etc. - CachedNetworkImage doesn't attach auth token)
-Route::get('media/{type}/{filename}', [MediaController::class, 'show'])->name('api.media.show');
+Route::get('media/{type}/{filename}', [MediaController::class, 'show'])
+    ->withoutMiddleware('throttle:api')
+    ->middleware('throttle:media')
+    ->name('api.media.show');
 Route::get('introduction-video', [MediaController::class, 'introductionVideoMeta']);
 
 // RevenueCat webhook - no auth, validates REVENUECAT_WEBHOOK_AUTH header
@@ -337,4 +340,7 @@ require __DIR__ . '/cms.php';
 
 // Public media route - registered after cms.php so it takes precedence (cms media route was removed).
 // Mobile app loads images via CachedNetworkImage without auth token.
-Route::get('media/{type}/{filename}', [MediaController::class, 'show'])->name('api.media.show');
+Route::get('media/{type}/{filename}', [MediaController::class, 'show'])
+    ->withoutMiddleware('throttle:api')
+    ->middleware('throttle:media')
+    ->name('api.media.show');

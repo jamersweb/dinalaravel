@@ -15,6 +15,7 @@ use App\Support\ContentLocaleResolver;
 use App\Traits\ApiResponse;
 use App\Traits\ActivitiesTrait;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,8 @@ class MealsController extends Controller
     use ApiResponse, ActivitiesTrait, ResolvesUserLanguage;
     //
     private const SUPPORTED_MEAL_LOCALES = ['en', 'ar'];
+    private const CACHE_VERSION_KEY = 'meals:cache:version';
+    private const CACHE_TTL_SECONDS = 300;
 
     private function normalizeNutritionValue($value): int|float
     {
@@ -105,6 +108,7 @@ class MealsController extends Controller
         }
         $meal->meal_type = $request->meal_type;
         $meal->save();
+        $this->bumpMealCacheVersion();
 
         return response()->json([
             'status' => true,
@@ -186,6 +190,7 @@ class MealsController extends Controller
             $meal->file_type = $request->file_type;
         }
         $meal->save();
+        $this->bumpMealCacheVersion();
         return response()->json([
             'status' => true,
             'message' => 'Meal Updated Successfully.'
@@ -193,38 +198,43 @@ class MealsController extends Controller
     }
 
     function getMeals(){
-        $meals = Meal::where('meal_by','admin')->orderBy('created_at','desc')->get(['name','suitable_for','calories_per_serving','id','file','file_type','video_thumbnail','tags','language']);
-        
-        // Fix N+1: Collect all tag IDs and fetch in one query
-        $allTagIds = [];
-        foreach ($meals as $meal) {
-            if (!is_null($meal->tags)) {
-                $tagIds = json_decode($meal->tags, true);
-                if (is_array($tagIds)) {
-                    $allTagIds = array_merge($allTagIds, $tagIds);
+        $cacheKey = 'meals:admin:list:v'.$this->mealCacheVersion();
+
+        $meals = Cache::remember($cacheKey, now()->addSeconds(self::CACHE_TTL_SECONDS), function () {
+            $meals = Meal::where('meal_by','admin')->orderBy('created_at','desc')->get(['name','suitable_for','calories_per_serving','id','file','file_type','video_thumbnail','tags','language']);
+            
+            $allTagIds = [];
+            foreach ($meals as $meal) {
+                if (!is_null($meal->tags)) {
+                    $tagIds = json_decode($meal->tags, true);
+                    if (is_array($tagIds)) {
+                        $allTagIds = array_merge($allTagIds, $tagIds);
+                    }
                 }
             }
-        }
-        
-        $tagsMap = [];
-        if (!empty($allTagIds)) {
-            $uniqueTagIds = array_unique($allTagIds);
-            $tagsMap = Tag::whereIn('id', $uniqueTagIds)->pluck('name', 'id')->toArray();
-        }
-        
-        foreach ($meals as $meal) {
-            if(is_null($meal->tags)) {
-                $meal->tagNames = [];
-                $meal->tags = [];
-            } else {
-                $tagIds = json_decode($meal->tags, true);
-                $meal->tags = is_array($tagIds) ? $tagIds : [];
-                $meal->tagNames = array_filter(array_map(function($tagId) use ($tagsMap) {
-                    return $tagsMap[$tagId] ?? null;
-                }, $meal->tags));
+
+            $tagsMap = [];
+            if (!empty($allTagIds)) {
+                $uniqueTagIds = array_unique($allTagIds);
+                $tagsMap = Tag::whereIn('id', $uniqueTagIds)->pluck('name', 'id')->toArray();
             }
-        }
-        
+
+            foreach ($meals as $meal) {
+                if(is_null($meal->tags)) {
+                    $meal->tagNames = [];
+                    $meal->tags = [];
+                } else {
+                    $tagIds = json_decode($meal->tags, true);
+                    $meal->tags = is_array($tagIds) ? $tagIds : [];
+                    $meal->tagNames = array_filter(array_map(function($tagId) use ($tagsMap) {
+                        return $tagsMap[$tagId] ?? null;
+                    }, $meal->tags));
+                }
+            }
+
+            return $meals->toArray();
+        });
+
         return $this->success($meals);
     }
 
@@ -238,105 +248,75 @@ class MealsController extends Controller
 
         $userLang = $this->currentUserLanguage();
         $contentLocale = in_array($userLang, self::SUPPORTED_MEAL_LOCALES, true) ? $userLang : 'en';
-        $mealQuery = Meal::where('meal_by', 'admin')->availableInContentLocale($contentLocale);
-        $meals = $mealQuery->orderBy('created_at', 'desc')->get();
-        $returnData = [];
-        
         $requestType = $request->type ?? 'all';
-        Log::info('discoverMeals - Total meals found: ' . $meals->count());
-        Log::info('discoverMeals - Request type: ' . $requestType);
-        
-        // Get tag filter if provided
         $tagFilter = [];
         if($request->has('tags') && !empty($request->tags)) {
             $tagFilter = is_array($request->tags) ? $request->tags : explode(',', $request->tags);
-            Log::info('discoverMeals - Tag filter: ' . implode(',', $tagFilter));
         }
-        
-        // Fix N+1: Collect all tag IDs and fetch in one query
-        $allTagIds = [];
-        foreach ($meals as $meal) {
-            if (!is_null($meal->tags)) {
-                $tagIds = json_decode($meal->tags, true);
-                if (is_array($tagIds)) {
-                    $allTagIds = array_merge($allTagIds, $tagIds);
-                }
-            }
-        }
-        
-        $tagsMap = [];
-        if (!empty($allTagIds)) {
-            $uniqueTagIds = array_unique($allTagIds);
-            $tagsMap = Tag::whereIn('id', $uniqueTagIds)->pluck('name', 'id')->toArray();
-        }
-        
-        foreach ($meals as $meal) {
-            $this->applyMealLocaleOverlay($meal, $contentLocale);
+        sort($tagFilter);
+        $cacheKey = sprintf(
+            'meals:discover:v%s:%s:%s:%s',
+            $this->mealCacheVersion(),
+            $contentLocale,
+            $requestType,
+            md5(implode(',', $tagFilter))
+        );
 
-            $suitableFor = json_decode($meal->suitable_for, true);
-            if (!is_array($suitableFor)) {
-                Log::warning('discoverMeals - Meal ID ' . $meal->id . ' has invalid suitable_for: ' . $meal->suitable_for);
-                continue;
-            }
-            
-            if($requestType === 'all' || in_array($requestType, $suitableFor)){
-                // Apply tag filter if provided
-                if(!empty($tagFilter)) {
-                    $mealTags = $meal->tags ? json_decode($meal->tags, true) : [];
-                    if (!is_array($mealTags)) {
-                        $mealTags = [];
-                    }
-                    $hasMatchingTag = false;
-                    foreach($tagFilter as $tagId) {
-                        // Convert tagId to integer for comparison (meal tags can be int or string in JSON)
-                        $tagIdInt = (int)$tagId;
-                        if(in_array($tagIdInt, array_map('intval', $mealTags))) {
-                            $hasMatchingTag = true;
-                            break;
-                        }
-                    }
-                    if(!$hasMatchingTag) {
-                        continue; // Skip this meal if no matching tags
-                    }
-                }
-                
-                if($meal->file_type==='image')
-                $meal->image = $meal->file ?? '';
-                else
-                $meal->image = $meal->video_thumbnail ?? '';
-                unset($meal->file);
-                unset($meal->file_type);
-                unset($meal->video_thumbnail);
-                $meal->ingredients = json_decode($meal->ingredients);
-                
-                // Add tag names using pre-fetched map
-                if(is_null($meal->tags)) {
-                    $meal->tagNames = [];
-                } else {
-                    $tagIds = json_decode($meal->tags, true);
-                    $meal->tagNames = array_filter(array_map(function($tagId) use ($tagsMap) {
-                        return $tagsMap[$tagId] ?? null;
-                    }, is_array($tagIds) ? $tagIds : []));
-                }
-                
-                // Sanitize meal data to prevent malformed JSON (invalid UTF-8, control chars, etc.)
-                $mealArray = $meal->toArray();
-                $mealArray = JsonSanitizer::sanitize($mealArray);
-                // Ensure image is always a string (never null) so mobile parsers and CachedNetworkImage work
-                $mealArray['image'] = $mealArray['image'] ?? '';
-                array_push($returnData, $mealArray);
-            }
-        }
-        
-        // Fallback: when tag filter is applied but no meals match (e.g. meals have no tags), return all meals
-        if (!empty($tagFilter) && empty($returnData)) {
-            Log::info('discoverMeals - Tag filter returned 0 meals, falling back to all meals');
+        $returnData = Cache::remember($cacheKey, now()->addSeconds(self::CACHE_TTL_SECONDS), function () use ($contentLocale, $requestType, $tagFilter) {
+            $mealQuery = Meal::where('meal_by', 'admin')->availableInContentLocale($contentLocale);
+            $meals = $mealQuery->orderBy('created_at', 'desc')->get();
             $returnData = [];
+
+            Log::info('discoverMeals - Total meals found: ' . $meals->count());
+            Log::info('discoverMeals - Request type: ' . $requestType);
+            if (!empty($tagFilter)) {
+                Log::info('discoverMeals - Tag filter: ' . implode(',', $tagFilter));
+            }
+
+            $allTagIds = [];
+            foreach ($meals as $meal) {
+                if (!is_null($meal->tags)) {
+                    $tagIds = json_decode($meal->tags, true);
+                    if (is_array($tagIds)) {
+                        $allTagIds = array_merge($allTagIds, $tagIds);
+                    }
+                }
+            }
+
+            $tagsMap = [];
+            if (!empty($allTagIds)) {
+                $uniqueTagIds = array_unique($allTagIds);
+                $tagsMap = Tag::whereIn('id', $uniqueTagIds)->pluck('name', 'id')->toArray();
+            }
+
             foreach ($meals as $meal) {
                 $this->applyMealLocaleOverlay($meal, $contentLocale);
+
                 $suitableFor = json_decode($meal->suitable_for, true);
-                if (!is_array($suitableFor)) continue;
+                if (!is_array($suitableFor)) {
+                    Log::warning('discoverMeals - Meal ID ' . $meal->id . ' has invalid suitable_for: ' . $meal->suitable_for);
+                    continue;
+                }
+
                 if ($requestType === 'all' || in_array($requestType, $suitableFor)) {
+                    if (!empty($tagFilter)) {
+                        $mealTags = $meal->tags ? json_decode($meal->tags, true) : [];
+                        if (!is_array($mealTags)) {
+                            $mealTags = [];
+                        }
+                        $hasMatchingTag = false;
+                        foreach ($tagFilter as $tagId) {
+                            $tagIdInt = (int) $tagId;
+                            if (in_array($tagIdInt, array_map('intval', $mealTags))) {
+                                $hasMatchingTag = true;
+                                break;
+                            }
+                        }
+                        if (!$hasMatchingTag) {
+                            continue;
+                        }
+                    }
+
                     if ($meal->file_type === 'image') {
                         $meal->image = $meal->file ?? '';
                     } else {
@@ -344,23 +324,54 @@ class MealsController extends Controller
                     }
                     unset($meal->file, $meal->file_type, $meal->video_thumbnail);
                     $meal->ingredients = json_decode($meal->ingredients);
+
                     if (is_null($meal->tags)) {
                         $meal->tagNames = [];
                     } else {
                         $tagIds = json_decode($meal->tags, true);
-                        $meal->tagNames = array_filter(array_map(function ($tagId) use ($tagsMap) {
+                        $meal->tagNames = array_filter(array_map(function($tagId) use ($tagsMap) {
                             return $tagsMap[$tagId] ?? null;
                         }, is_array($tagIds) ? $tagIds : []));
                     }
-                    $mealArray = $meal->toArray();
-                    $mealArray = JsonSanitizer::sanitize($mealArray);
+
+                    $mealArray = JsonSanitizer::sanitize($meal->toArray());
                     $mealArray['image'] = $mealArray['image'] ?? '';
-                    array_push($returnData, $mealArray);
+                    $returnData[] = $mealArray;
                 }
             }
-        }
-        
-        Log::info('discoverMeals - Returning ' . count($returnData) . ' meals');
+
+            if (!empty($tagFilter) && empty($returnData)) {
+                Log::info('discoverMeals - Tag filter returned 0 meals, falling back to all meals');
+                foreach ($meals as $meal) {
+                    $this->applyMealLocaleOverlay($meal, $contentLocale);
+                    $suitableFor = json_decode($meal->suitable_for, true);
+                    if (!is_array($suitableFor)) {
+                        continue;
+                    }
+                    if ($requestType === 'all' || in_array($requestType, $suitableFor)) {
+                        $meal->image = $meal->file_type === 'image' ? ($meal->file ?? '') : ($meal->video_thumbnail ?? '');
+                        unset($meal->file, $meal->file_type, $meal->video_thumbnail);
+                        $meal->ingredients = json_decode($meal->ingredients);
+                        if (is_null($meal->tags)) {
+                            $meal->tagNames = [];
+                        } else {
+                            $tagIds = json_decode($meal->tags, true);
+                            $meal->tagNames = array_filter(array_map(function ($tagId) use ($tagsMap) {
+                                return $tagsMap[$tagId] ?? null;
+                            }, is_array($tagIds) ? $tagIds : []));
+                        }
+                        $mealArray = JsonSanitizer::sanitize($meal->toArray());
+                        $mealArray['image'] = $mealArray['image'] ?? '';
+                        $returnData[] = $mealArray;
+                    }
+                }
+            }
+
+            Log::info('discoverMeals - Returning ' . count($returnData) . ' meals');
+
+            return $returnData;
+        });
+
         return $this->success($returnData);
     }
 
@@ -394,6 +405,7 @@ class MealsController extends Controller
         if($validate->fails())
             return $this->validationError($validate);
         Meal::destroy($request->ids);
+        $this->bumpMealCacheVersion();
         return response()->json([
             'status' => true,
             'message' => 'Meals deleted'
@@ -415,6 +427,7 @@ class MealsController extends Controller
         $newMeal->name = $meal->name.' (Copy)';
         $newMeal->user_id = Auth::id();
         $newMeal->save();
+        $this->bumpMealCacheVersion();
 
         return response()->json([
             'status' => true,
@@ -423,6 +436,16 @@ class MealsController extends Controller
                 'id' => $newMeal->id,
             ],
         ]);
+    }
+
+    private function mealCacheVersion(): int
+    {
+        return (int) Cache::get(self::CACHE_VERSION_KEY, 1);
+    }
+
+    private function bumpMealCacheVersion(): void
+    {
+        Cache::forever(self::CACHE_VERSION_KEY, $this->mealCacheVersion() + 1);
     }
 
     function createUserMeal(Request $request){

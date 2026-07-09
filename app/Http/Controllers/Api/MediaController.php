@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MediaController extends Controller
 {
+    private const MEDIA_CACHE_TTL_SECONDS = 3600;
+
     /**
      * Whitelist of allowed media types/folders
      */
@@ -55,46 +57,23 @@ class MediaController extends Controller
             ], 403);
         }
 
-        // Build file path
-        $filePath = $type . '/' . $filename;
-        $disk = 'fwd_media';
+        $metadata = $this->resolveMediaMetadata($type, $filename);
 
-        // Introduction video may be stored at fwd_media/introduction.mp4 (root) on production.
-        if ($type === 'introduction' && !Storage::disk($disk)->exists($filePath)) {
-            $rootPath = $filename;
-            if (Storage::disk($disk)->exists($rootPath)) {
-                $filePath = $rootPath;
-            }
-        }
-
-        // Legacy support: some old DB rows store image names without extension.
-        // If exact file is missing and filename has no extension, try prefix match.
-        if (!Storage::disk($disk)->exists($filePath) && pathinfo($filename, PATHINFO_EXTENSION) === '') {
-            $allFiles = Storage::disk($disk)->files($type);
-            foreach ($allFiles as $candidate) {
-                if (basename($candidate) === $filename || str_starts_with(basename($candidate), $filename . '.')) {
-                    $filePath = $candidate;
-                    break;
-                }
-            }
-        }
-
-        $defaultDisk = config('filesystems.default');
-        if (!Storage::disk($disk)->exists($filePath) && $defaultDisk !== $disk && Storage::disk($defaultDisk)->exists($filePath)) {
-            $disk = $defaultDisk;
-        }
-        
-        // Check if file exists
-        if (!Storage::disk($disk)->exists($filePath)) {
+        if ($metadata === null) {
             return response()->json([
                 'status' => false,
                 'message' => 'File not found'
             ], 404);
         }
 
+        if ($this->matchesClientCache($request, $metadata['etag'], $metadata['last_modified'])) {
+            return response('', 304, $this->buildCacheHeaders($metadata));
+        }
+
+        $disk = $metadata['disk'];
+        $filePath = $metadata['file_path'];
+
         if ($disk !== 'fwd_media') {
-            $mimeType = Storage::disk($disk)->mimeType($filePath) ?: 'application/octet-stream';
-            $fileSize = Storage::disk($disk)->size($filePath);
             $stream = Storage::disk($disk)->readStream($filePath);
 
             return response()->stream(function () use ($stream) {
@@ -102,35 +81,10 @@ class MediaController extends Controller
                 if (is_resource($stream)) {
                     fclose($stream);
                 }
-            }, 200, [
-                'Content-Type' => $mimeType,
-                'Content-Length' => $fileSize,
-                'Cache-Control' => 'public, max-age=86400',
-                'Accept-Ranges' => 'bytes',
-            ]);
+            }, 200, $this->buildCacheHeaders($metadata));
         }
 
-        // Get full path
-        $fullPath = Storage::disk($disk)->path($filePath);
-
-        // Get MIME type
-        $mimeType = Storage::disk($disk)->mimeType($filePath);
-        if (!$mimeType) {
-            $mimeType = File::mimeType($fullPath);
-        }
-
-        // Explicit Content-Length prevents "Connection closed while receiving data" on some clients
-        $fileSize = filesize($fullPath);
-        // Longer cache for large video assets; Accept-Ranges enables seeking without full download.
-        $isVideo = str_starts_with((string) $mimeType, 'video/');
-        $headers = [
-            'Content-Type' => $mimeType,
-            'Content-Length' => $fileSize,
-            'Cache-Control' => $isVideo ? 'public, max-age=604800' : 'public, max-age=86400',
-            'Accept-Ranges' => 'bytes',
-        ];
-
-        return response()->file($fullPath, $headers);
+        return response()->file($metadata['full_path'], $this->buildCacheHeaders($metadata));
     }
 
     /**
@@ -159,7 +113,7 @@ class MediaController extends Controller
         return response()->json([
             'status' => true,
             'data' => [
-                'url' => url('api/media/introduction/introduction.mp4'),
+                'url' => url('media/introduction/introduction.mp4'),
             ],
         ]);
     }
@@ -171,5 +125,103 @@ class MediaController extends Controller
     public function showWeb(string $type, string $filename)
     {
         return $this->show($type, $filename);
+    }
+
+    private function resolveMediaMetadata(string $type, string $filename): ?array
+    {
+        $cacheKey = sprintf('media:meta:%s:%s', $type, $filename);
+
+        return Cache::remember($cacheKey, now()->addSeconds(self::MEDIA_CACHE_TTL_SECONDS), function () use ($type, $filename) {
+            $filePath = $type . '/' . $filename;
+            $disk = 'fwd_media';
+
+            if ($type === 'introduction' && !Storage::disk($disk)->exists($filePath)) {
+                $rootPath = $filename;
+                if (Storage::disk($disk)->exists($rootPath)) {
+                    $filePath = $rootPath;
+                }
+            }
+
+            if (!Storage::disk($disk)->exists($filePath) && pathinfo($filename, PATHINFO_EXTENSION) === '') {
+                foreach (Storage::disk($disk)->files($type) as $candidate) {
+                    if (basename($candidate) === $filename || str_starts_with(basename($candidate), $filename . '.')) {
+                        $filePath = $candidate;
+                        break;
+                    }
+                }
+            }
+
+            $defaultDisk = config('filesystems.default');
+            if (!Storage::disk($disk)->exists($filePath) && $defaultDisk !== $disk && Storage::disk($defaultDisk)->exists($filePath)) {
+                $disk = $defaultDisk;
+            }
+
+            if (!Storage::disk($disk)->exists($filePath)) {
+                return null;
+            }
+
+            if ($disk !== 'fwd_media') {
+                $mimeType = Storage::disk($disk)->mimeType($filePath) ?: 'application/octet-stream';
+                $fileSize = Storage::disk($disk)->size($filePath);
+                $lastModified = (int) Storage::disk($disk)->lastModified($filePath);
+
+                return [
+                    'disk' => $disk,
+                    'file_path' => $filePath,
+                    'full_path' => null,
+                    'mime_type' => $mimeType,
+                    'file_size' => $fileSize,
+                    'is_video' => str_starts_with((string) $mimeType, 'video/'),
+                    'last_modified' => $lastModified,
+                    'etag' => md5($disk.'|'.$filePath.'|'.$fileSize.'|'.$lastModified),
+                ];
+            }
+
+            $fullPath = Storage::disk($disk)->path($filePath);
+            $mimeType = Storage::disk($disk)->mimeType($filePath) ?: File::mimeType($fullPath) ?: 'application/octet-stream';
+            $fileSize = filesize($fullPath);
+            $lastModified = filemtime($fullPath) ?: time();
+
+            return [
+                'disk' => $disk,
+                'file_path' => $filePath,
+                'full_path' => $fullPath,
+                'mime_type' => $mimeType,
+                'file_size' => $fileSize,
+                'is_video' => str_starts_with((string) $mimeType, 'video/'),
+                'last_modified' => $lastModified,
+                'etag' => md5($disk.'|'.$filePath.'|'.$fileSize.'|'.$lastModified),
+            ];
+        });
+    }
+
+    private function buildCacheHeaders(array $metadata): array
+    {
+        return [
+            'Content-Type' => $metadata['mime_type'],
+            'Content-Length' => $metadata['file_size'],
+            'Cache-Control' => $metadata['is_video'] ? 'public, max-age=604800, stale-while-revalidate=86400' : 'public, max-age=86400, stale-while-revalidate=3600',
+            'Accept-Ranges' => 'bytes',
+            'ETag' => '"'.$metadata['etag'].'"',
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $metadata['last_modified']).' GMT',
+        ];
+    }
+
+    private function matchesClientCache(Request $request, string $etag, int $lastModified): bool
+    {
+        $ifNoneMatch = $request->headers->get('If-None-Match');
+        if ($ifNoneMatch !== null && trim($ifNoneMatch, '"') === $etag) {
+            return true;
+        }
+
+        $ifModifiedSince = $request->headers->get('If-Modified-Since');
+        if ($ifModifiedSince !== null) {
+            $clientTimestamp = strtotime($ifModifiedSince);
+            if ($clientTimestamp !== false && $clientTimestamp >= $lastModified) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
