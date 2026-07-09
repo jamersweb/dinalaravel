@@ -66,3 +66,7 @@ node_modules
 /storage/fwd_media/
 /storage/oauth-private.key
 /storage/oauth-public.key
+
+# Local generated cache/temp files
+/bootstrap/cache/*.tmp
+/storage/AuthKey_*.p8

@@ -53,7 +53,7 @@ class AuthController extends Controller
             'firstname' => 'required|string',
             'password' => 'required|string',
             'lastname' => 'required|string',
-            'phone' => 'required|numeric',
+            'phone' => 'nullable|numeric',
             'DOB' => 'required|date',
             'country' => 'required|string',
             'language' => ['required', Language::activeCodeRule()],
@@ -120,7 +120,7 @@ class AuthController extends Controller
         $userDetail->user_id = $user->id;
         $userDetail->name = $request->firstname;
         $userDetail->Lastname = $request->lastname;
-        $userDetail->phone = $request->phone;
+        $userDetail->phone = $request->input('phone', '');
         $userDetail->DOB = $request->DOB;
         $userDetail->country = $request->country;
         $userDetail->gender = $request->gender;

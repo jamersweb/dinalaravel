@@ -227,7 +227,7 @@ class UserInformationController extends Controller
 
     public function updateUserInformation(Request $request){
         $validate = Validator::make($request->all(),[
-            'phone' => 'required',
+            'phone' => 'nullable|numeric',
             'DOB' => 'required',
             'country' => 'required',
             'gender' => 'required',
@@ -240,11 +240,13 @@ class UserInformationController extends Controller
             ]);
         }
 
-        $data['phone'] = $request->phone;
         $data['DOB'] = $request->DOB;
         $data['country'] = $request->country;
         $data['gender'] = $request->gender;
         $data['height'] = $request->height;
+        if ($request->has('phone')) {
+            $data['phone'] = $request->input('phone') ?? '';
+        }
 
         $id = Auth::user()->id;
 
