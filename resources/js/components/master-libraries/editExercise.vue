@@ -31,12 +31,16 @@
                                 <h3 v-else>please provide the video link below</h3>
                             </div>
                             <div v-if="postData.video_type=='custom'" class="w-100 h-100 d-flex justify-content-center align-items-center">
-                                <div v-if="mediaThumbnailUrl" class="w-100 h-100 position-relative">
-                                    <img :src="mediaThumbnailUrl" alt="Video thumbnail preview" class="w-100 h-100 brds-2 media-preview-image" @click.stop>
+                                <div v-if="mediaThumbnailUrl && !showCustomVideoPlayer" class="w-100 h-100 position-relative">
+                                    <img :src="mediaThumbnailUrl" alt="Video thumbnail preview" class="w-100 h-100 brds-2 media-preview-image" @click.stop="showVideoPlayer">
                                     <span class="preview-badge">Thumbnail Preview</span>
+                                    <button type="button" class="preview-action-btn" @click.stop="showVideoPlayer">Play Video</button>
                                 </div>
-                                <video v-else-if="media.selected" :src="media.url" :poster="mediaPosterUrl" controls class="w-100 h-100 brds-2" 
+                                <div v-else-if="media.selected" class="w-100 h-100 position-relative">
+                                <video :src="media.url" :poster="mediaPosterUrl" controls class="w-100 h-100 brds-2" 
                                 ref="videoPlayer" @loadedmetadata="getDuration()" @click.stop></video>
+                                <button v-if="mediaThumbnailUrl" type="button" class="preview-action-btn preview-action-btn-secondary" @click.stop="showThumbnailPreview">Show Thumbnail</button>
+                                </div>
                                 <h3 v-else class="upload-hint mb-0">Drop video here or click Browse Video</h3>
                             </div>
                             <div v-if="postData.video_type=='image'" class="w-100 h-100 d-flex justify-content-center align-items-center">
@@ -230,7 +234,8 @@ export default {
             loaderText: '',
             tagsComp: false,
             selectExerOn: false,
-            mediaDragActive: false
+            mediaDragActive: false,
+            showCustomVideoPlayer: false
         }
     },
     mounted(){
@@ -335,6 +340,7 @@ export default {
             this.postData.video = file;
             this.media.url = URL.createObjectURL(file);
             this.media.selected = true;
+            this.showCustomVideoPlayer = false;
             if (!this.postData.manualVideoThumbnail) {
                 this.generatedThumbnailUrl = await this.buildGeneratedThumbnailUrl(file);
             }
@@ -425,6 +431,7 @@ export default {
             this.media.url = '';
             this.existingThumbnailUrl = '';
             this.generatedThumbnailUrl = '';
+            this.showCustomVideoPlayer = false;
             this.postData.video = null;
             this.postData.image = null;
             this.postData.customThumbnail = null;
@@ -459,7 +466,14 @@ export default {
             if (f) {
                 this.existingThumbnailUrl = URL.createObjectURL(f);
                 this.generatedThumbnailUrl = '';
+                this.showCustomVideoPlayer = false;
             }
+        },
+        showVideoPlayer() {
+            this.showCustomVideoPlayer = true;
+        },
+        showThumbnailPreview() {
+            this.showCustomVideoPlayer = false;
         },
         toggleTagsComponent() {
             this.tagsComp = !this.tagsComp;
@@ -671,6 +685,22 @@ export default {
     border-radius: 999px;
     font-size: 11px;
     padding: 6px 10px;
+}
+.preview-action-btn {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    border: none;
+    border-radius: 999px;
+    background: rgba(242, 161, 140, 0.96);
+    color: #111;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+}
+.preview-action-btn-secondary {
+    background: rgba(17, 17, 17, 0.78);
+    color: #fff;
 }
 .cdzx {
     background-color: #ececec;
