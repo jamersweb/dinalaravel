@@ -47,6 +47,13 @@ class AuthController extends Controller
         }
         $request->merge(['email' => $email, 'language' => $language]);
 
+        $phone = $request->input('phone');
+        $phone = is_scalar($phone) ? trim((string) $phone) : $phone;
+        if ($phone === '' || $phone === '0') {
+            $phone = null;
+        }
+        $request->merge(['phone' => $phone]);
+
         $validate = Validator::make($request->all(), [
             'email' => 'required|email',
             'fcm_token' => 'required|string',
@@ -120,7 +127,7 @@ class AuthController extends Controller
         $userDetail->user_id = $user->id;
         $userDetail->name = $request->firstname;
         $userDetail->Lastname = $request->lastname;
-        $userDetail->phone = $request->input('phone', '');
+        $userDetail->phone = $phone;
         $userDetail->DOB = $request->DOB;
         $userDetail->country = $request->country;
         $userDetail->gender = $request->gender;
@@ -156,7 +163,6 @@ class AuthController extends Controller
             'verification_code' => $verificationCode,
             'email' => $email
         ];
-        AutomatedMessagesController::sendAutoMessage($user->id, 'signup');
         try {
             Mail::to($data['email'])->send(new signupEmail($data));
         } catch (\Throwable $e) {
@@ -170,6 +176,16 @@ class AuthController extends Controller
                 'message' => 'Account created, but we could not send the verification email right now. Please try again in a moment.'
             ], 500);
         }
+
+        try {
+            AutomatedMessagesController::sendAutoMessage($user->id, 'signup');
+        } catch (\Throwable $e) {
+            Log::error('signup automated message failed', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
         return response()->json([
             'status' => true,
             'message' => $request->language === 'en' ? config('responses.created_email_sent.en') : config('responses.created_email_sent.ar')
