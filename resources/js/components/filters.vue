@@ -31,6 +31,7 @@
 <script>
 export default {
     props : ['tags','prefillTags'],
+    emits: ['apply', 'reset', 'close'],
     data() {
         return {
             selectedTags : [],
@@ -52,15 +53,22 @@ export default {
             }
         },
         applyFilters(){
-            this.$parent.applyFilters(this.selectedTags);
+            this.$emit('apply', this.selectedTags);
+            if (!this.hasListener('onApply') && this.$parent && typeof this.$parent.applyFilters === 'function') {
+                this.$parent.applyFilters(this.selectedTags);
+            }
             this.closeParentFilters();
         },
         resetFilters(){
             this.selectedTags = [];
-            this.$parent.clearFilters();
+            this.$emit('reset');
+            if (!this.hasListener('onReset') && this.$parent && typeof this.$parent.clearFilters === 'function') {
+                this.$parent.clearFilters();
+            }
             this.closeParentFilters();
         },
         closeFilters(){
+            this.$emit('close');
             this.closeParentFilters();
         },
         expandToggle(index){
@@ -74,6 +82,9 @@ export default {
             for (let i = 0; i < this.tags.length; i++) {
                 this.expanded.push(false);
             }
+        },
+        hasListener(listenerName) {
+            return Boolean(this.$ && this.$.vnode && this.$.vnode.props && this.$.vnode.props[listenerName]);
         }
     }
 }

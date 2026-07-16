@@ -6,7 +6,14 @@
         <Loader v-if="pageLoading" :loadingText="loaderText"/>
         <Inform v-if="informModal" :msgTitle="modalTitle" :msgDetail="modalDetail" />
         <Confirm v-if="confirmModal" :msgTitle="modalTitle" :msgDetail="modalDetail"/>
-        <Filters v-if="filters" :tags="tags" :prefillTags="selectedTagsForFilter"/>
+        <Filters
+            v-if="filters"
+            :tags="tags"
+            :prefillTags="selectedTagsForFilter"
+            @apply="applyFilters"
+            @reset="clearFilters"
+            @close="filters = false"
+        />
         <div class="exer-card" style="height:calc(100vh - 125px);">
             <div class="exer-head">
                 <div class="d-flex justify-content-between flex-wrap">
@@ -129,11 +136,32 @@ export default {
             if (!tagIds || tagIds.length === 0) {
                 return true;
             }
-            if (ex.tags == null) {
-                return false;
-            }
             const ids = Array.isArray(ex.tags) ? ex.tags : [];
-            return tagIds.some(tId => ids.some(id => Number(id) === Number(tId)));
+            const hasMatchedTag = tagIds.some(tId => ids.some(id => Number(id) === Number(tId)));
+            if (hasMatchedTag) {
+                return true;
+            }
+            const selectedTagNames = this.selectedFilterTagNames(tagIds);
+            const languageMap = {
+                english: 'en',
+                arabic: 'ar',
+                'no audio': 'no',
+                'no-audio': 'no',
+                none: 'no',
+            };
+            return selectedTagNames.some(name => languageMap[name] && ex.language === languageMap[name]);
+        },
+        selectedFilterTagNames(tagIds) {
+            const selectedIds = (tagIds || []).map(id => Number(id));
+            const names = [];
+            this.tags.forEach(group => {
+                (group.tagList || []).forEach(tag => {
+                    if (selectedIds.includes(Number(tag.id))) {
+                        names.push(String(tag.name || '').toLowerCase().trim());
+                    }
+                });
+            });
+            return names;
         },
         matchesSearchQuery(ex, searchValue) {
             if (!searchValue) {
@@ -166,11 +194,13 @@ export default {
                 this.clearFilters();
                 return;
             }
+            this.filters = false;
             this.selectedTagsForFilter = tagIds;
             this.filteredExercisesArray = this.exercises.filter(ex => this.exerciseHasAnyTag(ex, tagIds));
             this.applySearch();
         },
         clearFilters(){
+            this.filters = false;
             this.selectedTagsForFilter = [];
             this.filteredExercisesArray = this.exercises.slice();
             this.applySearch();

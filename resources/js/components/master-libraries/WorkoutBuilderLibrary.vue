@@ -4,6 +4,9 @@
             v-if="filtersOpen"
             :tags="workoutTags"
             :prefillTags="selectedRoutineTags"
+            @apply="applyFilters"
+            @reset="clearFilters"
+            @close="filtersOpen = false"
         />
         <div class="d-flex gap-2 mb-3">
             <button
@@ -81,12 +84,15 @@
                     @click="$emit('routine-click', routine)"
                     @dragstart="$emit('routine-dragstart', $event, routine)"
                 >
-                    <img
-                        :src="routine.image || '/images/download1.png'"
-                        alt=""
-                        class="img-fluid mb-2"
-                        style="height: 80px; width: 100%; object-fit: contain; background: #111;"
-                    >
+                    <div class="position-relative routine-thumb">
+                        <img
+                            :src="routine.image || '/images/download1.png'"
+                            alt=""
+                            class="img-fluid mb-2"
+                            style="height: 80px; width: 100%; object-fit: contain; background: #111;"
+                        >
+                        <span class="language-badge">{{ modifyLanguage(routine.language) }}</span>
+                    </div>
                     <p class="mb-0 h8 fw-bold" style="word-break: break-word;">{{ routine.title }}</p>
                     <p class="mb-0 h8 text-muted">Full routine</p>
                 </div>
@@ -158,10 +164,12 @@ export default {
             this.filtersOpen = true;
         },
         applyFilters(tagIds) {
+            this.filtersOpen = false;
             this.selectedRoutineTags = tagIds || [];
             this.loadRoutines();
         },
         clearFilters() {
+            this.filtersOpen = false;
             this.selectedRoutineTags = [];
             this.loadRoutines();
         },
@@ -239,5 +247,22 @@ export default {
 }
 .opacity-50 {
     opacity: 0.55;
+}
+.routine-thumb {
+    min-height: 82px;
+}
+.language-badge {
+    position: absolute;
+    left: 4px;
+    bottom: 8px;
+    background: #111;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 25px;
+    padding: 7px 5px;
+    text-align: center;
 }
 </style>

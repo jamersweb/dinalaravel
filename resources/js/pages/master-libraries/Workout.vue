@@ -7,7 +7,14 @@
         <Loader v-if="workoutDeleting" loadingText="Deleting"/>
         <Inform v-if="informModal" :msgTitle="modalTitle" :msgDetail="modalDetail" />
         <Confirm v-if="confirmModal" :msgTitle="modalTitle" :msgDetail="modalDetail"/>
-        <Filters v-if="filters" :tags="tags" :prefillTags="selectedTagsForFilter"/>
+        <Filters
+            v-if="filters"
+            :tags="tags"
+            :prefillTags="selectedTagsForFilter"
+            @apply="applyFilters"
+            @reset="clearFilters"
+            @close="filters = false"
+        />
         <div class="exer-card">
             <div class="exer-head">
                 <div class="d-flex justify-content-between flex-wrap">
@@ -114,28 +121,49 @@ export default {
     },
     methods: {
         applyFilters(tagIds){
-            this.selectedTagsForFilter = tagIds;
-            this.tagsFilteredWorkout = [];
-            for (let i = 0; i < this.workouts.length; i++) {
-                const wrk = this.workouts[i];
-                for (let j = 0; j < tagIds.length; j++) {
-                    if(wrk.tags===null)
-                    break;
-                    const tId = tagIds[j];
-                    if(wrk.tags.includes(tId)){
-                        this.tagsFilteredWorkout.push(wrk);
-                        break;
-                    }
-                };
+            if (!tagIds || tagIds.length === 0) {
+                this.clearFilters();
+                return;
             }
-            this.finalVisibleWorkouts = this.tagsFilteredWorkout;
+            this.filters = false;
+            this.selectedTagsForFilter = tagIds;
+            const selectedTagNames = this.selectedFilterTagNames(tagIds);
+            this.tagsFilteredWorkout = this.workouts.filter(wrk => this.workoutMatchesSelectedTags(wrk, tagIds, selectedTagNames));
             this.applySearch();
         },
         clearFilters(){
+            this.filters = false;
             this.selectedTagsForFilter = [];
-            this.tagsFilteredWorkout = this.workouts;
-            this.finalVisibleWorkouts = this.workouts;
+            this.tagsFilteredWorkout = this.workouts.slice();
+            this.finalVisibleWorkouts = this.workouts.slice();
             this.applySearch();
+        },
+        selectedFilterTagNames(tagIds) {
+            const selectedIds = (tagIds || []).map(id => Number(id));
+            const names = [];
+            this.tags.forEach(group => {
+                (group.tagList || []).forEach(tag => {
+                    if (selectedIds.includes(Number(tag.id))) {
+                        names.push(String(tag.name || '').toLowerCase().trim());
+                    }
+                });
+            });
+            return names;
+        },
+        workoutMatchesSelectedTags(wrk, tagIds, selectedTagNames) {
+            const workoutTags = Array.isArray(wrk.tags) ? wrk.tags.map(id => Number(id)) : [];
+            const hasMatchedTag = (tagIds || []).some(tId => workoutTags.includes(Number(tId)));
+            if (hasMatchedTag) {
+                return true;
+            }
+            const languageMap = {
+                english: 'en',
+                arabic: 'ar',
+                'no audio': 'no',
+                'no-audio': 'no',
+                none: 'no',
+            };
+            return selectedTagNames.some(name => languageMap[name] && wrk.language === languageMap[name]);
         },
         applySearch(){
             let searchValue = this.search.toLowerCase().trim();

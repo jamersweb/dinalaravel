@@ -10,7 +10,14 @@
             @cancel="cancelRoutineImport"
             @confirm="confirmRoutineImport"
         />
-        <Filters v-if="filters" :tags="tags" :prefillTags="selectedTagsForFilter"/>
+        <Filters
+            v-if="filters"
+            :tags="tags"
+            :prefillTags="selectedTagsForFilter"
+            @apply="applyFilters"
+            @reset="clearFilters"
+            @close="filters = false"
+        />
         <AssignTags v-if="assignTag" tagType="workout" :prefilledTags="workoutDetail.tags"/>
 
         <div class="main-box position-relative px-2 px-md-4 py-4">
@@ -524,28 +531,49 @@ export default {
             this.getExercises();
         },
         applyFilters(tagIds){
-            this.selectedTagsForFilter = tagIds;
-            this.filteredExercisesArray = [];
-            for (let i = 0; i < this.exercises.length; i++) {
-                const ex = this.exercises[i];
-                for (let j = 0; j < tagIds.length; j++) {
-                    if(ex.tags===null)
-                    break;
-                    const tId = tagIds[j];
-                    if(ex.tags.includes(tId)){
-                        this.filteredExercisesArray.push(ex);
-                        break;
-                    }
-                };
+            if (!tagIds || tagIds.length === 0) {
+                this.clearFilters();
+                return;
             }
-            this.visibleExercisesArray = this.filteredExercisesArray;
+            this.filters = false;
+            this.selectedTagsForFilter = tagIds;
+            const selectedTagNames = this.selectedFilterTagNames(tagIds);
+            this.filteredExercisesArray = this.exercises.filter(ex => this.exerciseMatchesSelectedTags(ex, tagIds, selectedTagNames));
             this.applySearch();
         },
         clearFilters(){
+            this.filters = false;
             this.selectedTagsForFilter = [];
-            this.filteredExercisesArray = this.exercises;
-            this.visibleExercisesArray = this.exercises;
+            this.filteredExercisesArray = this.exercises.slice();
+            this.visibleExercisesArray = this.exercises.slice();
             this.applySearch();
+        },
+        selectedFilterTagNames(tagIds) {
+            const selectedIds = (tagIds || []).map(id => Number(id));
+            const names = [];
+            this.tags.forEach(group => {
+                (group.tagList || []).forEach(tag => {
+                    if (selectedIds.includes(Number(tag.id))) {
+                        names.push(String(tag.name || '').toLowerCase().trim());
+                    }
+                });
+            });
+            return names;
+        },
+        exerciseMatchesSelectedTags(ex, tagIds, selectedTagNames) {
+            const exerciseTags = Array.isArray(ex.tags) ? ex.tags.map(id => Number(id)) : [];
+            const hasMatchedTag = (tagIds || []).some(tId => exerciseTags.includes(Number(tId)));
+            if (hasMatchedTag) {
+                return true;
+            }
+            const languageMap = {
+                english: 'en',
+                arabic: 'ar',
+                'no audio': 'no',
+                'no-audio': 'no',
+                none: 'no',
+            };
+            return selectedTagNames.some(name => languageMap[name] && ex.language === languageMap[name]);
         },
         applySearch(){
             let searchValue = this.search.toLowerCase().trim();

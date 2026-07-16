@@ -1,6 +1,13 @@
 <template>
     <div>
-        <Filters v-if="filters" :tags="tags" :prefillTags="selectedTagsForFilter" />
+        <Filters
+            v-if="filters"
+            :tags="tags"
+            :prefillTags="selectedTagsForFilter"
+            @apply="applyFilters"
+            @reset="clearFilters"
+            @close="filters = false"
+        />
         <div class="row mt-3 g-3">
             <div class="col-xl-7">
                 <p class="mb-2 h8 text-muted">Drag routines into a section, reorder within a section, or change the section tag.</p>
@@ -34,6 +41,7 @@
                             <div class="reorder-handle h8 text-muted mb-1">
                                 <i class="fa-solid fa-grip-vertical me-1"></i> Drag to reorder
                             </div>
+                            <span class="day-badge">Day {{ dayNumberForPhaseWorkout(item) }}</span>
                             <div v-if="item.workout_detail != null">
                                 <img
                                     v-if="item.workout_detail.image != null"
@@ -105,12 +113,15 @@
                                     @dragstart="startLibraryDrag(workout)"
                                     style="cursor: grab;"
                                 >
-                                    <img
-                                        :src="workout.image || '/images/download1.png'"
-                                        alt=""
-                                        class="img-fluid mb-2"
-                                        style="height: 80px; width: 100%; object-fit: contain; background: #111;"
-                                    >
+                                    <div class="position-relative routine-thumb">
+                                        <img
+                                            :src="workout.image || '/images/download1.png'"
+                                            alt=""
+                                            class="img-fluid mb-2"
+                                            style="height: 80px; width: 100%; object-fit: contain; background: #111;"
+                                        >
+                                        <span class="language-badge">{{ modifyLanguage(workout.language) }}</span>
+                                    </div>
                                     <p class="mb-0 h8 fw-bold" style="word-break: break-word;">{{ workout.title }}</p>
                                     <p class="mb-0 h8 text-muted">{{ workout.workout_exercises_count ?? 0 }} exercises</p>
                                 </div>
@@ -202,6 +213,22 @@ export default {
                 .filter((item) => (item.section_tag || 'custom') === sectionId)
                 .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
         },
+        orderedPhaseWorkouts() {
+            return [...(this.phaseWorkouts || [])].sort((a, b) => {
+                const orderDiff = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+                return orderDiff !== 0 ? orderDiff : Number(a.id) - Number(b.id);
+            });
+        },
+        dayNumberForPhaseWorkout(item) {
+            const index = this.orderedPhaseWorkouts().findIndex((phaseWorkout) => phaseWorkout.id === item.id);
+            return index >= 0 ? index + 1 : 1;
+        },
+        modifyLanguage(language) {
+            if (language === 'no') {
+                return 'NA';
+            }
+            return String(language || '').toUpperCase();
+        },
         loadTags() {
             axios.get(config.baseApiUrl + 'get-tags?category=workout', this.apiConfig)
                 .then((res) => {
@@ -231,10 +258,16 @@ export default {
                 });
         },
         applyFilters(tagIds) {
+            if (!tagIds || tagIds.length === 0) {
+                this.clearFilters();
+                return;
+            }
+            this.filters = false;
             this.selectedTagsForFilter = tagIds || [];
             this.loadWorkouts();
         },
         clearFilters() {
+            this.filters = false;
             this.selectedTagsForFilter = [];
             this.loadWorkouts();
         },
@@ -335,5 +368,33 @@ export default {
 }
 .reorder-handle {
     cursor: grab;
+}
+.day-badge,
+.language-badge {
+    background: #111;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 7px 8px;
+}
+.day-badge {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    z-index: 2;
+}
+.routine-thumb {
+    min-height: 82px;
+}
+.language-badge {
+    bottom: 8px;
+    left: 4px;
+    min-width: 25px;
+    padding-left: 5px;
+    padding-right: 5px;
+    position: absolute;
+    text-align: center;
 }
 </style>

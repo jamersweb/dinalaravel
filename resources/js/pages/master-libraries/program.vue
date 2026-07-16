@@ -10,7 +10,14 @@
     <Confirm v-if="confirmModal" :msgTitle="modalTitle" :msgDetail="modalDetail" />
     <GetInput v-if="editNamePopup" :msgTitle="modalTitle" :msgDetail="modalDetail" :renameValue="modalValue" />
     <Loader v-if="pageLoading" :loadingText="loaderText" />
-    <Filters v-if="filters" :tags="tags" :prefillTags="selectedTagsForFilter"/>
+    <Filters
+        v-if="filters"
+        :tags="tags"
+        :prefillTags="selectedTagsForFilter"
+        @apply="applyFilters"
+        @reset="clearFilters"
+        @close="filters = false"
+    />
     <WorkoutDetail v-if="showWrktDetail" :wrkId="workoutId"/>
     <div v-if="removeSubsDiv" style="height: 100%;width: 100%;position: absolute;z-index: 999;top: 0;left: 0;"
         @click="removeSubsDiv = false"></div>
@@ -375,28 +382,49 @@ export default {
     },
     methods: {
         applyFilters(tagIds){
-            this.selectedTagsForFilter = tagIds;
-            this.tagsFilteredPrograms = [];
-            for (let i = 0; i < this.programs.length; i++) {
-                const prog = this.programs[i];
-                for (let j = 0; j < tagIds.length; j++) {
-                    if(prog.tags===null)
-                    break;
-                    const tId = tagIds[j];
-                    if(prog.tags.includes(tId)){
-                        this.tagsFilteredPrograms.push(prog);
-                        break;
-                    }
-                };
+            if (!tagIds || tagIds.length === 0) {
+                this.clearFilters();
+                return;
             }
-            this.finalVisiblePrograms = this.tagsFilteredPrograms;
+            this.filters = false;
+            this.selectedTagsForFilter = tagIds;
+            const selectedTagNames = this.selectedFilterTagNames(tagIds);
+            this.tagsFilteredPrograms = this.programs.filter(prog => this.programMatchesSelectedTags(prog, tagIds, selectedTagNames));
             this.applySearch();
         },
         clearFilters(){
+            this.filters = false;
             this.selectedTagsForFilter = [];
-            this.tagsFilteredPrograms = this.programs;
-            this.finalVisiblePrograms = this.programs;
+            this.tagsFilteredPrograms = this.programs.slice();
+            this.finalVisiblePrograms = this.programs.slice();
             this.applySearch();
+        },
+        selectedFilterTagNames(tagIds) {
+            const selectedIds = (tagIds || []).map(id => Number(id));
+            const names = [];
+            this.tags.forEach(group => {
+                (group.tagList || []).forEach(tag => {
+                    if (selectedIds.includes(Number(tag.id))) {
+                        names.push(String(tag.name || '').toLowerCase().trim());
+                    }
+                });
+            });
+            return names;
+        },
+        programMatchesSelectedTags(prog, tagIds, selectedTagNames) {
+            const programTags = Array.isArray(prog.tags) ? prog.tags.map(id => Number(id)) : [];
+            const hasMatchedTag = (tagIds || []).some(tId => programTags.includes(Number(tId)));
+            if (hasMatchedTag) {
+                return true;
+            }
+            const languageMap = {
+                english: 'en',
+                arabic: 'ar',
+                'no audio': 'no',
+                'no-audio': 'no',
+                none: 'no',
+            };
+            return selectedTagNames.some(name => languageMap[name] && prog.language === languageMap[name]);
         },
         applySearch(){
             let searchValue = this.search.toLowerCase().trim();
