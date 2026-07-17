@@ -35,11 +35,21 @@ class RecipeScraperService
             $response = $this->client->get($url);
             $html = (string) $response->getBody();
         } catch (\Throwable $e) {
+            $fallback = $this->scrapeViaReader($url);
+            if ($fallback['status'] ?? false) {
+                return $fallback;
+            }
+
             return $this->failed($url, 'Unable to fetch URL: '.$e->getMessage());
         }
 
         $recipe = $this->findRecipeJsonLd($html);
         if (! $recipe) {
+            $fallback = $this->scrapeViaReader($url);
+            if ($fallback['status'] ?? false) {
+                return $fallback;
+            }
+
             return $this->failed($url, 'No schema.org Recipe JSON-LD found.');
         }
 
@@ -73,6 +83,59 @@ class RecipeScraperService
             'tag_suggestions' => $this->tagSuggestions($recipe),
             'raw_nutrition' => $nutrition,
             'warnings' => $this->warnings($ingredients, $directions),
+        ];
+    }
+
+    private function scrapeViaReader(string $url): array
+    {
+        try {
+            $readerUrl = 'https://r.jina.ai/http://r.jina.ai/http://'.$url;
+            $response = $this->client->get($readerUrl, [
+                'timeout' => 30,
+                'headers' => [
+                    'Accept' => 'text/plain,text/markdown,*/*;q=0.8',
+                ],
+            ]);
+            $markdown = (string) $response->getBody();
+        } catch (\Throwable $e) {
+            return $this->failed($url, 'Reader fallback failed: '.$e->getMessage());
+        }
+
+        $title = $this->readerTitle($markdown, $url);
+        $ingredients = $this->readerIngredients($markdown);
+        $directions = $this->readerDirections($markdown);
+        if (! $title || ($ingredients === [] && $directions === [])) {
+            return $this->failed($url, 'Reader fallback could not find recipe content.');
+        }
+
+        $nutrition = $this->readerNutrition($markdown);
+        $prepTime = $this->readerLabeledMinutes($markdown, 'Active Time') ?? $this->readerLabeledMinutes($markdown, 'Prep Time');
+        $totalTime = $this->readerLabeledMinutes($markdown, 'Total Time');
+
+        return [
+            'status' => true,
+            'url' => $url,
+            'source_host' => parse_url($url, PHP_URL_HOST),
+            'name' => $title,
+            'description' => $this->readerDescription($markdown),
+            'image_url' => $this->readerImageUrl($markdown),
+            'prep_time' => $prepTime,
+            'cook_time' => $prepTime && $totalTime ? max(0, $totalTime - $prepTime) : null,
+            'total_time' => $totalTime,
+            'no_of_servings' => $this->readerServings($markdown),
+            'calories_per_serving' => $nutrition['calories'] ?? 0,
+            'protein_per_serving' => $nutrition['protein'] ?? 0,
+            'carbs_per_serving' => $nutrition['carbs'] ?? 0,
+            'fat_per_serving' => $nutrition['fat'] ?? 0,
+            'fiber_per_serving' => $nutrition['fiber'] ?? 0,
+            'ingredients' => $ingredients,
+            'directions' => $directions,
+            'tag_suggestions' => $this->readerTagSuggestions($markdown),
+            'raw_nutrition' => $nutrition,
+            'warnings' => array_merge(
+                ['Used reader fallback because the source blocked direct server scraping.'],
+                $this->warnings($ingredients, $directions)
+            ),
         ];
     }
 
@@ -272,6 +335,223 @@ class RecipeScraperService
         }
 
         return html_entity_decode($matches[1]);
+    }
+
+    private function readerTitle(string $markdown, string $url): ?string
+    {
+        $title = null;
+        if (preg_match('/^Title:\s*(.+)$/mi', $markdown, $matches)) {
+            $title = trim($matches[1]);
+        }
+
+        if ($title) {
+            $title = preg_replace('/^High-Fiber\s+/i', '', $title);
+            $title = preg_replace('/\s+Is\s+the\s+Perfect.*$/i', '', $title);
+            $title = preg_replace('/\s+Recipe$/i', '', $title);
+            $title = trim($title);
+        }
+
+        if ($title) {
+            return $title;
+        }
+
+        $slug = trim((string) parse_url($url, PHP_URL_PATH), '/');
+        $slug = preg_replace('/-\d+$/', '', basename($slug));
+        $slug = str_replace('-', ' ', $slug);
+
+        return $slug ? Str::title($slug) : null;
+    }
+
+    private function readerDescription(string $markdown): ?string
+    {
+        $content = $this->markdownAfterMarker($markdown, "Markdown Content:\n");
+        $lines = preg_split('/\r\n|\r|\n/', $content);
+        foreach ($lines as $line) {
+            $line = trim($this->stripMarkdown($line));
+            if ($line !== '' && ! str_starts_with($line, '#') && ! str_starts_with($line, 'By') && ! str_starts_with($line, '![')) {
+                return $line;
+            }
+        }
+
+        return null;
+    }
+
+    private function readerIngredients(string $markdown): array
+    {
+        $section = $this->markdownSection($markdown, 'Ingredients');
+        if ($section === '') {
+            return [];
+        }
+
+        preg_match_all('/^\s*\*\s+(.+)$/m', $section, $matches);
+        $items = [];
+        foreach ($matches[1] ?? [] as $item) {
+            $item = trim($this->stripMarkdown($item));
+            if ($item !== '') {
+                $items[] = $item;
+            }
+        }
+
+        return array_values(array_unique($items));
+    }
+
+    private function readerDirections(string $markdown): array
+    {
+        $section = $this->markdownSection($markdown, 'Directions');
+        if ($section === '') {
+            return [];
+        }
+
+        if (preg_match('/^#{3,}\s+/m', $section, $matches, PREG_OFFSET_CAPTURE)) {
+            $section = substr($section, 0, $matches[0][1]);
+        }
+
+        preg_match_all('/^\s*\d+\.\s*$\R+\s*(.+?)(?=\R+\s*\d+\.\s*$|\R+\s*#{2,3}\s|\z)/ms', $section, $matches);
+        $steps = [];
+        foreach ($matches[1] ?? [] as $step) {
+            $step = trim($this->stripMarkdown(preg_replace('/\s+/', ' ', $step)));
+            if ($step !== '') {
+                $steps[] = $step;
+            }
+        }
+
+        if ($steps !== []) {
+            return $steps;
+        }
+
+        return array_values(array_filter(array_map(function ($line) {
+            $line = trim($this->stripMarkdown($line));
+            return preg_match('/^\d+\.\s*(.+)$/', $line, $matches) ? trim($matches[1]) : null;
+        }, preg_split('/\r\n|\r|\n/', $section))));
+    }
+
+    private function readerImageUrl(string $markdown): ?string
+    {
+        preg_match_all('/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)[^)]*\)/i', $markdown, $matches, PREG_SET_ORDER);
+        foreach ($matches as $match) {
+            $alt = strtolower($match[1] ?? '');
+            if (str_contains($alt, 'recipe image') || str_contains($alt, 'casserole') || str_contains($alt, 'bread')) {
+                return $match[2];
+            }
+        }
+
+        foreach ($matches as $match) {
+            $alt = strtolower($match[1] ?? '');
+            if (! str_contains($alt, 'headshot') && ! str_contains($alt, 'author')) {
+                return $match[2];
+            }
+        }
+
+        return null;
+    }
+
+    private function readerLabeledMinutes(string $markdown, string $label): ?int
+    {
+        if (! preg_match('/'.preg_quote($label, '/').':\s*\R+\s*([^\r\n]+)/i', $markdown, $matches)) {
+            return null;
+        }
+
+        return $this->humanTimeToMinutes($matches[1]);
+    }
+
+    private function humanTimeToMinutes(string $text): ?int
+    {
+        $text = strtolower($text);
+        $minutes = 0;
+
+        if (preg_match('/(\d+)\s*(?:hr|hour)/', $text, $matches)) {
+            $minutes += ((int) $matches[1]) * 60;
+        }
+        if (preg_match('/(\d+)\s*(?:min|minute)/', $text, $matches)) {
+            $minutes += (int) $matches[1];
+        }
+
+        return $minutes > 0 ? $minutes : null;
+    }
+
+    private function readerServings(string $markdown): int
+    {
+        foreach ([
+            '/Servings:\s*\R+\s*(\d+)/i',
+            '/Servings Per Recipe\s+(\d+)/i',
+            '/yields?\s+(\d+)\s+servings/i',
+        ] as $pattern) {
+            if (preg_match($pattern, $markdown, $matches)) {
+                return max(1, (int) $matches[1]);
+            }
+        }
+
+        return 1;
+    }
+
+    private function readerNutrition(string $markdown): array
+    {
+        $nutrition = [];
+        $patterns = [
+            'calories' => '/(?:^|\R)\s*(\d+)\s+Calories\b/i',
+            'fat' => '/(?:Total Fat|^)\s*(\d+)g\s+Fat\b|Total Fat\s+(\d+)g/i',
+            'carbs' => '/(?:Total Carbohydrate\s+(\d+)g|(?:^|\R)\s*(\d+)g\s+Carbs\b)/i',
+            'protein' => '/(?:^|\R)\s*(\d+)g\s+Protein\b|Protein\s+(\d+)g/i',
+            'fiber' => '/Dietary Fiber\s+(\d+)g/i',
+        ];
+
+        foreach ($patterns as $key => $pattern) {
+            if (preg_match($pattern, $markdown, $matches)) {
+                $value = null;
+                foreach (array_slice($matches, 1) as $match) {
+                    if ($match !== '') {
+                        $value = (int) $match;
+                        break;
+                    }
+                }
+                $nutrition[$key] = $value ?? 0;
+            }
+        }
+
+        return $nutrition;
+    }
+
+    private function readerTagSuggestions(string $markdown): array
+    {
+        $section = $this->markdownSection($markdown, 'Nutrition Profile');
+        if ($section === '') {
+            return [];
+        }
+
+        preg_match_all('/\[([^\]]+)\]\(/', $section, $matches);
+        $tags = $matches[1] ?? [];
+        $tags = array_map(fn ($tag) => Str::title(trim($this->stripMarkdown($tag))), $tags);
+
+        return array_values(array_unique(array_filter($tags)));
+    }
+
+    private function markdownSection(string $markdown, string $heading): string
+    {
+        $pattern = '/^##\s+'.preg_quote($heading, '/').'\s*$(.*?)(?=^##\s+|\z)/ms';
+        if (! preg_match($pattern, $markdown, $matches)) {
+            return '';
+        }
+
+        return trim($matches[1]);
+    }
+
+    private function markdownAfterMarker(string $markdown, string $marker): string
+    {
+        $position = strpos($markdown, $marker);
+        if ($position === false) {
+            return $markdown;
+        }
+
+        return substr($markdown, $position + strlen($marker));
+    }
+
+    private function stripMarkdown(string $text): string
+    {
+        $text = preg_replace('/!\[([^\]]*)\]\([^)]+\)/', '$1', $text);
+        $text = preg_replace('/\[([^\]]+)\]\([^)]+\)/', '$1', $text);
+        $text = str_replace(['**', '__', '`'], '', $text);
+
+        return html_entity_decode(trim($text));
     }
 
     private function minutes($value): ?int
