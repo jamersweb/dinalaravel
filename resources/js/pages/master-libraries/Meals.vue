@@ -42,6 +42,7 @@
             <div class="row w-100 mx-0 px-3 bar">
                 <div class="col-6">
                     <button type="button" class="btn1" @click="createCustomMeal">New</button>
+                    <button type="button" class="btn3 px-2 tsl" @click="openRecipeImport">Import Recipes</button>
                     <button class="btn3 px-2 tsl" @click="duplicateSelectedMeal" type="button">Duplicate</button>
                     <button class="btn3 px-2 tsl" @click="deleteMeals" type="button">Delete</button>
                 </div>
@@ -446,6 +447,9 @@ export default {
         },
         createCustomMeal() {
             this.showCreate = !this.showCreate;
+        },
+        openRecipeImport() {
+            this.$router.push('/cms/recipe-import');
         },
         changeBtnValue(m) {
             this.btnValue = m;

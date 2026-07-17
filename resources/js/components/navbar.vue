@@ -134,6 +134,15 @@
                             <p v-show="!collapsedMenu" :class="{masterlibraries:collapsedMenu}">Meals</p>
                         </div>
                     </router-link>
+                    <router-link class="menu_item px-4 mx-0" to="/cms/recipe-import">
+                        <div class="ms-4" :class="{widthalign:!collapsedMenu}">
+                            <img src="/cms-assets/images/navbar-topbar/meal.png" alt="" :class="{collapsedimg:collapsedMenu}" class="img-fluid"
+                                style="height:25px;width:30px;">
+                        </div>
+                        <div>
+                            <p v-show="!collapsedMenu" :class="{masterlibraries:collapsedMenu}">Recipe Import</p>
+                        </div>
+                    </router-link>
                     <router-link class="menu_item px-4 mx-0" to="/cms/food">
                         <div class="ms-4" :class="{widthalign:!collapsedMenu}">
                             <img src="/cms-assets/images/navbar-topbar/food.png" alt="" :class="{collapsedimg:collapsedMenu}" class="img-fluid"

@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\TagsController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\CmsLocalizationController;
 use App\Http\Controllers\Api\CmsStoreSubscriptionController;
+use App\Http\Controllers\Api\RecipeImportController;
 
 Route::get('/test-noti',[NotificationsController::class,'sendNotification']);
 
@@ -154,6 +155,8 @@ Route::group(['prefix' => 'cms'], function(){
         Route::post('delete-meals',[MealsController::class,'deleteMeals']);
         Route::get('get-meals',[MealsController::class,'getMeals']);
         Route::get('get-meal-detail/{id}',[MealsController::class,'mealDetail']);
+        Route::post('recipe-import/preview',[RecipeImportController::class,'preview']);
+        Route::post('recipe-import/import',[RecipeImportController::class,'import']);
 
         //Meal Plans
         Route::post('create-meal-day',[MealPlansController::class,'createMealDay']);
