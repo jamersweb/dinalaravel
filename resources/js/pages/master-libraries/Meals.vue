@@ -120,7 +120,7 @@
             <div class="tsh p-2 mx-0 w-100 brds-2 row">
                 <div class="col-5 p-2 overflow-hidden">
                     <video v-if="mealDetails.file_type=='video'" :src="mealDetails.file" controls class="img-fluid brds-2 w-100"></video>
-                    <img v-else :src="mealDetails.file" alt="Error" class="img-fluid brds-2 w-100">
+                    <img v-else :src="mealDetails.file || mealImageFallback" @error="setImageFallback" alt="Meal cover" class="img-fluid brds-2 w-100">
                 </div>
                 <div class="col-7">
                     <p class="m-0 col-12" style="font-size:35px;font-weight:bold;">{{mealDetails.name}}</p>
@@ -232,6 +232,7 @@ export default {
             detailtagNames: null,
             editMeal: false,
             showSearchSuggestions: false,
+            mealImageFallback: '/images/mealscard.png',
         };
     },
     components: { CreateCustomMeal, Loader, Confirm, Inform, Filters, EditMeal },
@@ -262,6 +263,13 @@ export default {
         hasCookTime(meal) {
             const value = meal?.cook_time;
             return value !== null && value !== undefined && value !== '' && value !== 0 && value !== '0';
+        },
+        setImageFallback(event) {
+            if (!event?.target) return;
+            const fallbackUrl = window.location.origin + this.mealImageFallback;
+            if (event.target.src !== fallbackUrl) {
+                event.target.src = this.mealImageFallback;
+            }
         },
         truncatedString(title) {
         const maxLength = 40;

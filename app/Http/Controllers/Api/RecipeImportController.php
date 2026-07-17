@@ -9,6 +9,7 @@ use App\Services\RecipeScraperService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -52,11 +53,13 @@ class RecipeImportController extends Controller
                 continue;
             }
 
-            if (Meal::where('meal_by', 'admin')->where('name', $item['name'])->exists()) {
+            $existingMeal = Meal::where('meal_by', 'admin')->where('name', $item['name'])->first();
+            if ($existingMeal) {
+                $imageUpdated = $this->updateMealImageIfMissing($existingMeal, $item, $request);
                 $skipped[] = [
                     'url' => $item['url'],
                     'name' => $item['name'],
-                    'message' => 'Meal already exists.',
+                    'message' => $imageUpdated ? 'Meal already exists; missing image was updated.' : 'Meal already exists.',
                 ];
                 continue;
             }
@@ -146,7 +149,7 @@ class RecipeImportController extends Controller
         $meal->suitable_for = json_encode(array_values($request->input('default_suitable_for')));
         $meal->tags = json_encode($this->tagIds($recipe, $request));
         $meal->contains = implode(', ', array_slice($recipe['ingredients'] ?? [], 0, 8));
-        $meal->file = null;
+        $meal->file = $this->validImageUrl($recipe['image_url'] ?? null) ? $recipe['image_url'] : null;
         $meal->file_type = 'image';
         $meal->video_thumbnail = null;
         $meal->serving_size = null;
@@ -168,7 +171,7 @@ class RecipeImportController extends Controller
         $meal->locale_translations = null;
         $meal->save();
 
-        if ($request->boolean('import_images') && ! empty($recipe['image_url'])) {
+        if ($request->boolean('import_images') && $this->validImageUrl($recipe['image_url'] ?? null)) {
             $filename = $this->scraper->downloadImage($recipe['image_url'], $meal->id);
             if ($filename) {
                 $meal->file = $filename;
@@ -177,6 +180,50 @@ class RecipeImportController extends Controller
         }
 
         return $meal;
+    }
+
+    private function updateMealImageIfMissing(Meal $meal, array $recipe, Request $request): bool
+    {
+        if (! $this->mealImageMissing($meal) || ! $this->validImageUrl($recipe['image_url'] ?? null)) {
+            return false;
+        }
+
+        $meal->file = $recipe['image_url'];
+        $meal->file_type = 'image';
+        $meal->video_thumbnail = null;
+
+        if ($request->boolean('import_images')) {
+            $filename = $this->scraper->downloadImage($recipe['image_url'], $meal->id);
+            if ($filename) {
+                $meal->file = $filename;
+            }
+        }
+
+        $meal->save();
+        $this->bumpMealCacheVersion();
+
+        return true;
+    }
+
+    private function mealImageMissing(Meal $meal): bool
+    {
+        $file = $meal->getRawOriginal('file');
+        if (empty($file)) {
+            return true;
+        }
+
+        if (filter_var($file, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        return ! Storage::disk('fwd_media')->exists('meals/'.basename($file));
+    }
+
+    private function validImageUrl(?string $url): bool
+    {
+        return is_string($url)
+            && filter_var($url, FILTER_VALIDATE_URL)
+            && ! str_starts_with($url, 'blob:');
     }
 
     private function cookTime(array $recipe): ?int

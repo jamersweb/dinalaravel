@@ -427,22 +427,40 @@ class RecipeScraperService
 
     private function readerImageUrl(string $markdown): ?string
     {
-        preg_match_all('/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)[^)]*\)/i', $markdown, $matches, PREG_SET_ORDER);
+        preg_match_all('/!\[([^\]]*)\]\((https?:\/\/[^\r\n]+)\)/i', $markdown, $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {
             $alt = strtolower($match[1] ?? '');
             if (str_contains($alt, 'recipe image') || str_contains($alt, 'casserole') || str_contains($alt, 'bread')) {
-                return $match[2];
+                return $this->cleanMarkdownImageUrl($match[2]);
             }
         }
 
         foreach ($matches as $match) {
             $alt = strtolower($match[1] ?? '');
-            if (! str_contains($alt, 'headshot') && ! str_contains($alt, 'author')) {
-                return $match[2];
+            $url = strtolower($match[2] ?? '');
+            $isPersonImage = str_contains($alt, 'headshot')
+                || str_contains($alt, 'author')
+                || str_contains($url, 'headshot')
+                || str_contains($url, 'author')
+                || str_contains($url, '/200x200/');
+
+            if (! $isPersonImage) {
+                return $this->cleanMarkdownImageUrl($match[2]);
             }
         }
 
         return null;
+    }
+
+    private function cleanMarkdownImageUrl(string $url): ?string
+    {
+        $url = trim($url);
+        $url = preg_replace('/\s+".*"$/', '', $url);
+        if (! $url || str_starts_with($url, 'blob:') || ! filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        return $url;
     }
 
     private function readerLabeledMinutes(string $markdown, string $label): ?int
