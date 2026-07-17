@@ -150,7 +150,7 @@ class RecipeImportController extends Controller
         $meal->suitable_for = json_encode(array_values($request->input('default_suitable_for')));
         $meal->tags = json_encode($this->tagIds($recipe, $request));
         $meal->contains = implode(', ', array_slice($recipe['ingredients'] ?? [], 0, 8));
-        $meal->file = $this->validImageUrl($recipe['image_url'] ?? null) ? $recipe['image_url'] : url(self::FALLBACK_MEAL_IMAGE);
+        $meal->file = url(self::FALLBACK_MEAL_IMAGE);
         $meal->file_type = 'image';
         $meal->video_thumbnail = null;
         $meal->serving_size = null;
@@ -189,7 +189,7 @@ class RecipeImportController extends Controller
             return false;
         }
 
-        $meal->file = $this->validImageUrl($recipe['image_url'] ?? null) ? $recipe['image_url'] : url(self::FALLBACK_MEAL_IMAGE);
+        $meal->file = url(self::FALLBACK_MEAL_IMAGE);
         $meal->file_type = 'image';
         $meal->video_thumbnail = null;
 
@@ -214,7 +214,10 @@ class RecipeImportController extends Controller
         }
 
         if (filter_var($file, FILTER_VALIDATE_URL)) {
-            return false;
+            $fallbackPath = parse_url(url(self::FALLBACK_MEAL_IMAGE), PHP_URL_PATH);
+            $filePath = parse_url($file, PHP_URL_PATH);
+
+            return $filePath === $fallbackPath || ! str_contains($file, parse_url(url('/'), PHP_URL_HOST) ?: '');
         }
 
         return ! Storage::disk('fwd_media')->exists('meals/'.basename($file));
