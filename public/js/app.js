@@ -65967,6 +65967,12 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
         event.target.src = this.mealImageFallback;
       }
     },
+    mealCardImageStyle: function mealCardImageStyle(imageUrl) {
+      var url = imageUrl || this.mealImageFallback;
+      return {
+        'background-image': "url(".concat(url, ")")
+      };
+    },
     truncatedString: function truncatedString(title) {
       var maxLength = 40;
       if (title.length > maxLength) {
@@ -102819,15 +102825,11 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }, null, 8 /* PROPS */, _hoisted_25), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.idsToDel]]), items.file_type == 'video' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
       key: 0,
       "class": "col-5 h-100 float-start brds-2 img-as-bg",
-      style: (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeStyle)({
-        "background-image": "url(" + items.video_thumbnail + ")"
-      })
+      style: (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeStyle)($options.mealCardImageStyle(items.video_thumbnail))
     }, null, 4 /* STYLE */)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
       key: 1,
       "class": "col-5 h-100 float-start brds-2 img-as-bg",
-      style: (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeStyle)({
-        "background-image": "url(" + items.file + ")"
-      })
+      style: (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeStyle)($options.mealCardImageStyle(items.file))
     }, null, 4 /* STYLE */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_26, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
       "class": "mb-2 w-100",
       style: {

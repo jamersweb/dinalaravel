@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 class RecipeImportController extends Controller
 {
     private const MEAL_CACHE_VERSION_KEY = 'meals:cache:version';
+    private const FALLBACK_MEAL_IMAGE = '/images/mealscard.png';
 
     public function __construct(private RecipeScraperService $scraper)
     {
@@ -149,7 +150,7 @@ class RecipeImportController extends Controller
         $meal->suitable_for = json_encode(array_values($request->input('default_suitable_for')));
         $meal->tags = json_encode($this->tagIds($recipe, $request));
         $meal->contains = implode(', ', array_slice($recipe['ingredients'] ?? [], 0, 8));
-        $meal->file = $this->validImageUrl($recipe['image_url'] ?? null) ? $recipe['image_url'] : null;
+        $meal->file = $this->validImageUrl($recipe['image_url'] ?? null) ? $recipe['image_url'] : url(self::FALLBACK_MEAL_IMAGE);
         $meal->file_type = 'image';
         $meal->video_thumbnail = null;
         $meal->serving_size = null;
@@ -184,15 +185,15 @@ class RecipeImportController extends Controller
 
     private function updateMealImageIfMissing(Meal $meal, array $recipe, Request $request): bool
     {
-        if (! $this->mealImageMissing($meal) || ! $this->validImageUrl($recipe['image_url'] ?? null)) {
+        if (! $this->mealImageMissing($meal)) {
             return false;
         }
 
-        $meal->file = $recipe['image_url'];
+        $meal->file = $this->validImageUrl($recipe['image_url'] ?? null) ? $recipe['image_url'] : url(self::FALLBACK_MEAL_IMAGE);
         $meal->file_type = 'image';
         $meal->video_thumbnail = null;
 
-        if ($request->boolean('import_images')) {
+        if ($request->boolean('import_images') && $this->validImageUrl($recipe['image_url'] ?? null)) {
             $filename = $this->scraper->downloadImage($recipe['image_url'], $meal->id);
             if ($filename) {
                 $meal->file = $filename;

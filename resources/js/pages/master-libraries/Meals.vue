@@ -89,9 +89,9 @@
                     <div class="col-xl-3 col-md-4 col-sm-6 col-12" v-for="(items, index) in finalVisibleMeals" :key="index" >
                         <div class="content-card tsh position-relative">
                             <input type="checkbox" v-model="idsToDel" :value="items.id" class="form-check-input" style="position:absolute;top:5px;left:5px;">
-                            <div v-if="items.file_type=='video'" class="col-5 h-100 float-start brds-2 img-as-bg" :style='{"background-image":"url("+items.video_thumbnail+")"}'>
+                            <div v-if="items.file_type=='video'" class="col-5 h-100 float-start brds-2 img-as-bg" :style="mealCardImageStyle(items.video_thumbnail)">
                             </div>
-                            <div v-else class="col-5 h-100 float-start brds-2 img-as-bg" :style='{"background-image":"url("+items.file+")"}'>
+                            <div v-else class="col-5 h-100 float-start brds-2 img-as-bg" :style="mealCardImageStyle(items.file)">
                             </div>
                             <div class="col-7 ps-3" style="float:left; height: 150px;">
                                 <p class="mb-2 w-100" style="font-size:12px;font-weight:bold;cursor:pointer; height: 70px; overflow: hidden" @click="showDetailsDiv(items.id)" data-toggle="tooltip" :title="items.name">{{this.truncatedString(items.name)}}</p>
@@ -270,6 +270,10 @@ export default {
             if (event.target.src !== fallbackUrl) {
                 event.target.src = this.mealImageFallback;
             }
+        },
+        mealCardImageStyle(imageUrl) {
+            const url = imageUrl || this.mealImageFallback;
+            return { 'background-image': `url(${url})` };
         },
         truncatedString(title) {
         const maxLength = 40;
