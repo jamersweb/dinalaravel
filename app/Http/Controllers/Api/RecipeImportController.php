@@ -17,7 +17,6 @@ class RecipeImportController extends Controller
 {
     private const MEAL_CACHE_VERSION_KEY = 'meals:cache:version';
     private const FALLBACK_MEAL_IMAGE = '/images/mealscard.png';
-    private const GENERATED_IMAGE_PREFIX = 'generated_recipe_';
 
     public function __construct(private RecipeScraperService $scraper)
     {
@@ -151,7 +150,7 @@ class RecipeImportController extends Controller
         $meal->suitable_for = json_encode(array_values($request->input('default_suitable_for')));
         $meal->tags = json_encode($this->tagIds($recipe, $request));
         $meal->contains = implode(', ', array_slice($recipe['ingredients'] ?? [], 0, 8));
-        $meal->file = null;
+        $meal->file = url(self::FALLBACK_MEAL_IMAGE);
         $meal->file_type = 'image';
         $meal->video_thumbnail = null;
         $meal->serving_size = null;
@@ -181,11 +180,6 @@ class RecipeImportController extends Controller
             }
         }
 
-        if (empty($meal->getRawOriginal('file'))) {
-            $meal->file = $this->generateRecipePlaceholderImage($recipe, $meal->id) ?: url(self::FALLBACK_MEAL_IMAGE);
-            $meal->save();
-        }
-
         return $meal;
     }
 
@@ -195,7 +189,7 @@ class RecipeImportController extends Controller
             return false;
         }
 
-        $meal->file = null;
+        $meal->file = url(self::FALLBACK_MEAL_IMAGE);
         $meal->file_type = 'image';
         $meal->video_thumbnail = null;
 
@@ -204,10 +198,6 @@ class RecipeImportController extends Controller
             if ($filename) {
                 $meal->file = $filename;
             }
-        }
-
-        if (empty($meal->file)) {
-            $meal->file = $this->generateRecipePlaceholderImage($recipe, $meal->id) ?: url(self::FALLBACK_MEAL_IMAGE);
         }
 
         $meal->save();
@@ -230,8 +220,7 @@ class RecipeImportController extends Controller
             return $filePath === $fallbackPath || ! str_contains($file, parse_url(url('/'), PHP_URL_HOST) ?: '');
         }
 
-        return ! Storage::disk('fwd_media')->exists('meals/'.basename($file))
-            || str_starts_with(basename($file), self::GENERATED_IMAGE_PREFIX);
+        return ! Storage::disk('fwd_media')->exists('meals/'.basename($file));
     }
 
     private function validImageUrl(?string $url): bool
@@ -239,117 +228,6 @@ class RecipeImportController extends Controller
         return is_string($url)
             && filter_var($url, FILTER_VALIDATE_URL)
             && ! str_starts_with($url, 'blob:');
-    }
-
-    private function generateRecipePlaceholderImage(array $recipe, int $mealId): ?string
-    {
-        if (! extension_loaded('gd') || ! function_exists('imagecreatetruecolor')) {
-            return null;
-        }
-
-        $width = 900;
-        $height = 650;
-        $image = imagecreatetruecolor($width, $height);
-        if (! $image) {
-            return null;
-        }
-
-        imageantialias($image, true);
-        $background = imagecolorallocate($image, 252, 247, 243);
-        $panel = imagecolorallocate($image, 255, 255, 255);
-        $accent = imagecolorallocate($image, 242, 161, 140);
-        $dark = imagecolorallocate($image, 35, 39, 47);
-        $muted = imagecolorallocate($image, 112, 112, 112);
-        $green = imagecolorallocate($image, 95, 132, 93);
-        $gold = imagecolorallocate($image, 231, 181, 92);
-
-        imagefilledrectangle($image, 0, 0, $width, $height, $background);
-        imagefilledellipse($image, 140, 110, 260, 210, $accent);
-        imagefilledellipse($image, 760, 560, 300, 230, $green);
-        imagefilledellipse($image, 765, 125, 150, 150, $gold);
-        imagefilledrectangle($image, 58, 58, $width - 58, $height - 58, $panel);
-        imagerectangle($image, 58, 58, $width - 58, $height - 58, $accent);
-
-        $font = $this->fontPath();
-        $boldFont = $this->boldFontPath();
-        $title = Str::limit((string) ($recipe['name'] ?? 'Imported Recipe'), 95, '');
-        $wrappedTitle = $this->wrapText($title, 24);
-        $y = 145;
-
-        foreach ($wrappedTitle as $line) {
-            $this->drawText($image, $boldFont, 34, 95, $y, $dark, $line);
-            $y += 48;
-        }
-
-        $source = $recipe['source_host'] ?? parse_url($recipe['url'] ?? '', PHP_URL_HOST) ?: 'Recipe import';
-        $this->drawText($image, $font, 18, 98, $y + 8, $muted, 'Imported from '.$source);
-
-        $metrics = [
-            ((int) ($recipe['calories_per_serving'] ?? 0)).' Cal / Serving',
-            ((int) ($recipe['no_of_servings'] ?? 1)).' Servings',
-        ];
-        $totalTime = (int) ($recipe['total_time'] ?? 0);
-        if ($totalTime > 0) {
-            $metrics[] = $totalTime.' Min';
-        }
-        $macroText = sprintf(
-            '%dg Protein  %dg Carbs  %dg Fat  %dg Fiber',
-            (int) ($recipe['protein_per_serving'] ?? 0),
-            (int) ($recipe['carbs_per_serving'] ?? 0),
-            (int) ($recipe['fat_per_serving'] ?? 0),
-            (int) ($recipe['fiber_per_serving'] ?? 0)
-        );
-
-        $metricY = 455;
-        $x = 98;
-        foreach ($metrics as $metric) {
-            imagefilledrectangle($image, $x, $metricY, $x + 205, $metricY + 48, $background);
-            imagerectangle($image, $x, $metricY, $x + 205, $metricY + 48, $accent);
-            $this->drawText($image, $boldFont, 17, $x + 18, $metricY + 31, $dark, $metric);
-            $x += 230;
-        }
-        $this->drawText($image, $font, 19, 98, 555, $muted, $macroText);
-
-        ob_start();
-        imagejpeg($image, null, 88);
-        $contents = ob_get_clean();
-        imagedestroy($image);
-
-        if (! $contents) {
-            return null;
-        }
-
-        $filename = self::GENERATED_IMAGE_PREFIX.$mealId.'_'.Str::slug($recipe['name'] ?? 'recipe').'.jpg';
-        Storage::disk('fwd_media')->put('meals/'.$filename, $contents);
-
-        return $filename;
-    }
-
-    private function wrapText(string $text, int $characters): array
-    {
-        $wrapped = wordwrap($text, $characters, "\n", true);
-
-        return array_slice(array_filter(explode("\n", $wrapped)), 0, 4);
-    }
-
-    private function fontPath(): string
-    {
-        return file_exists('C:/Windows/Fonts/arial.ttf') ? 'C:/Windows/Fonts/arial.ttf' : '';
-    }
-
-    private function boldFontPath(): string
-    {
-        return file_exists('C:/Windows/Fonts/arialbd.ttf') ? 'C:/Windows/Fonts/arialbd.ttf' : $this->fontPath();
-    }
-
-    private function drawText($image, string $font, int $size, int $x, int $y, int $color, string $text): void
-    {
-        if ($font && function_exists('imagettftext')) {
-            imagettftext($image, $size, 0, $x, $y, $color, $font, $text);
-            return;
-        }
-
-        imagestring($image, 5, $x, max(0, $y - 18), $text, $color);
     }
 
     private function cookTime(array $recipe): ?int
