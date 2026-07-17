@@ -77,24 +77,24 @@
             </div>
 
             <div class="col-xl-5">
-                <div class="shd_card p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="shd_card p-3 routine-library-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2 routine-library-head">
                         <h5 class="mb-0">Workout routines</h5>
                         <span class="h8 text-muted">Drag into a section</span>
                     </div>
-                    <div class="d-flex gap-2 mb-3">
-                        <div class="position-relative flex-grow-1">
+                    <div class="routine-toolbar mb-3">
+                        <div class="routine-search-wrap">
                             <input
                                 v-model="search"
                                 type="search"
-                                class="searchinput w-100"
+                                class="routine-search-input"
                                 placeholder="Search workout routines"
                                 @input="applySearch"
                             >
-                            <img class="searchab" src="/cms-assets/images/navbar-topbar/search.png" alt="search">
+                            <img class="routine-search-icon" src="/cms-assets/images/navbar-topbar/search.png" alt="search">
                         </div>
-                        <button class="trans_btn py-1 px-2" @click="filters = true" title="Filter by tags">
-                            <img src="/cms-assets/images/master-libraries/filter.png" alt="" class="img-fluid">
+                        <button class="routine-filter-btn" @click="filters = true" title="Filter by tags">
+                            <img src="/cms-assets/images/master-libraries/filter.png" alt="" class="routine-filter-icon">
                         </button>
                     </div>
                     <p v-if="selectedTagsForFilter.length" class="h8 text-muted mb-2">
@@ -171,10 +171,11 @@ export default {
                 },
             },
             sections: [
-                { id: 'warm_up', label: 'Warm-up' },
-                { id: 'stretching', label: 'Stretching' },
-                { id: 'strength_training', label: 'Strength training' },
+                { id: 'warm_up_cardio', label: 'Warm-up cardio' },
+                { id: 'warm_up', label: 'Warm-up routine' },
+                { id: 'workout_routine', label: 'Workout routine' },
                 { id: 'cardio', label: 'Cardio' },
+                { id: 'stretching', label: 'Stretching' },
                 { id: 'custom', label: 'Custom' },
             ],
             workouts: [],
@@ -210,8 +211,15 @@ export default {
     methods: {
         workoutsForSection(sectionId) {
             return (this.phaseWorkouts || [])
-                .filter((item) => (item.section_tag || 'custom') === sectionId)
+                .filter((item) => this.normalizedSectionTag(item.section_tag) === sectionId)
                 .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        },
+        normalizedSectionTag(sectionTag) {
+            const tag = sectionTag || 'custom';
+            if (['strength_training', 'high_intensity', 'circuit'].includes(tag)) {
+                return 'workout_routine';
+            }
+            return tag;
         },
         orderedPhaseWorkouts() {
             return [...(this.phaseWorkouts || [])].sort((a, b) => {
@@ -369,6 +377,62 @@ export default {
 .reorder-handle {
     cursor: grab;
 }
+.routine-library-card {
+    overflow: hidden;
+}
+.routine-library-head {
+    gap: 12px;
+}
+.routine-toolbar {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+.routine-search-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    position: relative;
+}
+.routine-search-input {
+    border: 1px solid #9c9c9c;
+    border-radius: 0;
+    color: #333;
+    font-size: 14px;
+    height: 38px;
+    line-height: 38px;
+    outline: none;
+    padding: 6px 12px 6px 38px;
+    width: 100%;
+}
+.routine-search-input::placeholder {
+    color: #8d8d8d;
+}
+.routine-search-icon {
+    height: 22px;
+    left: 10px;
+    object-fit: contain;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+}
+.routine-filter-btn {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    display: inline-flex;
+    flex: 0 0 42px;
+    height: 38px;
+    justify-content: center;
+    padding: 0;
+}
+.routine-filter-icon {
+    display: block;
+    height: 30px;
+    object-fit: contain;
+    width: 30px;
+}
 .day-badge,
 .language-badge {
     background: #111;
@@ -396,5 +460,14 @@ export default {
     padding-right: 5px;
     position: absolute;
     text-align: center;
+}
+@media (max-width: 575.98px) {
+    .routine-library-head {
+        align-items: flex-start !important;
+        flex-direction: column;
+    }
+    .routine-toolbar {
+        gap: 8px;
+    }
 }
 </style>

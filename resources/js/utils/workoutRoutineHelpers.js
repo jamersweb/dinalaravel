@@ -1,8 +1,9 @@
 export const ROUTINE_SECTION_TAGS = [
-    { id: 'warm_up', label: 'Warm-up' },
-    { id: 'stretching', label: 'Stretching' },
-    { id: 'strength_training', label: 'Strength training' },
+    { id: 'warm_up_cardio', label: 'Warm-up cardio' },
+    { id: 'warm_up', label: 'Warm-up routine' },
+    { id: 'workout_routine', label: 'Workout routine' },
     { id: 'cardio', label: 'Cardio' },
+    { id: 'stretching', label: 'Stretching' },
     { id: 'custom', label: 'Custom' },
 ];
 

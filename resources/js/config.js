@@ -8,7 +8,8 @@ var config = {
     // timeOptions for reps (time-based exercises)
     timeOptions: [
         "5 sec", "10 sec", "15 sec", "20 sec", "25 sec", "30 sec", "35 sec", "40 sec",
-        "45 sec", "50 sec", "55 sec", "60 sec", "90 sec", "2 min", "3 min", "4 min", "5 min", "10 min"
+        "45 sec", "50 sec", "55 sec", "60 sec", "90 sec", "2 min", "3 min", "4 min", "5 min",
+        "10 min", "15 min", "20 min", "25 min", "30 min", "35 min", "40 min", "45 min", "50 min", "55 min", "60 min"
     ],
     // Rest period: 0-240 seconds. Each option is { value: seconds, label: "0 sec" | "2 min" | ... }
     restPeriodOptions: [
