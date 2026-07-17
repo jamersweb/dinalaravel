@@ -507,13 +507,13 @@ export default {
         const localeTranslations = tempMD.locale_translations && typeof tempMD.locale_translations === 'object'
             ? tempMD.locale_translations
             : {};
-        tempMD.contains = JSON.parse(tempMD.contains);
-        tempMD.suitable_for = JSON.parse(tempMD.suitable_for);
-        tempMD.tags = JSON.parse(tempMD.tags);
+        tempMD.contains = this.parseFlexibleList(tempMD.contains);
+        tempMD.suitable_for = this.parseFlexibleList(tempMD.suitable_for);
+        tempMD.tags = this.parseFlexibleList(tempMD.tags).map((item) => Number(item)).filter((item) => !Number.isNaN(item));
         this.mealData = JSON.parse(JSON.stringify(tempMD));
         this.localizedContent.en = {
             name: tempMD.name,
-            ingredients: JSON.parse(tempMD.ingredients),
+            ingredients: this.parseFlexibleList(tempMD.ingredients),
             directions: this.parseJsonList(tempMD.directions),
             ingredientEntered: null,
         };
@@ -609,6 +609,39 @@ export default {
                     return [value];
                 }
                 return [];
+            }
+        },
+        parseFlexibleList(value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value === null || value === undefined || value === '') {
+                return [];
+            }
+
+            if (typeof value !== 'string') {
+                return [value];
+            }
+
+            const trimmed = value.trim();
+            if (trimmed === '') {
+                return [];
+            }
+
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+                if (parsed === null || parsed === undefined || parsed === '') {
+                    return [];
+                }
+                return [parsed];
+            } catch (e) {
+                return trimmed
+                    .split(/\r?\n|\r|,/)
+                    .map((item) => item.trim())
+                    .filter(Boolean);
             }
         },
         parseLocalizedIngredients(value) {

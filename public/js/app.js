@@ -55096,13 +55096,17 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     this.getAllTags();
     var tempNutrient = JSON.parse(JSON.stringify(this.mealData.nutrient));
     var localeTranslations = tempMD.locale_translations && _typeof(tempMD.locale_translations) === 'object' ? tempMD.locale_translations : {};
-    tempMD.contains = JSON.parse(tempMD.contains);
-    tempMD.suitable_for = JSON.parse(tempMD.suitable_for);
-    tempMD.tags = JSON.parse(tempMD.tags);
+    tempMD.contains = this.parseFlexibleList(tempMD.contains);
+    tempMD.suitable_for = this.parseFlexibleList(tempMD.suitable_for);
+    tempMD.tags = this.parseFlexibleList(tempMD.tags).map(function (item) {
+      return Number(item);
+    }).filter(function (item) {
+      return !Number.isNaN(item);
+    });
     this.mealData = JSON.parse(JSON.stringify(tempMD));
     this.localizedContent.en = {
       name: tempMD.name,
-      ingredients: JSON.parse(tempMD.ingredients),
+      ingredients: this.parseFlexibleList(tempMD.ingredients),
       directions: this.parseJsonList(tempMD.directions),
       ingredientEntered: null
     };
@@ -55200,6 +55204,35 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           return [value];
         }
         return [];
+      }
+    },
+    parseFlexibleList: function parseFlexibleList(value) {
+      if (Array.isArray(value)) {
+        return value;
+      }
+      if (value === null || value === undefined || value === '') {
+        return [];
+      }
+      if (typeof value !== 'string') {
+        return [value];
+      }
+      var trimmed = value.trim();
+      if (trimmed === '') {
+        return [];
+      }
+      try {
+        var parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+        if (parsed === null || parsed === undefined || parsed === '') {
+          return [];
+        }
+        return [parsed];
+      } catch (e) {
+        return trimmed.split(/\r?\n|\r|,/).map(function (item) {
+          return item.trim();
+        }).filter(Boolean);
       }
     },
     parseLocalizedIngredients: function parseLocalizedIngredients(value) {
