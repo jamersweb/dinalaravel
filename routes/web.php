@@ -95,6 +95,7 @@ Route::prefix('cms')->group(function () {
     Route::view('/teams', 'cms');
     Route::view('/program', 'cms');
     Route::view('/workout', 'cms');
+    Route::view('/routine-library', 'cms');
     Route::view('/habit', 'cms');
     Route::view('/exercises', 'cms');
     Route::view('/mealplan', 'cms');

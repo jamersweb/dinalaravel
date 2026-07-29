@@ -22,25 +22,26 @@
                 >
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="mb-0 fw-bold">{{ section.label }}</h6>
-                        <span class="h8 text-muted">{{ workoutsForSection(section.id).length }} routine(s)</span>
+                        <span class="h8 text-muted">{{ displayItemsForSection(section.id).length }} routine(s)</span>
                     </div>
-                    <div v-if="workoutsForSection(section.id).length === 0" class="text-center py-4 text-muted h8">
+                    <div v-if="displayItemsForSection(section.id).length === 0" class="text-center py-4 text-muted h8">
                         Drop a workout routine here
                     </div>
                     <div class="d-flex flex-wrap">
                         <div
-                            v-for="item in workoutsForSection(section.id)"
+                            v-for="item in displayItemsForSection(section.id)"
                             :key="item.id"
                             class="shd_card p-2 m-2 position-relative reorder-card"
                             style="width: 180px;"
-                            draggable="true"
+                            :draggable="!item.ai_section_preview"
                             @dragstart="startPhaseWorkoutDrag(item)"
-                            @dragover.prevent
-                            @drop.prevent="onReorderDrop(section.id, item)"
+                            @dragover.prevent="!item.ai_section_preview"
+                            @drop.prevent="!item.ai_section_preview && onReorderDrop(section.id, item)"
                         >
-                            <div class="reorder-handle h8 text-muted mb-1">
+                            <div v-if="!item.ai_section_preview" class="reorder-handle h8 text-muted mb-1">
                                 <i class="fa-solid fa-grip-vertical me-1"></i> Drag to reorder
                             </div>
+                            <div v-else class="h8 text-muted mb-1">AI section preview</div>
                             <span class="day-badge">Day {{ dayNumberForPhaseWorkout(item) }}</span>
                             <div v-if="item.workout_detail != null">
                                 <img
@@ -54,6 +55,7 @@
                             </div>
                             <img v-else src="/images/download1.png" alt="" class="img-fluid" style="width: 100%; height: 120px;">
                             <input
+                                v-if="!item.ai_section_preview"
                                 type="checkbox"
                                 class="position-absolute form-check-input"
                                 style="top:5px;left:10px"
@@ -62,9 +64,10 @@
                             >
                             <p class="mb-1 fw-bold h7">{{ item.display_name }}</p>
                             <p class="mb-1 h8">
-                                {{ item.workout_detail?.workout_exercises_count ?? 0 }} exercises
+                                {{ item.section_exercise_count ?? item.workout_detail?.workout_exercises_count ?? 0 }} exercises
                             </p>
                             <select
+                                v-if="!item.ai_section_preview"
                                 class="form-select form-select-sm"
                                 :value="item.section_tag || 'custom'"
                                 @change="updateSectionTag(item.id, $event.target.value)"
@@ -209,14 +212,63 @@ export default {
         this.loadTags();
     },
     methods: {
+        displayItemsForSection(sectionId) {
+            const realItems = this.workoutsForSection(sectionId);
+            const aiItems = this.aiSectionPreviewItems(sectionId);
+
+            return [...realItems, ...aiItems];
+        },
         workoutsForSection(sectionId) {
             return (this.phaseWorkouts || [])
                 .filter((item) => this.normalizedSectionTag(item.section_tag) === sectionId)
                 .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
         },
+        aiSectionPreviewItems(sectionId) {
+            const sectionKeys = {
+                warm_up_cardio: ['warm_up_cardio'],
+                warm_up: ['mobility_dynamic_warm_up', 'muscle_activation', 'core_lower_back_preparation'],
+                cardio: ['optional_additional_cardio'],
+                stretching: ['cool_down_stretching'],
+            }[sectionId] || [];
+
+            if (sectionKeys.length === 0) {
+                return [];
+            }
+
+            return this.orderedPhaseWorkouts()
+                .filter((item) => this.normalizedSectionTag(item.section_tag) === 'workout_routine')
+                .map((item) => {
+                    const routineSections = item.workout_detail?.routine_sections || {};
+                    const sectionCount = sectionKeys.reduce((total, key) => {
+                        const exercises = routineSections[key]?.exercises;
+                        return total + (Array.isArray(exercises) ? exercises.length : 0);
+                    }, 0);
+
+                    if (sectionCount === 0) {
+                        return null;
+                    }
+
+                    return {
+                        ...item,
+                        id: 'ai-section-' + sectionId + '-' + item.id,
+                        ai_section_preview: true,
+                        day_number: this.dayNumberForPhaseWorkout(item),
+                        display_name: 'Day ' + this.dayNumberForPhaseWorkout(item) + ' - ' + this.sectionLabel(sectionId),
+                        section_exercise_count: sectionCount,
+                    };
+                })
+                .filter(Boolean);
+        },
+        sectionLabel(sectionId) {
+            const section = this.sections.find((item) => item.id === sectionId);
+            return section ? section.label : sectionId;
+        },
         normalizedSectionTag(sectionTag) {
             const tag = sectionTag || 'custom';
             if (['strength_training', 'high_intensity', 'circuit'].includes(tag)) {
+                return 'workout_routine';
+            }
+            if (['fbs', 'ubs', 'lbs', 'psh', 'pul', 'leg', 'glu', 'cor', 'hic', 'msc'].includes(tag)) {
                 return 'workout_routine';
             }
             return tag;
@@ -228,6 +280,9 @@ export default {
             });
         },
         dayNumberForPhaseWorkout(item) {
+            if (item.day_number) {
+                return item.day_number;
+            }
             const index = this.orderedPhaseWorkouts().findIndex((phaseWorkout) => phaseWorkout.id === item.id);
             return index >= 0 ? index + 1 : 1;
         },
@@ -294,6 +349,9 @@ export default {
             this.draggedPhaseWorkout = null;
         },
         startPhaseWorkoutDrag(item) {
+            if (item.ai_section_preview) {
+                return;
+            }
             this.draggedPhaseWorkout = item;
             this.draggedLibraryWorkout = null;
         },

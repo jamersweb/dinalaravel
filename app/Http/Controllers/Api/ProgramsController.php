@@ -20,6 +20,7 @@ use App\Models\WorkoutsTracking;
 use App\Support\ContentCodeNormalizer;
 use App\Support\ContentLocaleResolver;
 use App\Support\UserContentLocale;
+use App\Services\AiProgramDisplayService;
 use App\Traits\NotificationsTrait;
 use App\Traits\ApiResponse;
 use Carbon\Carbon;
@@ -195,11 +196,11 @@ class ProgramsController extends Controller
         }
     }
 
-    function getDetailWithSubscribers($id)
+    function getDetailWithSubscribers($id, AiProgramDisplayService $aiProgramDisplay)
     {
         $program = Program::where('id', $id)->with(['subscribers' => function ($q) {
             $q->select('user_id', 'status', 'start_date', 'program_id');
-        }])->first(['id', 'title', 'discription', 'image', 'language', 'level', 'tags']);
+        }])->first(['id', 'title', 'discription', 'image', 'language', 'level', 'type', 'content_code', 'tags']);
 
         if (is_null($program)) {
             return $this->notFound('Program Not Found');
@@ -235,6 +236,9 @@ class ProgramsController extends Controller
             }
         }
 
+        $program->ai_schedule = $aiProgramDisplay->scheduleForProgram($program);
+        $program->is_ai_launch = $program->ai_schedule !== null;
+
         return $this->success($program);
     }
 
@@ -247,7 +251,7 @@ class ProgramsController extends Controller
                 $q->select('id', 'workout_id', 'display_name', 'section_tag', 'sort_order', 'program_phase_id')
                     ->orderBy('sort_order')
                     ->with(['workoutDetail' => function ($q2) {
-                        $q2->select('id', 'image', 'title')->withCount('workoutExercises');
+                        $q2->select('id', 'image', 'title', 'routine_sections')->withCount('workoutExercises');
                     }]);
             }])->first();
         if (is_null($phase))

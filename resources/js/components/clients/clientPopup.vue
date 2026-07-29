@@ -234,23 +234,146 @@
             <div v-if="consultation" class="mx-auto pt-3 brds-3 tsl position-relative" style="width:95%;min-height:335px;border:none">
                 <div class="d-flex justify-content-between align-items-start px-4 mb-3">
                     <p style="font-size:29px;margin:0px;">Consultation Form</p>
-                    <div v-if="logInDetails.role==='Admin'" class="habit-assignment-box">
-                        <p class="mb-1 fw-bold">Assign Habit List</p>
-                        <div class="d-flex gap-2">
-                            <select v-model="selectedHabitListId" class="form-select form-select-sm">
-                                <option :value="null">Select habit list</option>
-                                <option v-for="list in habitLists" :key="list.id" :value="list.id">
-                                    {{ list.name }}
-                                </option>
-                            </select>
-                            <button class="assign-btn" @click="assignHabitList">Assign</button>
+                    <div v-if="logInDetails.role==='Admin'" class="consultation-side-actions">
+                        <div class="habit-assignment-box">
+                            <p class="mb-1 fw-bold">Assign Habit List</p>
+                            <div class="d-flex gap-2">
+                                <select v-model="selectedHabitListId" class="form-select form-select-sm">
+                                    <option :value="null">Select habit list</option>
+                                    <option v-for="list in habitLists" :key="list.id" :value="list.id">
+                                        {{ list.name }}
+                                    </option>
+                                </select>
+                                <button class="assign-btn" @click="assignHabitList">Assign</button>
+                            </div>
+                            <p v-if="assignedHabitLists.length" class="assigned-list mb-0">
+                                Assigned:
+                                <span v-for="(list, index) in assignedHabitLists" :key="list.id">
+                                    {{ list.name }}<span v-if="index + 1 !== assignedHabitLists.length">, </span>
+                                </span>
+                            </p>
                         </div>
-                        <p v-if="assignedHabitLists.length" class="assigned-list mb-0">
-                            Assigned:
-                            <span v-for="(list, index) in assignedHabitLists" :key="list.id">
-                                {{ list.name }}<span v-if="index + 1 !== assignedHabitLists.length">, </span>
-                            </span>
+                    </div>
+                </div>
+                <div class="recommendation-box mx-4 mb-3">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                            <p class="mb-1 fw-bold">AI Recommendation</p>
+                            <p v-if="!consultationRecommendation" class="mb-0 muted-text">No recommendation generated yet.</p>
+                            <p v-else class="mb-0 muted-text">
+                                {{ readableStatus(consultationRecommendation.calculation_payload?.routine_source_status) }}
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button v-if="hasAssignedRoutines" class="assign-btn" @click="createProgramFromAssignedRoutines">Create Program</button>
+                            <button class="assign-btn" @click="generateClientRecommendation">Generate</button>
+                        </div>
+                    </div>
+
+                    <div class="recommendation-overrides mt-2">
+                        <select v-model="recommendationOverrides.training_level">
+                            <option value="">Auto level</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                        <select v-model="recommendationOverrides.equipment_category">
+                            <option value="">Auto equipment</option>
+                            <option value="bodyweight">Bodyweight</option>
+                            <option value="home_dumbbell">Home dumbbell</option>
+                            <option value="gym">Gym</option>
+                            <option value="full_gym">Full gym</option>
+                        </select>
+                        <select v-model="recommendationOverrides.weekly_workout_frequency">
+                            <option value="">Auto days</option>
+                            <option value="3">3 days</option>
+                            <option value="4">4 days</option>
+                            <option value="5">5 days</option>
+                            <option value="6">6 days</option>
+                        </select>
+                        <select v-model="recommendationOverrides.preferred_duration_minutes">
+                            <option value="">Auto minutes</option>
+                            <option value="15">15 min</option>
+                            <option value="20">20 min</option>
+                            <option value="30">30 min</option>
+                            <option value="45">45 min</option>
+                            <option value="60">60 min</option>
+                        </select>
+                        <select v-model="recommendationOverrides.language">
+                            <option value="">Auto language</option>
+                            <option value="en">English</option>
+                            <option value="ar">Arabic</option>
+                        </select>
+                    </div>
+
+                    <div v-if="consultationRecommendation" class="recommendation-grid mt-2">
+                        <div>
+                            <span>Calories</span>
+                            <strong>{{ consultationRecommendation.recommended_calories || 'Missing data' }}</strong>
+                        </div>
+                        <div>
+                            <span>BMR / TDEE</span>
+                            <strong>{{ consultationRecommendation.bmr || '-' }} / {{ consultationRecommendation.tdee || '-' }}</strong>
+                        </div>
+                        <div>
+                            <span>Training</span>
+                            <strong>{{ readableStatus(consultationRecommendation.training_level) }} / {{ readableStatus(consultationRecommendation.equipment_category) }}</strong>
+                        </div>
+                        <div>
+                            <span>Weekly</span>
+                            <strong>{{ consultationRecommendation.weekly_workout_frequency || '-' }} workouts</strong>
+                        </div>
+                    </div>
+
+                    <div v-if="consultationRecommendation" class="recommendation-details mt-2">
+                        <p v-if="arrayText(consultationRecommendation.missing_fields)" class="mb-1">
+                            <strong>Missing:</strong> {{ arrayText(consultationRecommendation.missing_fields) }}
                         </p>
+                        <p v-if="arrayText(consultationRecommendation.injury_precautions)" class="mb-1">
+                            <strong>Injuries:</strong> {{ arrayText(consultationRecommendation.injury_precautions) }}
+                        </p>
+                        <p v-if="recommendationNotes" class="mb-0">
+                            <strong>Notes:</strong> {{ recommendationNotes }}
+                        </p>
+                    </div>
+                    <div v-if="recommendationWarnings.length" class="recommendation-warning mt-2">
+                        <strong>Coach review required</strong>
+                        <span>{{ arrayText(recommendationWarnings) }}</span>
+                    </div>
+                    <div v-if="recommendedPrograms.length" class="routine-recommendation-list mt-2">
+                        <p class="mb-1 fw-bold">Recommended Programs</p>
+                        <div v-for="program in recommendedPrograms" :key="program.id" class="routine-recommendation-row">
+                            <div>
+                                <strong>{{ program.content_code || ('Program #' + program.id) }}</strong>
+                                <span>{{ program.title }}</span>
+                            </div>
+                            <div class="routine-meta">
+                                <span>{{ readableStatus(program.level) }}</span>
+                                <span>{{ program.weeks || 0 }} weeks</span>
+                                <span>{{ program.days || 0 }} days</span>
+                            </div>
+                            <div class="routine-action">
+                                <span v-if="program.subscription_status" class="assigned-pill">{{ readableStatus(program.subscription_status) }}</span>
+                                <button v-else class="assign-btn" @click="assignRecommendedProgram(program.id)">Assign</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="recommendedRoutines.length" class="routine-recommendation-list mt-2">
+                        <p class="mb-1 fw-bold">Recommended Routines</p>
+                        <div v-for="routine in recommendedRoutines" :key="routine.id" class="routine-recommendation-row">
+                            <div>
+                                <strong>{{ routine.content_code || ('Routine #' + routine.id) }}</strong>
+                                <span>{{ routine.title }}</span>
+                            </div>
+                            <div class="routine-meta">
+                                <span>{{ readableStatus(routine.routine_status) }}</span>
+                                <span>{{ routine.workout_exercises_count || 0 }} exercises</span>
+                            </div>
+                            <div class="routine-action">
+                                <span v-if="routine.assignment_status" class="assigned-pill">{{ readableStatus(routine.assignment_status) }}</span>
+                                <button v-else class="assign-btn" @click="assignRecommendedRoutine(routine.id)">Assign</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="w-100 px-4" v-for="(item, index) in consultationDetails" :key="index">
@@ -428,6 +551,14 @@ export default {
             userDetails: null,
             consultationText: null,
             consultationDetails: null,
+            consultationRecommendation: null,
+            recommendationOverrides: {
+                training_level: '',
+                equipment_category: '',
+                weekly_workout_frequency: '',
+                preferred_duration_minutes: '',
+                language: ''
+            },
             userAttachments: null,
             attachmentFile: null,
             habitLists: [],
@@ -453,6 +584,7 @@ export default {
     mounted() {
         this.getClientDetails();
         this.getClientConsultation();
+        this.getClientRecommendation();
         this.getClientInvoices();
         this.getClientTags();
         this.getHabitLists();
@@ -460,6 +592,36 @@ export default {
             this.getAttachments();
         if (this.initialTab === 'invoices') {
             this.$nextTick(() => this.showInvoices());
+        }
+    },
+    computed: {
+        recommendationNotes() {
+            const notes = this.consultationRecommendation?.calculation_payload?.notes;
+            return this.arrayText(notes);
+        },
+        recommendationWarnings() {
+            const notes = this.consultationRecommendation?.calculation_payload?.notes;
+            if (!Array.isArray(notes)) {
+                return [];
+            }
+
+            return notes.filter((note) => {
+                const text = String(note || '').toLowerCase();
+                return text.includes('injury') || text.includes('medical') || text.includes('clearance') || text.includes('coach');
+            });
+        },
+        recommendedRoutines() {
+            return Array.isArray(this.consultationRecommendation?.recommended_routines)
+                ? this.consultationRecommendation.recommended_routines
+                : [];
+        },
+        recommendedPrograms() {
+            return Array.isArray(this.consultationRecommendation?.recommended_programs)
+                ? this.consultationRecommendation.recommended_programs
+                : [];
+        },
+        hasAssignedRoutines() {
+            return this.recommendedRoutines.some((routine) => routine.assignment_status === 'assigned');
         }
     },
     methods: {
@@ -684,6 +846,150 @@ export default {
                     this.modalDetail = er;
                     this.informModal = true;
                 })
+        },
+        getClientRecommendation() {
+            axios.get(config.baseApiUrl + 'routine-library/recommendations/users/' + this.idForDetails, this.apiConfig).then(res => {
+                if (res.data.status) {
+                    this.consultationRecommendation = res.data.data;
+                }
+            }).catch(() => {
+                this.consultationRecommendation = null;
+            });
+        },
+        generateClientRecommendation() {
+            this.pageLoading = true;
+            this.loaderText = 'Generating recommendation';
+            axios.post(config.baseApiUrl + 'routine-library/recommendations/users/' + this.idForDetails, this.cleanedRecommendationOverrides(), this.apiConfig).then(res => {
+                this.pageLoading = false;
+                if (res.data.status) {
+                    this.consultationRecommendation = res.data.data;
+                    this.modalTitle = 'Done!';
+                    this.modalDetail = 'Recommendation generated successfully';
+                    this.informModal = true;
+                }
+                else {
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                }
+            }).catch(er => {
+                this.pageLoading = false;
+                this.modalTitle = 'Error!';
+                this.modalDetail = er.response?.data?.message || er.message || er;
+                this.informModal = true;
+            });
+        },
+        cleanedRecommendationOverrides() {
+            const payload = {};
+            Object.entries(this.recommendationOverrides).forEach(([key, value]) => {
+                if (value !== '' && value !== null && value !== undefined) {
+                    payload[key] = ['weekly_workout_frequency', 'preferred_duration_minutes'].includes(key)
+                        ? Number(value)
+                        : value;
+                }
+            });
+
+            return payload;
+        },
+        assignRecommendedProgram(programId, replaceActive = false) {
+            this.pageLoading = true;
+            this.loaderText = 'Assigning program';
+            axios.post(config.baseApiUrl + 'routine-library/recommendations/users/' + this.idForDetails + '/assign-program', {
+                program_id: programId,
+                replace_active: replaceActive
+            }, this.apiConfig).then(res => {
+                this.pageLoading = false;
+                if (res.data.status) {
+                    this.consultationRecommendation = res.data.data.recommendation;
+                    this.modalTitle = 'Done!';
+                    this.modalDetail = res.data.message || 'Program assigned successfully';
+                    this.informModal = true;
+                    this.getClientDetails();
+                }
+                else {
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                }
+            }).catch(er => {
+                this.pageLoading = false;
+                const hasActiveProgram = er.response?.data?.data?.active_program;
+                if (hasActiveProgram && !replaceActive && window.confirm('Client already has an active program. Replace it with this recommendation?')) {
+                    this.assignRecommendedProgram(programId, true);
+                    return;
+                }
+
+                this.modalTitle = 'Error!';
+                this.modalDetail = er.response?.data?.message || er.message || er;
+                this.informModal = true;
+            });
+        },
+        assignRecommendedRoutine(workoutId) {
+            this.pageLoading = true;
+            this.loaderText = 'Assigning routine';
+            axios.post(config.baseApiUrl + 'routine-library/recommendations/users/' + this.idForDetails + '/assign-routine', {
+                workout_id: workoutId
+            }, this.apiConfig).then(res => {
+                this.pageLoading = false;
+                if (res.data.status) {
+                    this.consultationRecommendation = res.data.data.recommendation;
+                    this.modalTitle = 'Done!';
+                    this.modalDetail = res.data.message || 'Routine assigned successfully';
+                    this.informModal = true;
+                    this.getClientDetails();
+                }
+                else {
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                }
+            }).catch(er => {
+                this.pageLoading = false;
+                this.modalTitle = 'Error!';
+                this.modalDetail = er.response?.data?.message || er.message || er;
+                this.informModal = true;
+            });
+        },
+        createProgramFromAssignedRoutines() {
+            this.pageLoading = true;
+            this.loaderText = 'Creating program';
+            axios.post(config.baseApiUrl + 'routine-library/recommendations/users/' + this.idForDetails + '/create-program', {}, this.apiConfig).then(res => {
+                this.pageLoading = false;
+                if (res.data.status) {
+                    this.modalTitle = 'Done!';
+                    this.modalDetail = res.data.message || 'Program created successfully';
+                    this.informModal = true;
+                    this.getClientRecommendation();
+                    this.getClientDetails();
+                }
+                else {
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = res.data.message;
+                    this.informModal = true;
+                }
+            }).catch(er => {
+                this.pageLoading = false;
+                this.modalTitle = 'Error!';
+                this.modalDetail = er.response?.data?.message || er.message || er;
+                this.informModal = true;
+            });
+        },
+        arrayText(value) {
+            if (Array.isArray(value)) {
+                return value.join(', ');
+            }
+            if (typeof value === 'string') {
+                try {
+                    const decoded = JSON.parse(value);
+                    return Array.isArray(decoded) ? decoded.join(', ') : value;
+                } catch (e) {
+                    return value;
+                }
+            }
+            return '';
+        },
+        readableStatus(value) {
+            return String(value || '').replaceAll('_', ' ');
         },
         // saveAttachments() {
         //     if (this.attachmentFile == null) {
@@ -929,6 +1235,144 @@ export default {
     background-color: #FFFFFF;
 }
 
+.consultation-side-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recommendation-box {
+    border: 1px solid #E7E7E7;
+    border-radius: 10px;
+    padding: 12px;
+    background-color: #FFFFFF;
+}
+
+.recommendation-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.recommendation-overrides {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(5, minmax(105px, 1fr));
+}
+
+.recommendation-overrides select {
+    border: 1px solid #DDDDDD;
+    border-radius: 6px;
+    color: #333333;
+    font-size: 12px;
+    min-height: 34px;
+    padding: 4px 8px;
+    width: 100%;
+}
+
+.recommendation-grid div {
+    border: 1px solid #EEEEEE;
+    border-radius: 8px;
+    min-height: 58px;
+    padding: 8px;
+}
+
+.recommendation-grid span {
+    color: #777;
+    display: block;
+    font-size: 11px;
+}
+
+.recommendation-grid strong {
+    color: #333;
+    display: block;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+    text-transform: capitalize;
+}
+
+.recommendation-details {
+    color: #555;
+    font-size: 12px;
+}
+
+.recommendation-warning {
+    background-color: #FFF4E8;
+    border: 1px solid #F2A18C;
+    border-radius: 8px;
+    color: #6B3300;
+    font-size: 12px;
+    padding: 8px 10px;
+}
+
+.recommendation-warning strong,
+.recommendation-warning span {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.routine-recommendation-list {
+    border-top: 1px solid #EEEEEE;
+    max-height: 230px;
+    overflow: auto;
+    padding-top: 8px;
+}
+
+.routine-recommendation-row {
+    align-items: center;
+    border: 1px solid #EEEEEE;
+    border-radius: 8px;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    min-height: 48px;
+    padding: 7px 9px;
+}
+
+.routine-recommendation-row strong,
+.routine-recommendation-row span {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.routine-recommendation-row strong {
+    color: #333;
+    font-size: 12px;
+}
+
+.routine-recommendation-row span {
+    color: #666;
+    font-size: 12px;
+}
+
+.routine-meta {
+    flex: 0 0 105px;
+    text-align: right;
+    text-transform: capitalize;
+}
+
+.routine-action {
+    flex: 0 0 82px;
+    text-align: right;
+}
+
+.assigned-pill {
+    background-color: #E5F8EC;
+    border-radius: 12px;
+    color: #147333;
+    display: inline-block;
+    font-size: 11px;
+    padding: 4px 8px;
+    text-transform: capitalize;
+}
+
+.muted-text {
+    color: #777;
+    font-size: 12px;
+    text-transform: capitalize;
+}
+
 .assign-btn {
     border: none;
     border-radius: 5px;
@@ -942,5 +1386,44 @@ export default {
     margin-top: 8px;
     color: #777;
     font-size: 12px;
+}
+
+@media (max-width: 991.98px) {
+    .recommendation-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .recommendation-overrides {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .habit-assignment-box {
+        width: 100%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .recommendation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .recommendation-overrides {
+        grid-template-columns: 1fr;
+    }
+
+    .routine-recommendation-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .routine-meta {
+        flex: 0 0 auto;
+        text-align: left;
+    }
+
+    .routine-action {
+        flex: 0 0 auto;
+        text-align: left;
+    }
 }
 </style>

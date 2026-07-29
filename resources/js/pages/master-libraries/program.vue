@@ -199,6 +199,87 @@
                                     class="px-2 py-1 prim_bg mx-2 brds-1 my-1" style="height:35px;">{{ tag }}</span>
                             </div>
                         </div>
+                        <div v-if="hasAiSchedule" class="ai-schedule-panel mt-3" style="clear: both;">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <h4 class="mb-0" style="font-size: 26px;">AI Program Schedule</h4>
+                                <div class="ai-schedule-meta">
+                                    <span>{{ programDetail.ai_schedule.total_weeks }} weeks</span>
+                                    <span>{{ readableLabel(programDetail.ai_schedule.level) }}</span>
+                                    <span>{{ readableLabel(programDetail.ai_schedule.type) }}</span>
+                                </div>
+                            </div>
+                            <div class="ai-week-tabs mt-2">
+                                <button
+                                    v-for="week in programDetail.ai_schedule.weeks"
+                                    :key="week.week_no"
+                                    :class="{ active: selectedAiWeekNo === week.week_no }"
+                                    @click="selectAiWeek(week.week_no)"
+                                >
+                                    Week {{ week.week_no }}
+                                </button>
+                            </div>
+                            <div v-if="selectedAiWeek" class="ai-day-grid mt-3">
+                                <button
+                                    v-for="day in selectedAiWeek.days"
+                                    :key="day.id"
+                                    class="ai-day-card"
+                                    :class="[dayTypeClass(day.day_type), { active: selectedAiDayNo === day.day_no }]"
+                                    @click="selectedAiDayNo = day.day_no"
+                                >
+                                    <span>{{ day.day_label }}</span>
+                                    <strong>{{ day.day_type_label }}</strong>
+                                    <small>{{ day.display_name }}</small>
+                                    <em v-if="day.estimated_minutes">{{ day.estimated_minutes }} min</em>
+                                </button>
+                            </div>
+                            <div v-if="selectedAiDay" class="ai-day-detail mt-3">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                    <div>
+                                        <h5 class="mb-1">{{ selectedAiDay.display_name }}</h5>
+                                        <p class="mb-0 ai-muted">
+                                            {{ selectedAiDay.day_label }} · {{ selectedAiDay.day_type_label }}
+                                            <span v-if="selectedAiDay.training_style"> · {{ selectedAiDay.training_style }}</span>
+                                        </p>
+                                    </div>
+                                    <div class="ai-schedule-meta">
+                                        <span v-if="selectedAiDay.estimated_minutes">{{ selectedAiDay.estimated_minutes }} min</span>
+                                        <span v-if="selectedAiDay.muscle_groups?.length">{{ selectedAiDay.muscle_groups.join(', ') }}</span>
+                                    </div>
+                                </div>
+                                <div v-if="selectedAiDay.progression_notes?.focus" class="ai-note-row mt-2">
+                                    <strong>{{ selectedAiDay.progression_notes.focus }}</strong>
+                                    <span>{{ (selectedAiDay.progression_notes.rules || []).join(', ') }}</span>
+                                </div>
+                                <div v-if="selectedAiDay.recovery_guidance?.length" class="ai-recovery-list mt-2">
+                                    <p v-for="note in selectedAiDay.recovery_guidance" :key="note" class="mb-1">{{ note }}</p>
+                                </div>
+                                <div v-for="section in selectedAiDay.sections" :key="section.key" class="ai-section mt-3">
+                                    <h6>{{ section.label }}</h6>
+                                    <div v-for="exercise in section.exercises" :key="exercise.workout_exercise_id" class="ai-exercise-row">
+                                        <div class="ai-exercise-media">
+                                            <img v-if="exercise.image" :src="exercise.image" alt="">
+                                            <div v-else class="ai-media-placeholder">No image</div>
+                                        </div>
+                                        <div class="ai-exercise-main">
+                                            <strong>{{ exercise.title || ('Exercise #' + exercise.exercise_id) }}</strong>
+                                            <span>{{ exercise.content_code }}</span>
+                                            <p class="mb-0">{{ exercise.description }}</p>
+                                            <a v-if="exercise.video_url" :href="exercise.video_url" target="_blank" rel="noopener">Video</a>
+                                        </div>
+                                        <div class="ai-exercise-prescription">
+                                            <span v-if="exercise.sets">Sets: {{ exercise.sets }}</span>
+                                            <span v-if="exercise.reps">Reps: {{ exercise.reps }}</span>
+                                            <span v-if="exercise.time">Time: {{ exercise.time }}</span>
+                                            <span v-if="exercise.rest_period">Rest: {{ exercise.rest_period }}s</span>
+                                            <span v-if="exercise.intensity_level">{{ readableLabel(exercise.intensity_level) }}</span>
+                                        </div>
+                                        <div v-if="exercise.safety_notes?.length || exercise.injury_cautions?.length" class="ai-exercise-safety">
+                                            {{ [...(exercise.safety_notes || []), ...(exercise.injury_cautions || [])].join(', ') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mt-3" style="clear: both;">
                             <h4 class="mb-2" style="font-size: 26px;">Subscribers</h4>
                             <div>
@@ -371,6 +452,8 @@ export default {
             phaseId: null,
             progid: null,
             progweeks: null,
+            selectedAiWeekNo: null,
+            selectedAiDayNo: null,
             newWorkout: null,
             workoutBuilder: false
         };
@@ -379,6 +462,28 @@ export default {
         this.$emit('adminCheckEvent');
         this.getTags();
         this.getAllPrograms();
+    },
+    computed: {
+        hasAiSchedule() {
+            return Array.isArray(this.programDetail?.ai_schedule?.weeks)
+                && this.programDetail.ai_schedule.weeks.length > 0;
+        },
+        selectedAiWeek() {
+            if (!this.hasAiSchedule) {
+                return null;
+            }
+
+            return this.programDetail.ai_schedule.weeks.find((week) => week.week_no === this.selectedAiWeekNo)
+                || this.programDetail.ai_schedule.weeks[0];
+        },
+        selectedAiDay() {
+            if (!this.selectedAiWeek || !Array.isArray(this.selectedAiWeek.days)) {
+                return null;
+            }
+
+            return this.selectedAiWeek.days.find((day) => day.day_no === this.selectedAiDayNo)
+                || this.selectedAiWeek.days[0];
+        }
     },
     methods: {
         applyFilters(tagIds){
@@ -760,6 +865,7 @@ export default {
                     this.finalVisiblePrograms = this.programs;
                     this.tagsFilteredPrograms = this.programs;
                     this.detailOpenControl();
+                    this.openProgramFromQuery();
                 }
                 else {
                     this.modalTitle = 'Error!';
@@ -774,6 +880,21 @@ export default {
                 this.informModal = true;
                 console.log("Error in get all program", er.error);
             });
+        },
+        openProgramFromQuery() {
+            const programId = Number(this.$route.query.program_id || 0);
+            if (!programId) {
+                return;
+            }
+            const index = this.finalVisiblePrograms.findIndex((program) => Number(program.id) === programId);
+            if (index < 0) {
+                return;
+            }
+            this.detailOpen = this.detailOpen.map(() => false);
+            this.detailOpen[index] = true;
+            this.progid = programId;
+            this.progweeks = this.finalVisiblePrograms[index].weeks;
+            this.fetchProgramDetail(this.progid, this.progweeks);
         },
         toggleProgDetail(index, id, weeks,) {
             this.programDetailVisible = false;
@@ -803,6 +924,7 @@ export default {
                     this.programDiscr = this.programDetail.discription;
                     this.programImageFile = null;
                     this.programImagePreview = null;
+                    this.resetAiScheduleSelection();
                 }
                 else {
                     this.modalTitle = 'Error!';
@@ -851,6 +973,32 @@ export default {
                 this.informModal = true;
                 console.log("Error in fetch program detail", er.error);
             });
+        },
+        resetAiScheduleSelection() {
+            if (!this.hasAiSchedule) {
+                this.selectedAiWeekNo = null;
+                this.selectedAiDayNo = null;
+                return;
+            }
+
+            const firstWeek = this.programDetail.ai_schedule.weeks[0];
+            this.selectedAiWeekNo = firstWeek.week_no;
+            this.selectedAiDayNo = firstWeek.days?.[0]?.day_no || 1;
+        },
+        selectAiWeek(weekNo) {
+            this.selectedAiWeekNo = weekNo;
+            const week = this.programDetail.ai_schedule.weeks.find((item) => item.week_no === weekNo);
+            this.selectedAiDayNo = week?.days?.[0]?.day_no || 1;
+        },
+        dayTypeClass(dayType) {
+            return {
+                workout: 'ai-day-workout',
+                rest: 'ai-day-rest',
+                active_recovery: 'ai-day-recovery',
+            }[dayType] || 'ai-day-rest';
+        },
+        readableLabel(value) {
+            return String(value || '').replaceAll('_', ' ');
         },
         toggleNewProgram() {
             this.newProgVisible = !this.newProgVisible;
@@ -1102,6 +1250,211 @@ input:focus-visible {
     box-shadow: none !important;
 }
 
+.ai-schedule-panel {
+    border-top: 1px solid #E7E7E7;
+    padding-top: 14px;
+}
+
+.ai-schedule-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.ai-schedule-meta span {
+    background: #F5F5F5;
+    border-radius: 6px;
+    color: #555;
+    font-size: 12px;
+    padding: 4px 8px;
+    text-transform: capitalize;
+}
+
+.ai-week-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.ai-week-tabs button {
+    background: #FFFFFF;
+    border: 1px solid #D8D8D8;
+    border-radius: 6px;
+    color: #444;
+    flex: 0 0 auto;
+    font-size: 12px;
+    padding: 5px 10px;
+}
+
+.ai-week-tabs button.active {
+    background: #F2A18C;
+    border-color: #F2A18C;
+    color: #111;
+}
+
+.ai-day-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(7, minmax(95px, 1fr));
+}
+
+.ai-day-card {
+    border: 1px solid #E2E2E2;
+    border-radius: 8px;
+    min-height: 104px;
+    padding: 8px;
+    text-align: left;
+}
+
+.ai-day-card span,
+.ai-day-card strong,
+.ai-day-card small,
+.ai-day-card em {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.ai-day-card span {
+    color: #777;
+    font-size: 11px;
+}
+
+.ai-day-card strong {
+    color: #222;
+    font-size: 13px;
+    text-transform: capitalize;
+}
+
+.ai-day-card small {
+    color: #555;
+    font-size: 11px;
+    line-height: 1.25;
+    margin-top: 5px;
+}
+
+.ai-day-card em {
+    color: #777;
+    font-size: 11px;
+    font-style: normal;
+    margin-top: 5px;
+}
+
+.ai-day-card.active {
+    box-shadow: 0 0 0 2px #F2A18C inset;
+}
+
+.ai-day-workout {
+    background: #FFFFFF;
+}
+
+.ai-day-rest {
+    background: #F7F7F7;
+}
+
+.ai-day-recovery {
+    background: #EEF7F2;
+}
+
+.ai-day-detail {
+    border: 1px solid #E7E7E7;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.ai-muted {
+    color: #777;
+    font-size: 12px;
+}
+
+.ai-note-row,
+.ai-recovery-list {
+    background: #F8F8F8;
+    border-radius: 6px;
+    color: #555;
+    font-size: 12px;
+    padding: 8px;
+}
+
+.ai-note-row strong,
+.ai-note-row span {
+    display: block;
+}
+
+.ai-section {
+    border-top: 1px solid #EEEEEE;
+    padding-top: 10px;
+}
+
+.ai-section h6 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.ai-exercise-row {
+    align-items: flex-start;
+    border: 1px solid #EEEEEE;
+    border-radius: 8px;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 70px minmax(180px, 1fr) minmax(120px, 160px);
+    margin-bottom: 8px;
+    padding: 8px;
+}
+
+.ai-exercise-media img,
+.ai-media-placeholder {
+    background: #F3F3F3;
+    border-radius: 6px;
+    height: 58px;
+    object-fit: cover;
+    width: 70px;
+}
+
+.ai-media-placeholder {
+    align-items: center;
+    color: #999;
+    display: flex;
+    font-size: 10px;
+    justify-content: center;
+    text-align: center;
+}
+
+.ai-exercise-main strong,
+.ai-exercise-main span,
+.ai-exercise-main p,
+.ai-exercise-main a,
+.ai-exercise-prescription span,
+.ai-exercise-safety {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.ai-exercise-main strong {
+    color: #222;
+    font-size: 13px;
+}
+
+.ai-exercise-main span,
+.ai-exercise-main p,
+.ai-exercise-main a,
+.ai-exercise-prescription span {
+    color: #666;
+    font-size: 12px;
+}
+
+.ai-exercise-prescription {
+    text-align: right;
+}
+
+.ai-exercise-safety {
+    color: #8A4B00;
+    font-size: 11px;
+    grid-column: 2 / 4;
+}
+
 .filterBtn {
     height: 40px;
     width: 260px;
@@ -1118,5 +1471,26 @@ input:focus-visible {
     right: 20px;
     top: 15px;
     height: 8px;
+}
+
+@media (max-width: 1200px) {
+    .ai-day-grid {
+        grid-template-columns: repeat(4, minmax(110px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .ai-day-grid,
+    .ai-exercise-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-exercise-prescription {
+        text-align: left;
+    }
+
+    .ai-exercise-safety {
+        grid-column: auto;
+    }
 }
 </style>

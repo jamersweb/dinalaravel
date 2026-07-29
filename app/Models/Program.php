@@ -26,6 +26,12 @@ class Program extends Model
         return $this->hasMany(ProgramPhase::class,'program_id','id');
     }
 
+    function aiWeekDays(){
+        return $this->hasMany(AiProgramWeekDay::class, 'program_id', 'id')
+            ->orderBy('week_no')
+            ->orderBy('day_no');
+    }
+
     function totalWeeks(){
         $weeks = ProgramPhase::where('program_id',$this->id)->pluck('weeks')->toArray();
         return array_sum($weeks);

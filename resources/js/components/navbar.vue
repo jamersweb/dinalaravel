@@ -89,6 +89,15 @@
                             <p v-show="!collapsedMenu" :class="{masterlibraries:collapsedMenu}">Workout</p>
                         </div>
                     </router-link>
+                    <router-link class="menu_item px-4 mx-0" to="/cms/routine-library">
+                        <div class="ms-4" :class="{widthalign:!collapsedMenu}">
+                            <img src="/cms-assets/images/navbar-topbar/workout.png" alt="" :class="{collapsedimg:collapsedMenu}" class="img-fluid"
+                                style="height:25px;width:30px;">
+                        </div>
+                        <div>
+                            <p v-show="!collapsedMenu" :class="{masterlibraries:collapsedMenu}">Routine Library</p>
+                        </div>
+                    </router-link>
                     <router-link class="menu_item px-4 mx-0" to="/cms/habit">
                         <div class="ms-4" :class="{widthalign:!collapsedMenu}">
                             <img src="/cms-assets/images/navbar-topbar/habit.png" alt="" :class="{collapsedimg:collapsedMenu}" class="img-fluid"

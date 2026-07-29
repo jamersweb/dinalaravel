@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\CmsLocalizationController;
 use App\Http\Controllers\Api\CmsStoreSubscriptionController;
 use App\Http\Controllers\Api\RecipeImportController;
+use App\Http\Controllers\Api\RoutineLibraryController;
 
 Route::get('/test-noti',[NotificationsController::class,'sendNotification']);
 
@@ -89,6 +90,26 @@ Route::group(['prefix' => 'cms'], function(){
         Route::get('get-workout-detail/{id}',[WorkoutController::class,'detailedWorkout']);
         Route::post('delete-detailed-workout',[WorkoutController::class,'delteWorkoutDetaled']);
         Route::get('all-workouts-list',[WorkoutController::class,'allWorkoutsList']);
+
+        // Routine Library + Consultation Recommendations
+        Route::get('routine-library/audit', [RoutineLibraryController::class, 'audit']);
+        Route::post('routine-library/sync-exercise-tags', [RoutineLibraryController::class, 'syncExerciseTags']);
+        Route::get('routine-library/exercise-tags', [RoutineLibraryController::class, 'exerciseTags']);
+        Route::post('routine-library/exercise-tags', [RoutineLibraryController::class, 'tagExercise']);
+        Route::post('routine-library/exercise-tags/bulk-review', [RoutineLibraryController::class, 'bulkReviewExerciseTags']);
+        Route::post('routine-library/exercise-tags/{id}/review', [RoutineLibraryController::class, 'reviewExerciseTag']);
+        Route::post('routine-library/generate-batch', [RoutineLibraryController::class, 'generateBatch']);
+        Route::get('routine-library/batches', [RoutineLibraryController::class, 'batches']);
+        Route::get('routine-library/launch-matrix', [RoutineLibraryController::class, 'launchMatrixDashboard']);
+        Route::post('routine-library/launch-matrix/build', [RoutineLibraryController::class, 'buildLaunchMatrix']);
+        Route::get('routine-library/routines', [RoutineLibraryController::class, 'routines']);
+        Route::post('routine-library/routines/bulk-review', [RoutineLibraryController::class, 'bulkReviewRoutines']);
+        Route::post('routine-library/routines/{id}/review', [RoutineLibraryController::class, 'reviewRoutine']);
+        Route::get('routine-library/recommendations/users/{userId}', [RoutineLibraryController::class, 'latestRecommendationForUser']);
+        Route::post('routine-library/recommendations/users/{userId}', [RoutineLibraryController::class, 'recommendForUser']);
+        Route::post('routine-library/recommendations/users/{userId}/assign-program', [RoutineLibraryController::class, 'assignRecommendedProgram']);
+        Route::post('routine-library/recommendations/users/{userId}/assign-routine', [RoutineLibraryController::class, 'assignRecommendedRoutine']);
+        Route::post('routine-library/recommendations/users/{userId}/create-program', [RoutineLibraryController::class, 'createProgramFromAssignedRoutines']);
 
 		// Programs routes
 		Route::post('create-new-program',[ProgramsController::class,'createProgram']);

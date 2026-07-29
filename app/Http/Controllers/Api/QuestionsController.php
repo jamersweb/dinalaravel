@@ -10,10 +10,12 @@ use App\Models\UserAnswer;
 use App\Models\UserSetting;
 use App\Models\UserTag;
 use App\Models\ConsultationForm;
+use App\Services\ConsultationRecommendationService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class QuestionsController extends Controller
@@ -168,6 +170,15 @@ class QuestionsController extends Controller
                 ConsultationForm::create([
                     'user_id' => $userId,
                     'completed_at' => now(),
+                ]);
+            }
+
+            try {
+                app(ConsultationRecommendationService::class)->recommendForUser($userId);
+            } catch (Exception $recommendationError) {
+                Log::warning('Consultation recommendation generation failed.', [
+                    'user_id' => $userId,
+                    'error' => $recommendationError->getMessage(),
                 ]);
             }
         } catch(Exception $er){

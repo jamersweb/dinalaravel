@@ -13,4 +13,9 @@ class UserAnswer extends Model
     {
         return \Database\Factories\UserAnswerFactory::new();
     }
+
+    public function question()
+    {
+        return $this->belongsTo(Question::class);
+    }
 }

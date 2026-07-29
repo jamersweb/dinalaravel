@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClientRoutineAssignment;
 use App\Models\ProgramPhaseWorkout;
 use App\Models\Tag;
 use App\Models\UserSetting;
@@ -386,10 +387,16 @@ class WorkoutController extends Controller
         $lang = strtolower((string) $request->input('lang', UserContentLocale::forAuthenticatedUser()));
         $tagIds = $this->normalizeWorkoutTagIds($request->input('tag_ids'));
         $wrks = Workout::where('category', 'master')
+            ->where(function ($query) {
+                $query->whereNull('routine_status')
+                    ->orWhere('routine_status', 'approved');
+            })
             ->availableInContentLocale($lang)
+            ->select(['id', 'title', 'type', 'content_code', 'image', 'tags', 'language', 'locale_translations'])
+            ->withCount('workoutExercises')
             ->orderBy('title', 'asc')
             ->orderBy('id', 'asc')
-            ->get(['id', 'title', 'type', 'content_code', 'image', 'tags', 'language', 'locale_translations']);
+            ->get();
         $returnData = [];
         foreach ($wrks as $wrk) {
             if (WorkoutExercise::where('workout_id', $wrk->id)->count() === 0) {
@@ -405,6 +412,52 @@ class WorkoutController extends Controller
         return response()->json([
             'status' => true,
             'data' => $returnData,
+        ]);
+    }
+
+    public function assignedRoutines()
+    {
+        $assignments = ClientRoutineAssignment::query()
+            ->where('user_id', Auth::id())
+            ->whereIn('status', ['assigned', 'packaged'])
+            ->with(['workout' => function ($query) {
+                $query->select([
+                    'id',
+                    'title',
+                    'type',
+                    'content_code',
+                    'image',
+                    'language',
+                    'instructions',
+                    'equipment_category',
+                    'fitness_level',
+                    'workout_type',
+                    'routine_status',
+                ])->withCount('workoutExercises');
+            }])
+            ->orderByDesc('assigned_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $lang = UserContentLocale::forAuthenticatedUser();
+        $data = $assignments
+            ->filter(fn ($assignment) => $assignment->workout !== null)
+            ->map(function ($assignment) use ($lang) {
+                $workout = $assignment->workout;
+                ContentLocaleResolver::overlayWorkout($workout, $lang);
+
+                return [
+                    'assignment_id' => $assignment->id,
+                    'assignment_status' => $assignment->status,
+                    'assigned_at' => optional($assignment->assigned_at)->toDateTimeString(),
+                    'workout' => $workout,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'status' => true,
+            'data' => $data,
         ]);
     }
 

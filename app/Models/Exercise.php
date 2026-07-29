@@ -23,6 +23,12 @@ class Exercise extends Model
         return \Database\Factories\ExerciseFactory::new();
     }
 
+    public function libraryTag()
+    {
+        return $this->hasOne(ExerciseLibraryTag::class);
+    }
+
+
     public function getVideoUrlAttribute($value)
     {
         if($this->video_type == "youtube"){

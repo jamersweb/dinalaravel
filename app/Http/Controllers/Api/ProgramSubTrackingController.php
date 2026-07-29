@@ -24,6 +24,7 @@ use App\Models\Workout;
 use App\Models\WorkoutCompilation;
 use App\Support\ContentLocaleResolver;
 use App\Support\UserContentLocale;
+use App\Services\AiProgramDisplayService;
 use App\Traits\ActivitiesTrait;
 use App\Traits\NotificationsTrait;
 use Carbon\Carbon;
@@ -794,10 +795,12 @@ class ProgramSubTrackingController extends Controller
                 }
             }
             $data = JsonSanitizer::sanitize($programDetail->toArray());
+            $aiSchedule = app(AiProgramDisplayService::class)->scheduleForProgram($program);
             return response()->json([
                 'status' => true,
                 'data' => $data,
-                'program' => $programInfo
+                'program' => $programInfo,
+                'ai_schedule' => JsonSanitizer::sanitize($aiSchedule),
             ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_UNICODE);
         } else {
             return response()->json([
@@ -847,10 +850,13 @@ class ProgramSubTrackingController extends Controller
         }
         
         $data = JsonSanitizer::sanitize($programDetail->toArray());
+        $visibleWeekNumbers = $programDetail->pluck('week_no')->values()->all();
+        $aiSchedule = app(AiProgramDisplayService::class)->scheduleForProgram($program, $visibleWeekNumbers);
         return response()->json([
             'status' => true,
             'data' => $data,
             'program' => $programInfo,
+            'ai_schedule' => JsonSanitizer::sanitize($aiSchedule),
             'current_week' => $currentWeek,
             'weeks_visible' => $maxWeekToShow,
             'visibility_rule' => 'Only current week + 1 week ahead visible'

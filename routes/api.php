@@ -133,6 +133,7 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 	// Allow browsing program catalog without subscription (subscribe-program, program-detail, etc. still require subscription)
 	Route::get('all-programs', [ProgramsController::class, 'getAllProgramsUsers']);
 	Route::get('master-workouts', [WorkoutController::class, 'allWorkoutsList']);
+	Route::get('my-assigned-routines', [WorkoutController::class, 'assignedRoutines']);
 	Route::get('workout-detail/{id}', [WorkoutController::class, 'detailedWorkout']);
 
 	// Read/catalog: logged-in users (no active subscription or consultation required)
