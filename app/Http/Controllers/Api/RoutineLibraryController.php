@@ -79,7 +79,7 @@ class RoutineLibraryController extends Controller
                 'equipment_categories' => RoutineLibraryRules::EQUIPMENT_CATEGORIES,
                 'levels' => RoutineLibraryRules::LEVELS,
                 'proposal_statuses' => ['proposed', 'applied', 'rejected', 'failed'],
-                'default_model' => config('services.ollama.model', 'qwen3:latest'),
+                'default_model' => config('services.ollama.model', 'qwen2.5vl:7b'),
             ],
         ]);
     }

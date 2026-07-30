@@ -14,7 +14,7 @@ class OllamaExerciseTaggerService
     public function generateProposals(array $filters = []): array
     {
         $limit = max(1, min(50, (int) ($filters['limit'] ?? 10)));
-        $model = (string) ($filters['model'] ?? config('services.ollama.model', 'qwen3:latest'));
+        $model = (string) ($filters['model'] ?? config('services.ollama.model', 'qwen2.5vl:7b'));
         $query = Exercise::query()
             ->with('libraryTag')
             ->select([
@@ -156,7 +156,11 @@ class OllamaExerciseTaggerService
         ]);
 
         if (! $response->successful()) {
-            throw new RuntimeException('Ollama request failed: HTTP ' . $response->status());
+            if ($response->status() === 404) {
+                throw new RuntimeException("Ollama model '{$model}' was not found at {$baseUrl}. Pull it with: ollama pull {$model}");
+            }
+
+            throw new RuntimeException('Ollama request failed: HTTP ' . $response->status() . ' ' . $this->shortResponseBody($response->body()));
         }
 
         $raw = (string) ($response->json('response') ?? '');
@@ -169,6 +173,16 @@ class OllamaExerciseTaggerService
             'reasoning' => isset($decoded['reasoning']) ? (string) $decoded['reasoning'] : null,
             'raw_response' => $raw,
         ];
+    }
+
+    private function shortResponseBody(string $body): string
+    {
+        $body = trim(preg_replace('/\s+/', ' ', $body) ?? '');
+        if ($body === '') {
+            return '';
+        }
+
+        return '- ' . mb_substr($body, 0, 300);
     }
 
     private function prompt(array $metadata, ?array $currentTagPayload): string
