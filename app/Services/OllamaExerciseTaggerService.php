@@ -104,7 +104,11 @@ class OllamaExerciseTaggerService
             throw new RuntimeException('Only proposed AI tags can be applied.');
         }
 
-        $payload = $this->normalizePayload($proposal->proposed_payload);
+        $payload = $this->normalizePayload(
+            $proposal->proposed_payload,
+            is_array($proposal->source_metadata) ? $proposal->source_metadata : null,
+            is_array($proposal->current_tag_payload) ? $proposal->current_tag_payload : null
+        );
         $payload['exercise_id'] = $proposal->exercise_id;
         $payload['approved_for_generation'] = $approve;
         $payload['review_status'] = $approve ? 'approved' : 'pending_review';
@@ -157,7 +161,7 @@ class OllamaExerciseTaggerService
 
         $raw = (string) ($response->json('response') ?? '');
         $decoded = $this->decodeJsonResponse($raw);
-        $payload = $this->normalizePayload($decoded['tag'] ?? $decoded);
+        $payload = $this->normalizePayload($decoded['tag'] ?? $decoded, $metadata, $currentTagPayload);
 
         return [
             'payload' => $payload,
@@ -199,11 +203,20 @@ class OllamaExerciseTaggerService
             'reasoning' => 'short explanation',
         ];
 
-        return 'You are tagging fitness exercise videos for a women fitness app. '
-            . 'Use ONLY the allowed values from the schema. Return JSON only. '
+        return 'You are a fitness-library tagging expert. You are NOT watching video frames; classify from the exact metadata only. '
+            . 'Never apply the same default tag to every exercise. Use title, current tag, equipment words, muscle words, and safety words. '
+            . 'Return one JSON object only. Use ONLY the allowed values from the schema. '
+            . 'If a current deterministic tag exists and the title does not clearly contradict it, keep its equipment_category and language. '
+            . 'Deadlift, squat, row, press, curl, bridge, lunge with dumbbell/home dumbbell evidence is not bodyweight. '
+            . 'Warm-up titles must use exercise_type warm_up or mobility, not main/strength. '
+            . 'Stretch titles must use exercise_type stretching and usage_flags.stretching=true. '
             . 'Important safety rules: HIIT, jumps, high knees, burpees, sprinting, explosive drills are NOT warm-up cardio. '
-            . 'Stretching must be real cooldown stretching, not warm-up mobility unless clearly a stretch. '
-            . 'Gym main exercises should use gym/full_gym equipment; dumbbell routines use dumbbells; bodyweight uses no equipment. '
+            . 'Warm-up cardio must be low-impact walking, marching, bike, elliptical, rower, or stepper. '
+            . 'Examples: '
+            . 'Frogger rockbacks stretch => stretching | bodyweight | beginner | usage stretching. '
+            . 'Deadlift warm up => warm_up | bodyweight unless current tag says home_dumbbell | beginner | usage warm_up or lower_back_activation. '
+            . 'Sumo Deadlift with dumbbells => dumbbell | home_dumbbell | intermediate | usage main_workout. '
+            . 'SL Wall Deadlift with home dumbbell current tag => dumbbell | home_dumbbell | beginner/intermediate | usage main_workout or lower_back_strength. '
             . "Schema:\n" . json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
             . "\nExercise metadata:\n" . json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
             . "\nCurrent deterministic tag if any:\n" . json_encode($currentTagPayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -226,26 +239,38 @@ class OllamaExerciseTaggerService
         throw new RuntimeException('Ollama response was not valid JSON.');
     }
 
-    private function normalizePayload(array $payload): array
+    private function normalizePayload(array $payload, ?array $metadata = null, ?array $currentTagPayload = null): array
     {
         $language = RoutineLibraryRules::normalizeLanguage($payload['language'] ?? 'en');
-        $equipment = RoutineLibraryRules::normalizeEquipment($payload['equipment_category'] ?? 'bodyweight');
+        if ($currentTagPayload && ! empty($currentTagPayload['language'])) {
+            $language = RoutineLibraryRules::normalizeLanguage($currentTagPayload['language']);
+        } elseif ($metadata && ! empty($metadata['language'])) {
+            $language = RoutineLibraryRules::normalizeLanguage($metadata['language']);
+        }
+
+        $equipment = $this->inferEquipmentCategory($payload, $metadata, $currentTagPayload);
         $difficulty = RoutineLibraryRules::normalizeLevel($payload['difficulty'] ?? 'beginner');
         $impact = $this->allowedValue($payload['impact_level'] ?? 'low', RoutineLibraryRules::IMPACT_LEVELS, 'low');
         $intensity = $this->allowedValue($payload['intensity_level'] ?? 'moderate', RoutineLibraryRules::INTENSITY_LEVELS, 'moderate');
         $videoVariant = $this->allowedValue($payload['video_variant'] ?? 'explained', RoutineLibraryRules::VIDEO_VARIANTS, 'explained');
-        $usageFlags = $this->usageFlags((array) ($payload['usage_flags'] ?? []));
+        $exerciseType = $this->inferExerciseType($payload, $metadata, $currentTagPayload, $equipment);
+        $muscleGroup = $this->inferMuscleGroup($payload, $metadata, $currentTagPayload);
+        $usageFlags = $this->usageFlags((array) ($payload['usage_flags'] ?? []), $exerciseType, $muscleGroup, $metadata);
+        $workoutSections = array_values(array_intersect($this->stringArray($payload['workout_sections'] ?? []), array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS)));
+        if ($workoutSections === []) {
+            $workoutSections = $this->sectionsFromUsageFlags($usageFlags);
+        }
 
         return [
             'language' => $language,
             'equipment_category' => $equipment,
             'equipment_tags' => $this->stringArray($payload['equipment_tags'] ?? []),
-            'muscle_group' => strtolower((string) ($payload['muscle_group'] ?? '')),
+            'muscle_group' => $muscleGroup,
             'secondary_muscle_groups' => $this->stringArray($payload['secondary_muscle_groups'] ?? []),
-            'exercise_type' => strtolower((string) ($payload['exercise_type'] ?? 'main_workout')),
+            'exercise_type' => $exerciseType,
             'movement_patterns' => array_values(array_intersect($this->stringArray($payload['movement_patterns'] ?? []), RoutineLibraryRules::MOVEMENT_PATTERNS)),
             'training_styles' => $this->stringArray($payload['training_styles'] ?? []),
-            'workout_sections' => array_values(array_intersect($this->stringArray($payload['workout_sections'] ?? []), array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS))),
+            'workout_sections' => $workoutSections,
             'impact_level' => $impact,
             'intensity_level' => $intensity,
             'video_variant' => $videoVariant,
@@ -290,14 +315,190 @@ class OllamaExerciseTaggerService
             ->all();
     }
 
-    private function usageFlags(array $flags): array
+    private function usageFlags(array $flags, string $exerciseType, string $muscleGroup, ?array $metadata): array
     {
         $normalized = [];
         foreach (array_keys(RoutineLibraryRules::REQUIRED_AUDIT_USAGE) as $usage) {
             $normalized[$usage] = filter_var($flags[$usage] ?? false, FILTER_VALIDATE_BOOLEAN);
         }
 
+        $title = strtolower((string) ($metadata['title'] ?? ''));
+        $forced = array_fill_keys(array_keys(RoutineLibraryRules::REQUIRED_AUDIT_USAGE), false);
+
+        if ($exerciseType === 'stretching') {
+            $forced['stretching'] = true;
+            return $forced;
+        }
+        if ($exerciseType === 'warm_up') {
+            $forced[($muscleGroup === 'lower back' || str_contains($title, 'activation')) ? 'lower_back_activation' : 'warm_up'] = true;
+            return $forced;
+        }
+        if ($exerciseType === 'mobility') {
+            $forced['mobility'] = true;
+            return $forced;
+        }
+        if ($exerciseType === 'cardio' || $exerciseType === 'cardio_warm_up') {
+            $forced['cardio_warm_up'] = true;
+            return $forced;
+        }
+        if ($muscleGroup === 'abs' || $exerciseType === 'abs') {
+            $forced['abs'] = true;
+            return $forced;
+        }
+        if ($muscleGroup === 'obliques' || $exerciseType === 'obliques') {
+            $forced['obliques'] = true;
+            return $forced;
+        }
+        if ($muscleGroup === 'lower back' || $exerciseType === 'lower_back') {
+            $forced[str_contains($title, 'warm') || str_contains($title, 'activation') ? 'lower_back_activation' : 'lower_back_strength'] = true;
+            return $forced;
+        }
+
+        if (in_array(true, $normalized, true)) {
+            return $normalized;
+        }
+
+        if ($exerciseType === 'cardio' || $exerciseType === 'cardio_warm_up') {
+            $normalized['cardio_warm_up'] = true;
+        } elseif ($exerciseType === 'warm_up') {
+            $normalized['warm_up'] = true;
+        } elseif ($exerciseType === 'mobility') {
+            $normalized['mobility'] = true;
+        } elseif ($exerciseType === 'stretching') {
+            $normalized['stretching'] = true;
+        } elseif ($muscleGroup === 'abs' || $exerciseType === 'abs') {
+            $normalized['abs'] = true;
+        } elseif ($muscleGroup === 'obliques' || $exerciseType === 'obliques') {
+            $normalized['obliques'] = true;
+        } elseif ($muscleGroup === 'lower back' || $exerciseType === 'lower_back') {
+            $normalized[str_contains($title, 'warm') || str_contains($title, 'activation') ? 'lower_back_activation' : 'lower_back_strength'] = true;
+        } else {
+            $normalized['main_workout'] = true;
+        }
+
         return $normalized;
+    }
+
+    private function inferEquipmentCategory(array $payload, ?array $metadata, ?array $currentTagPayload): string
+    {
+        $title = strtolower((string) ($metadata['title'] ?? ''));
+        $raw = strtolower(str_replace([' ', '-'], '_', (string) ($payload['equipment_category'] ?? '')));
+
+        if (preg_match('/\b(db|dumbbell|dumbbells)\b/', $title)) {
+            return 'home_dumbbell';
+        }
+        if (preg_match('/\b(machine|cable|smith|leg press|lat pulldown|seated row|elliptical|treadmill)\b/', $title)) {
+            return 'gym';
+        }
+        if (preg_match('/\b(barbell|bench press|rack)\b/', $title)) {
+            return 'full_gym';
+        }
+        if ($currentTagPayload && ! empty($currentTagPayload['equipment_category'])) {
+            $current = RoutineLibraryRules::normalizeEquipment($currentTagPayload['equipment_category']);
+            if ($current !== 'bodyweight' || $raw === '' || $raw === 'bodyweight') {
+                return $current;
+            }
+        }
+        if ($raw === 'dumbbell' || $raw === 'dumbbells') {
+            return 'home_dumbbell';
+        }
+
+        $equipment = RoutineLibraryRules::normalizeEquipment($raw ?: 'bodyweight');
+        if ($equipment === 'bodyweight' && preg_match('/\b(deadlift|rdl|stiff|sumo|split deadlift|wall deadlift)\b/', $title)) {
+            return 'home_dumbbell';
+        }
+
+        return $equipment;
+    }
+
+    private function inferExerciseType(array $payload, ?array $metadata, ?array $currentTagPayload, string $equipment): string
+    {
+        $title = strtolower((string) ($metadata['title'] ?? ''));
+        $raw = strtolower(str_replace([' ', '-'], '_', (string) ($payload['exercise_type'] ?? '')));
+
+        if (str_contains($title, 'stretch')) {
+            return 'stretching';
+        }
+        if (preg_match('/\b(warm up|warm-up|activation|prep|rockback|rockbacks)\b/', $title)) {
+            return str_contains($title, 'mobility') ? 'mobility' : 'warm_up';
+        }
+        if (preg_match('/\b(elliptical|treadmill|walk|walking|bike|cycling|stepper|rower|cardio)\b/', $title)
+            && ! preg_match('/\b(hiit|jump|sprint|burpee|high knee)\b/', $title)) {
+            return 'cardio';
+        }
+        if (in_array($raw, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'warm_up', 'mobility', 'stretching', 'lower_back', 'abs', 'obliques'], true)) {
+            return $raw;
+        }
+        if ($currentTagPayload && ! empty($currentTagPayload['exercise_type'])) {
+            $current = strtolower(str_replace([' ', '-'], '_', (string) $currentTagPayload['exercise_type']));
+            if (in_array($current, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'warm_up', 'mobility', 'stretching', 'lower_back', 'abs', 'obliques'], true)) {
+                return $current;
+            }
+        }
+        if ($equipment === 'home_dumbbell') {
+            return 'dumbbell';
+        }
+        if (in_array($equipment, ['gym', 'full_gym'], true)) {
+            return 'gym';
+        }
+
+        return 'bodyweight';
+    }
+
+    private function inferMuscleGroup(array $payload, ?array $metadata, ?array $currentTagPayload): string
+    {
+        $title = strtolower((string) ($metadata['title'] ?? ''));
+        $muscle = strtolower(trim((string) ($payload['muscle_group'] ?? '')));
+        if ($muscle !== '' && $muscle !== '-') {
+            return $muscle;
+        }
+        if ($currentTagPayload && ! empty($currentTagPayload['muscle_group'])) {
+            return strtolower((string) $currentTagPayload['muscle_group']);
+        }
+        if (preg_match('/\b(deadlift|rdl|lower back|back extension)\b/', $title)) {
+            return 'lower back';
+        }
+        if (preg_match('/\b(abs|core|crunch|plank)\b/', $title)) {
+            return 'abs';
+        }
+        if (preg_match('/\b(oblique|side plank|windshield)\b/', $title)) {
+            return 'obliques';
+        }
+        if (preg_match('/\b(glute|bridge|hip thrust)\b/', $title)) {
+            return 'glutes';
+        }
+        if (preg_match('/\b(hamstring|stiff)\b/', $title)) {
+            return 'hamstrings';
+        }
+        if (preg_match('/\b(quad|squat|lunge)\b/', $title)) {
+            return 'quads';
+        }
+
+        return '';
+    }
+
+    private function sectionsFromUsageFlags(array $usageFlags): array
+    {
+        $map = [
+            'cardio_warm_up' => 'warm_up_cardio',
+            'warm_up' => 'mobility_dynamic_warm_up',
+            'mobility' => 'mobility_dynamic_warm_up',
+            'lower_back_activation' => 'core_lower_back_preparation',
+            'main_workout' => 'main_workout',
+            'abs' => 'core_obliques',
+            'obliques' => 'core_obliques',
+            'lower_back_strength' => 'lower_back_strengthening',
+            'stretching' => 'cool_down_stretching',
+        ];
+
+        $sections = [];
+        foreach ($usageFlags as $usage => $enabled) {
+            if ($enabled && isset($map[$usage])) {
+                $sections[] = $map[$usage];
+            }
+        }
+
+        return array_values(array_unique($sections));
     }
 
     private function allowedValue($value, array $allowed, string $fallback): string
