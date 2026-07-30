@@ -31,6 +31,19 @@ class RoutineValidatorService
             }
         }
 
+        foreach (RoutineLibraryRules::SECTION_MINIMUM_EXERCISES as $section => $minimum) {
+            $count = $sections->get($section, collect())->count();
+            if ($count < $minimum) {
+                $errors[] = [
+                    'code' => 'section_minimum_not_met',
+                    'section' => $section,
+                    'current_count' => $count,
+                    'minimum_required' => $minimum,
+                    'message' => "Routine section {$section} needs at least {$minimum} exercise(s).",
+                ];
+            }
+        }
+
         $routineSections = is_array($workout->routine_sections) ? $workout->routine_sections : [];
         $meta = $routineSections['_meta'] ?? [];
         if (($workout->routine_source === 'generated' || $meta !== []) && ($meta['section_contract'] ?? null) !== 'ai_program_builder_phase_3') {
@@ -55,6 +68,9 @@ class RoutineValidatorService
         }
 
         $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment((string) $workout->equipment_category);
+        $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment((string) $workout->equipment_category);
+        $seenExerciseIds = [];
+        $seenTitlesBySection = [];
         foreach ($sections->flatten(1) as $row) {
             if (! $row->exerciseDetail) {
                 $errors[] = [
@@ -63,6 +79,33 @@ class RoutineValidatorService
                     'message' => 'Workout exercise row does not reference an existing exercise.',
                 ];
                 continue;
+            }
+
+            $exerciseId = (int) $row->exercise_id;
+            if (isset($seenExerciseIds[$exerciseId])) {
+                $errors[] = [
+                    'code' => 'duplicate_exercise_in_routine',
+                    'exercise_id' => $exerciseId,
+                    'section' => $row->category,
+                    'first_section' => $seenExerciseIds[$exerciseId],
+                    'message' => 'Generated routine repeats the same exercise inside one workout.',
+                ];
+            } else {
+                $seenExerciseIds[$exerciseId] = $row->category;
+            }
+
+            $titleKey = $this->normalizeTitle((string) $row->exerciseDetail->title);
+            if ($titleKey !== '') {
+                $sectionTitleKey = $row->category.'|'.$titleKey;
+                if (isset($seenTitlesBySection[$sectionTitleKey])) {
+                    $errors[] = [
+                        'code' => 'duplicate_exercise_title_in_section',
+                        'exercise_id' => $exerciseId,
+                        'section' => $row->category,
+                        'message' => 'Generated routine repeats the same exercise title inside one section.',
+                    ];
+                }
+                $seenTitlesBySection[$sectionTitleKey] = true;
             }
 
             $tag = $row->exerciseDetail->libraryTag;
@@ -82,6 +125,16 @@ class RoutineValidatorService
                     'exercise_equipment' => $tag->equipment_category,
                     'routine_equipment' => $workout->equipment_category,
                     'message' => 'Exercise equipment is not allowed in this routine category.',
+                ];
+            }
+
+            if ($row->category === 'main_workout' && ! in_array($tag->equipment_category, $preferredEquipment, true)) {
+                $errors[] = [
+                    'code' => 'main_workout_equipment_mismatch',
+                    'exercise_id' => $row->exercise_id,
+                    'exercise_equipment' => $tag->equipment_category,
+                    'routine_equipment' => $workout->equipment_category,
+                    'message' => 'Main workout exercise does not match the routine equipment category.',
                 ];
             }
 
@@ -112,11 +165,68 @@ class RoutineValidatorService
                     'message' => 'Strength/core sections must include sets and repetitions.',
                 ];
             }
+
+            $type = strtolower((string) $tag->exercise_type);
+            $title = strtolower((string) $row->exerciseDetail->title);
+            $patterns = is_array($tag->movement_patterns) ? $tag->movement_patterns : [];
+            if ($row->category === 'warm_up_cardio' && ! $this->isLowImpactWarmUpCardio($type, $title)) {
+                $errors[] = [
+                    'code' => 'unsafe_warm_up_cardio',
+                    'exercise_id' => $row->exercise_id,
+                    'message' => 'Warm-up cardio must be low-impact and cannot use HIIT, jumping, sprinting, or explosive drills.',
+                ];
+            }
+
+            if ($row->category === 'cool_down_stretching' && ! $this->isStretchingExercise($type, $title, $patterns)) {
+                $errors[] = [
+                    'code' => 'non_stretching_cooldown_exercise',
+                    'exercise_id' => $row->exercise_id,
+                    'message' => 'Cool-down stretching must use real stretching exercises, not warm-up or cardio movements.',
+                ];
+            }
         }
 
         return [
             'valid' => $errors === [],
             'errors' => $errors,
         ];
+    }
+
+    private function normalizeTitle(string $title): string
+    {
+        $title = strtolower(trim($title));
+        $title = preg_replace('/\s+/', ' ', $title) ?? $title;
+
+        return preg_replace('/\b(day|part|variation)\s*\d+\b/', '', $title) ?? $title;
+    }
+
+    private function isLowImpactWarmUpCardio(string $type, string $title): bool
+    {
+        if (! in_array($type, ['cardio', 'cardio_warm_up'], true)) {
+            return false;
+        }
+
+        if (preg_match('/\b(hiit|jump|jumps|jumping|explosive|burpee|high knee|high knees|sprint|plyo|plyometric|skater|tuck|climber|jacks|rope|assault|run|running)\b/', $title)) {
+            return false;
+        }
+
+        return preg_match('/\b(elliptical|treadmill walk|walking|walk|bike|cycling|cycle|stepper|rower|skierg|low impact|march|cardio)\b/', $title) === 1;
+    }
+
+    private function isStretchingExercise(string $type, string $title, array $patterns): bool
+    {
+        if (preg_match('/\b(warm up|warm-up|cardio|hiit|jump|jumps|jumping|explosive|burpee|sprint|climber|jacks)\b/', $title)) {
+            return str_contains($title, 'stretch');
+        }
+
+        if (in_array('stretching', $patterns, true)) {
+            return true;
+        }
+
+        if (in_array($type, ['stretching', 'stretch'], true) || str_contains($title, 'stretch')) {
+            return true;
+        }
+
+        return preg_match('/\b(hold|release|opening|opener|mobility flow|hamstring|quad|calf|hip flexor|lat|chest opener|cobra|child pose)\b/', $title) === 1;
     }
 }

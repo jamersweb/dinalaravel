@@ -104,23 +104,30 @@ class RoutineGeneratorService
             'variation' => $variation,
         ]);
         $mainExerciseCount = $this->mainExerciseCount($filters);
+        $usedExerciseIds = [];
+        $optionalCardio = [];
         $sections = [
-            'warm_up_cardio' => $this->pick($filters, 'cardio_warm_up', 1, $variation),
+            'warm_up_cardio' => $this->pick($routineFilters, 'cardio_warm_up', 1, $variation, $usedExerciseIds),
             'mobility_dynamic_warm_up' => array_merge(
-                $this->pick($filters, 'warm_up', 1, $variation),
-                $this->pick($filters, 'mobility', 1, $variation + 1)
+                $this->pick($routineFilters, 'warm_up', 1, $variation, $usedExerciseIds),
+                $this->pick($routineFilters, 'mobility', 2, $variation + 1, $usedExerciseIds)
             ),
-            'muscle_activation' => $this->pick($filters, 'muscle_activation', 1, $variation),
-            'core_lower_back_preparation' => $this->pick($filters, 'lower_back_activation', 1, $variation),
-            'main_workout' => $this->pick($filters, 'main_workout', $mainExerciseCount, $variation),
+            'muscle_activation' => $this->pick($routineFilters, 'muscle_activation', 1, $variation, $usedExerciseIds),
+            'core_lower_back_preparation' => $this->pick($routineFilters, 'lower_back_activation', 1, $variation, $usedExerciseIds),
+            'main_workout' => $this->pick($routineFilters, 'main_workout', $mainExerciseCount, $variation, $usedExerciseIds),
             'core_obliques' => array_merge(
-                $this->pick($filters, 'abs', 1, $variation),
-                $this->pick($filters, 'obliques', 1, $variation + 1)
+                $this->pick($routineFilters, 'abs', 1, $variation, $usedExerciseIds),
+                $this->pick($routineFilters, 'obliques', 1, $variation + 1, $usedExerciseIds)
             ),
-            'lower_back_strengthening' => $this->pick($filters, 'lower_back_strength', 1, $variation),
-            'optional_additional_cardio' => $this->pick($filters, 'cardio_warm_up', 1, $variation + 3),
-            'cool_down_stretching' => $this->pick($filters, 'stretching', 1, $variation),
+            'lower_back_strengthening' => $this->pick($routineFilters, 'lower_back_strength', 1, $variation, $usedExerciseIds),
+            'cool_down_stretching' => $this->pick($routineFilters, 'stretching', 5, $variation, $usedExerciseIds),
         ];
+        try {
+            $optionalCardio = $this->pick($routineFilters, 'cardio_warm_up', 1, $variation + 3, $usedExerciseIds);
+        } catch (RuntimeException) {
+            $optionalCardio = [];
+        }
+        $sections['optional_additional_cardio'] = $optionalCardio;
         $estimatedMinutes = $this->estimateWorkoutMinutes($sections, $filters);
 
         $workout = Workout::create([
@@ -150,9 +157,10 @@ class RoutineGeneratorService
         return $workout;
     }
 
-    private function pick(array $filters, string $usage, int $count, int $offset): array
+    private function pick(array $filters, string $usage, int $count, int $offset, array &$usedExerciseIds): array
     {
         $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($filters['equipment_category']);
+        $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment($filters['equipment_category']);
         $tags = ExerciseLibraryTag::with('exercise:id,title,video_type,video_url,image,custom_thumbnail')
             ->where('language', $filters['language'])
             ->where('approved_for_generation', true)
@@ -160,15 +168,48 @@ class RoutineGeneratorService
             ->get()
             ->filter(fn ($tag) => $this->levelCanServeRoutine((string) $tag->difficulty, $filters['fitness_level']))
             ->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))
+            ->unique('exercise_id')
+            ->values();
+
+        if ($usage === 'main_workout') {
+            $preferredTags = $tags
+                ->filter(fn ($tag) => in_array($tag->equipment_category, $preferredEquipment, true))
+                ->values();
+
+            if ($preferredTags->count() < $count) {
+                throw new RuntimeException(
+                    "Not enough approved {$filters['equipment_category']} exercises for usage {$usage}; found {$preferredTags->count()}."
+                );
+            }
+
+            $tags = $preferredTags;
+        }
+
+        $tags = $tags
+            ->reject(fn ($tag) => in_array((int) $tag->exercise_id, $usedExerciseIds, true))
+            ->sortBy('exercise_id')
             ->values();
 
         if ($tags->count() < $count) {
-            throw new RuntimeException("Not enough approved exercises for usage {$usage}.");
+            throw new RuntimeException("Not enough unique approved exercises for usage {$usage}; found {$tags->count()}.");
         }
 
         $selected = [];
+        $seed = abs(crc32(implode('|', [
+            $filters['language'] ?? '',
+            $filters['equipment_category'] ?? '',
+            $filters['fitness_level'] ?? '',
+            $filters['target_minutes'] ?? '',
+            $filters['workout_type'] ?? '',
+            $filters['variation'] ?? '',
+            $usage,
+            $offset,
+        ])));
+        $start = $seed % $tags->count();
         for ($i = 0; $i < $count; $i++) {
-            $selected[] = $tags[($offset + $i) % $tags->count()];
+            $tag = $tags[($start + $i) % $tags->count()];
+            $selected[] = $tag;
+            $usedExerciseIds[] = (int) $tag->exercise_id;
         }
 
         return $selected;
@@ -206,7 +247,20 @@ class RoutineGeneratorService
 
     private function coverImage(array $sections): ?string
     {
-        foreach ($sections as $tags) {
+        $orderedSections = [
+            'main_workout',
+            'core_obliques',
+            'lower_back_strengthening',
+            'muscle_activation',
+            'warm_up_cardio',
+            'mobility_dynamic_warm_up',
+            'core_lower_back_preparation',
+            'cool_down_stretching',
+            'optional_additional_cardio',
+        ];
+
+        foreach ($orderedSections as $section) {
+            $tags = $sections[$section] ?? [];
             foreach ($tags as $tag) {
                 $exercise = $tag->exercise;
                 if (! $exercise) {
@@ -563,9 +617,14 @@ class RoutineGeneratorService
         $type = strtolower((string) $tag->exercise_type);
         $muscle = strtolower((string) $tag->muscle_group);
         $title = strtolower((string) optional($tag->exercise)->title);
+        $patterns = is_array($tag->movement_patterns) ? $tag->movement_patterns : [];
 
         if ($usage === 'cardio_warm_up') {
-            return $this->isCardioExercise($type, $title);
+            return $this->isLowImpactWarmUpCardio($type, $title);
+        }
+
+        if ($usage === 'stretching') {
+            return $this->isStretchingExercise($type, $title, $patterns);
         }
 
         if (RoutineLibraryRules::usageMatches($flags, $usage)) {
@@ -577,8 +636,7 @@ class RoutineGeneratorService
             'warm_up' => in_array($type, ['warm_up', 'warm-up'], true) || str_contains($title, 'warm up'),
             'mobility' => $type === 'mobility'
                 || str_contains($title, 'mobility')
-                || in_array('mobility', is_array($tag->movement_patterns) ? $tag->movement_patterns : [], true),
-            'stretching' => in_array($type, ['stretching', 'stretch'], true) || str_contains($title, 'stretch'),
+                || in_array('mobility', $patterns, true),
             'muscle_activation' => in_array($type, ['warm_up', 'mobility', 'lower_back', 'abs', 'obliques'], true)
                 || in_array($muscle, ['glutes', 'shoulders', 'upper back', 'lower back', 'abs'], true),
             'abs' => $muscle === 'abs' || $type === 'abs',
@@ -588,9 +646,9 @@ class RoutineGeneratorService
         };
     }
 
-    private function isCardioExercise(string $type, string $title): bool
+    private function isLowImpactWarmUpCardio(string $type, string $title): bool
     {
-        if (! in_array($type, ['cardio', 'cardio_warm_up', 'hiit'], true)) {
+        if (! in_array($type, ['cardio', 'cardio_warm_up'], true)) {
             return false;
         }
 
@@ -598,6 +656,27 @@ class RoutineGeneratorService
             return false;
         }
 
-        return preg_match('/\b(elliptical|treadmill|bike|cycling|run|walk|jump|jacks|knee|climber|rope|step|hiit|cardio|skierg|assault|burpee)\b/', $title) === 1;
+        if (preg_match('/\b(hiit|jump|jumps|jumping|explosive|burpee|high knee|high knees|sprint|plyo|plyometric|skater|tuck|climber|jacks|rope|assault|run|running)\b/', $title)) {
+            return false;
+        }
+
+        return preg_match('/\b(elliptical|treadmill walk|walking|walk|bike|cycling|cycle|stepper|rower|skierg|low impact|march|cardio)\b/', $title) === 1;
+    }
+
+    private function isStretchingExercise(string $type, string $title, array $patterns): bool
+    {
+        if (preg_match('/\b(warm up|warm-up|cardio|hiit|jump|jumps|jumping|explosive|burpee|sprint|climber|jacks)\b/', $title)) {
+            return str_contains($title, 'stretch');
+        }
+
+        if (in_array('stretching', $patterns, true)) {
+            return true;
+        }
+
+        if (in_array($type, ['stretching', 'stretch'], true) || str_contains($title, 'stretch')) {
+            return true;
+        }
+
+        return preg_match('/\b(hold|release|opening|opener|mobility flow|hamstring|quad|calf|hip flexor|lat|chest opener|cobra|child pose)\b/', $title) === 1;
     }
 }

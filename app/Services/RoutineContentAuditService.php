@@ -82,13 +82,17 @@ class RoutineContentAuditService
         foreach ($languages as $language) {
             foreach ($equipmentCategories as $equipment) {
                 $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($equipment);
+                $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment($equipment);
                 $pool = $approved
                     ->where('language', $language)
                     ->whereIn('equipment_category', $allowedEquipment);
 
                 foreach (RoutineLibraryRules::REQUIRED_AUDIT_USAGE as $usage => $label) {
-                    $minimum = $usage === 'main_workout' ? 5 : 1;
-                    $count = $pool->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))->count();
+                    $minimum = $this->minimumForUsage($usage, ['level' => 'beginner']);
+                    $usagePool = $usage === 'main_workout'
+                        ? $pool->whereIn('equipment_category', $preferredEquipment)
+                        : $pool;
+                    $count = $usagePool->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))->count();
 
                     if ($count < $minimum) {
                         $missing[] = [
@@ -149,6 +153,7 @@ class RoutineContentAuditService
     private function programReadiness(Collection $tags, array $program, string $language): array
     {
         $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($program['equipment_category']);
+        $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment($program['equipment_category']);
         $pool = $tags
             ->where('language', $language)
             ->whereIn('equipment_category', $allowedEquipment)
@@ -163,10 +168,17 @@ class RoutineContentAuditService
         $coverage = [];
         foreach (RoutineLibraryRules::REQUIRED_AUDIT_USAGE as $usage => $label) {
             $minimum = $this->minimumForProgramUsage($usage, $program);
-            $approvedCount = $approvedPool->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))->count();
-            $reviewableCount = $reviewablePool->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))->count();
+            $approvedUsagePool = $usage === 'main_workout'
+                ? $approvedPool->whereIn('equipment_category', $preferredEquipment)
+                : $approvedPool;
+            $reviewableUsagePool = $usage === 'main_workout'
+                ? $reviewablePool->whereIn('equipment_category', $preferredEquipment)
+                : $reviewablePool;
+            $approvedCount = $approvedUsagePool->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))->count();
+            $reviewableCount = $reviewableUsagePool->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))->count();
             $pendingReviewCount = $pool
                 ->where('review_status', 'pending_review')
+                ->when($usage === 'main_workout', fn ($items) => $items->whereIn('equipment_category', $preferredEquipment))
                 ->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))
                 ->count();
             $coverage[$usage] = [
@@ -211,12 +223,34 @@ class RoutineContentAuditService
 
     private function minimumForProgramUsage(string $usage, array $program): int
     {
+        $minimum = $this->minimumForUsage($usage, $program);
+        if ($usage !== 'main_workout') {
+            return $minimum;
+        }
+
         if ($usage === 'main_workout') {
             return match ($program['level']) {
                 'advanced' => 10,
                 'intermediate' => 8,
                 default => 5,
             };
+        }
+
+        return $minimum;
+    }
+
+    private function minimumForUsage(string $usage, array $program): int
+    {
+        if ($usage === 'main_workout') {
+            return 5;
+        }
+
+        if ($usage === 'stretching') {
+            return RoutineLibraryRules::SECTION_MINIMUM_EXERCISES['cool_down_stretching'];
+        }
+
+        if ($usage === 'mobility') {
+            return 2;
         }
 
         if (in_array($usage, ['abs', 'obliques', 'lower_back_strength'], true) && $program['level'] !== 'beginner') {
@@ -247,23 +281,61 @@ class RoutineContentAuditService
     private function tagMatchesUsage(ExerciseLibraryTag $tag, string $usage): bool
     {
         $flags = is_array($tag->usage_flags) ? $tag->usage_flags : [];
+        $type = strtolower((string) $tag->exercise_type);
+        $muscle = strtolower((string) $tag->muscle_group);
+        $title = strtolower((string) optional($tag->exercise)->title);
+        $patterns = is_array($tag->movement_patterns) ? $tag->movement_patterns : [];
+
+        if ($usage === 'cardio_warm_up') {
+            return $this->isLowImpactWarmUpCardio($type, $title);
+        }
+
+        if ($usage === 'stretching') {
+            return $this->isStretchingExercise($type, $title, $patterns);
+        }
+
         if (RoutineLibraryRules::usageMatches($flags, $usage)) {
             return true;
         }
 
-        $type = strtolower((string) $tag->exercise_type);
-        $muscle = strtolower((string) $tag->muscle_group);
-
         return match ($usage) {
             'main_workout' => in_array($type, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym'], true),
-            'cardio_warm_up' => $type === 'cardio',
             'warm_up' => in_array($type, ['warm_up', 'warm-up'], true),
             'mobility' => $type === 'mobility',
-            'stretching' => in_array($type, ['stretching', 'stretch'], true),
             'abs' => $muscle === 'abs' || $type === 'abs',
             'obliques' => $muscle === 'obliques' || $type === 'obliques',
             'lower_back_activation', 'lower_back_strength' => $muscle === 'lower back' || $type === 'lower_back',
             default => false,
         };
+    }
+
+    private function isLowImpactWarmUpCardio(string $type, string $title): bool
+    {
+        if (! in_array($type, ['cardio', 'cardio_warm_up'], true)) {
+            return false;
+        }
+
+        if (preg_match('/\b(hiit|jump|jumps|jumping|explosive|burpee|high knee|high knees|sprint|plyo|plyometric|skater|tuck|climber|jacks|rope|assault|run|running)\b/', $title)) {
+            return false;
+        }
+
+        return preg_match('/\b(elliptical|treadmill walk|walking|walk|bike|cycling|cycle|stepper|rower|skierg|low impact|march|cardio)\b/', $title) === 1;
+    }
+
+    private function isStretchingExercise(string $type, string $title, array $patterns): bool
+    {
+        if (preg_match('/\b(warm up|warm-up|cardio|hiit|jump|jumps|jumping|explosive|burpee|sprint|climber|jacks)\b/', $title)) {
+            return str_contains($title, 'stretch');
+        }
+
+        if (in_array('stretching', $patterns, true)) {
+            return true;
+        }
+
+        if (in_array($type, ['stretching', 'stretch'], true) || str_contains($title, 'stretch')) {
+            return true;
+        }
+
+        return preg_match('/\b(hold|release|opening|opener|mobility flow|hamstring|quad|calf|hip flexor|lat|chest opener|cobra|child pose)\b/', $title) === 1;
     }
 }

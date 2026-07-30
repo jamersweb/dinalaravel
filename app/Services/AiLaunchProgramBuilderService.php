@@ -96,14 +96,12 @@ class AiLaunchProgramBuilderService
 
     private function approvedRoutinesForDefinition(array $definition, string $language, int $minimum): \Illuminate\Support\Collection
     {
-        $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($definition['equipment_category']);
         $routines = Workout::query()
             ->where('routine_status', 'approved')
             ->where('routine_source', 'generated')
             ->where('language', $language)
-            ->whereIn('equipment_category', $allowedEquipment)
+            ->where('equipment_category', $definition['equipment_category'])
             ->where('fitness_level', $definition['level'])
-            ->orderByRaw('case when equipment_category = ? then 0 else 1 end', [$definition['equipment_category']])
             ->orderBy('workout_type')
             ->orderBy('id')
             ->get()

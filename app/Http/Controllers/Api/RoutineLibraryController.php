@@ -167,11 +167,10 @@ class RoutineLibraryController extends Controller
     private function launchRoutineReadiness(array $definition, string $language): array
     {
         $minimum = $this->launchWorkoutSlots($definition['days_per_week']);
-        $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($definition['equipment_category']);
         $routines = Workout::query()
             ->where('routine_source', 'generated')
             ->where('language', $language)
-            ->whereIn('equipment_category', $allowedEquipment)
+            ->where('equipment_category', $definition['equipment_category'])
             ->where('fitness_level', $definition['level'])
             ->get()
             ->filter(fn (Workout $routine) => $this->routineUsesPhase3Contract($routine))

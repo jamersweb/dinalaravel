@@ -172,6 +172,17 @@ class RoutineLibraryRules
         'cool_down_stretching',
     ];
 
+    public const SECTION_MINIMUM_EXERCISES = [
+        'warm_up_cardio' => 1,
+        'mobility_dynamic_warm_up' => 3,
+        'muscle_activation' => 1,
+        'core_lower_back_preparation' => 1,
+        'main_workout' => 2,
+        'core_obliques' => 2,
+        'lower_back_strengthening' => 1,
+        'cool_down_stretching' => 5,
+    ];
+
     public const OPTIONAL_WORKOUT_SECTIONS = [
         'optional_additional_cardio',
     ];
@@ -312,6 +323,17 @@ class RoutineLibraryRules
         }
 
         return ['full_gym', 'gym', 'home_dumbbell', 'bodyweight'];
+    }
+
+    public static function preferredExerciseEquipment(string $routineEquipment): array
+    {
+        return match ($routineEquipment) {
+            'bodyweight' => ['bodyweight'],
+            'home_dumbbell' => ['home_dumbbell'],
+            'gym' => ['gym'],
+            'full_gym' => ['full_gym', 'gym'],
+            default => ['bodyweight'],
+        };
     }
 
     public static function normalizeLanguage(?string $language): string
