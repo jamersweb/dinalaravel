@@ -57285,7 +57285,15 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       modalDetail: '',
       loaderText: '',
       durationweeks: '1',
-      thumbnailPreview: null
+      thumbnailPreview: null,
+      selectedMealDetail: null,
+      selectedMealIngredients: [],
+      selectedMealDirections: [],
+      selectedMealTags: [],
+      selectedMealDayDetail: null,
+      selectedMealDayTags: [],
+      selectedMealWeekDetail: null,
+      selectedMealWeekTags: []
     };
   },
   computed: {
@@ -57328,6 +57336,178 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       } else {
         return title;
       }
+    },
+    parseJsonList: function parseJsonList(value) {
+      if (Array.isArray(value)) {
+        return value;
+      }
+      if (value === null || value === undefined || value === '') {
+        return [];
+      }
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return [];
+      }
+    },
+    mealTotalPrepTime: function mealTotalPrepTime(meal) {
+      return (parseInt(meal.prep_time) || 0) + (parseInt(meal.cook_time) || 0);
+    },
+    hasCookTime: function hasCookTime(meal) {
+      var value = meal === null || meal === void 0 ? void 0 : meal.cook_time;
+      return value !== null && value !== undefined && value !== '' && value !== 0 && value !== '0';
+    },
+    dayMealSlots: function dayMealSlots(dayDetail) {
+      if (!dayDetail) {
+        return [];
+      }
+      return [{
+        label: 'Breakfast',
+        id: dayDetail.breakfast,
+        detail: dayDetail.breakfast_detail
+      }, {
+        label: 'Lunch',
+        id: dayDetail.lunch,
+        detail: dayDetail.lunch_detail
+      }, {
+        label: 'Dinner',
+        id: dayDetail.dinner,
+        detail: dayDetail.dinner_detail
+      }, {
+        label: 'Snacks',
+        id: dayDetail.snacks,
+        detail: dayDetail.snacks_detail
+      }, {
+        label: 'Drink',
+        id: dayDetail.drinks,
+        detail: dayDetail.drinks_detail
+      }].filter(function (slot) {
+        return slot.id !== null && slot.id !== undefined && slot.detail;
+      });
+    },
+    weekDaySlots: function weekDaySlots(weekDetail) {
+      if (!weekDetail) {
+        return [];
+      }
+      return [{
+        label: 'Day1',
+        id: weekDetail.meal_day1,
+        detail: weekDetail.meal_day1_detail
+      }, {
+        label: 'Day2',
+        id: weekDetail.meal_day2,
+        detail: weekDetail.meal_day2_detail
+      }, {
+        label: 'Day3',
+        id: weekDetail.meal_day3,
+        detail: weekDetail.meal_day3_detail
+      }, {
+        label: 'Day4',
+        id: weekDetail.meal_day4,
+        detail: weekDetail.meal_day4_detail
+      }, {
+        label: 'Day5',
+        id: weekDetail.meal_day5,
+        detail: weekDetail.meal_day5_detail
+      }, {
+        label: 'Day6',
+        id: weekDetail.meal_day6,
+        detail: weekDetail.meal_day6_detail
+      }, {
+        label: 'Day7',
+        id: weekDetail.meal_day7,
+        detail: weekDetail.meal_day7_detail
+      }].filter(function (slot) {
+        return slot.id !== null && slot.id !== undefined && slot.detail;
+      });
+    },
+    showMealPreview: function showMealPreview(mealId) {
+      var _this2 = this;
+      if (!mealId) {
+        return;
+      }
+      this.pageLoading = true;
+      this.loaderText = 'Fetching Meal';
+      axios__WEBPACK_IMPORTED_MODULE_1__["default"].get(_config__WEBPACK_IMPORTED_MODULE_0__["default"].baseApiUrl + 'get-meal-detail/' + mealId, this.apiConfig).then(function (res) {
+        _this2.pageLoading = false;
+        if (res.data.status) {
+          _this2.selectedMealDetail = res.data.data;
+          _this2.selectedMealIngredients = _this2.parseJsonList(_this2.selectedMealDetail.ingredients);
+          _this2.selectedMealDirections = _this2.parseJsonList(_this2.selectedMealDetail.directions);
+          _this2.selectedMealTags = _this2.selectedMealDetail.tagNames || [];
+        } else {
+          _this2.modalTitle = 'Error!';
+          _this2.modalDetail = res.data.message;
+          _this2.informModal = true;
+        }
+      })["catch"](function (er) {
+        _this2.pageLoading = false;
+        _this2.modalTitle = 'Error!';
+        _this2.modalDetail = er.message;
+        _this2.informModal = true;
+      });
+    },
+    showMealDayPreview: function showMealDayPreview(mealDayId) {
+      var _this3 = this;
+      if (!mealDayId) {
+        return;
+      }
+      this.pageLoading = true;
+      this.loaderText = 'Fetching Meal Day';
+      axios__WEBPACK_IMPORTED_MODULE_1__["default"].get(_config__WEBPACK_IMPORTED_MODULE_0__["default"].baseApiUrl + 'get-meal-day-detail/' + mealDayId, this.apiConfig).then(function (res) {
+        _this3.pageLoading = false;
+        if (res.data.status) {
+          _this3.selectedMealDayDetail = res.data.data;
+          _this3.selectedMealDayTags = _this3.selectedMealDayDetail.tagNames || [];
+        } else {
+          _this3.modalTitle = 'Error!';
+          _this3.modalDetail = res.data.message;
+          _this3.informModal = true;
+        }
+      })["catch"](function (er) {
+        _this3.pageLoading = false;
+        _this3.modalTitle = 'Error!';
+        _this3.modalDetail = er.message;
+        _this3.informModal = true;
+      });
+    },
+    showMealWeekPreview: function showMealWeekPreview(mealWeekId) {
+      var _this4 = this;
+      if (!mealWeekId) {
+        return;
+      }
+      this.pageLoading = true;
+      this.loaderText = 'Fetching Meal Week';
+      axios__WEBPACK_IMPORTED_MODULE_1__["default"].get(_config__WEBPACK_IMPORTED_MODULE_0__["default"].baseApiUrl + 'get-meal-week-detail/' + mealWeekId, this.apiConfig).then(function (res) {
+        _this4.pageLoading = false;
+        if (res.data.status) {
+          _this4.selectedMealWeekDetail = res.data.data;
+          _this4.selectedMealWeekTags = _this4.selectedMealWeekDetail.tagNames || [];
+        } else {
+          _this4.modalTitle = 'Error!';
+          _this4.modalDetail = res.data.message;
+          _this4.informModal = true;
+        }
+      })["catch"](function (er) {
+        _this4.pageLoading = false;
+        _this4.modalTitle = 'Error!';
+        _this4.modalDetail = er.message;
+        _this4.informModal = true;
+      });
+    },
+    closeMealPreview: function closeMealPreview() {
+      this.selectedMealDetail = null;
+      this.selectedMealIngredients = [];
+      this.selectedMealDirections = [];
+      this.selectedMealTags = [];
+    },
+    closeMealDayPreview: function closeMealDayPreview() {
+      this.selectedMealDayDetail = null;
+      this.selectedMealDayTags = [];
+    },
+    closeMealWeekPreview: function closeMealWeekPreview() {
+      this.selectedMealWeekDetail = null;
+      this.selectedMealWeekTags = [];
     },
     getImage: function getImage() {
       var tempFile = this.$refs.thumbnailFile.files[0];
@@ -57386,9 +57566,9 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       }
     },
     filterMealsByLanguage: function filterMealsByLanguage() {
-      var _this2 = this;
+      var _this5 = this;
       this.allMeals = this.allMeals.filter(function (item) {
-        return item.language == _this2.DWPdetails.language;
+        return item.language == _this5.DWPdetails.language;
       });
     },
     validate: function validate() {
@@ -57435,28 +57615,28 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       }
     },
     updateDWP: function updateDWP(paylaod, hdrs) {
-      var _this3 = this;
+      var _this6 = this;
       var url;
       if (this.type === 'days') url = 'update-meal-day';else if (this.type == 'weeks') url = 'update-meal-week';else url = 'update-meal-plan';
       this.pageLoading = true;
       axios__WEBPACK_IMPORTED_MODULE_1__["default"].post(_config__WEBPACK_IMPORTED_MODULE_0__["default"].baseApiUrl + url, paylaod, hdrs).then(function (res) {
-        _this3.pageLoading = false;
+        _this6.pageLoading = false;
         if (res.data.status) {
-          _this3.$parent.editDWP = false;
-          _this3.$parent.mealDWP = null;
-          _this3.$parent.selectedItems = false;
-          if (_this3.type === 'days') _this3.$parent.getAllMealDays();else if (_this3.type == 'weeks') _this3.$parent.getAllMealWeeks();else _this3.$parent.getAllMealPlans();
+          _this6.$parent.editDWP = false;
+          _this6.$parent.mealDWP = null;
+          _this6.$parent.selectedItems = false;
+          if (_this6.type === 'days') _this6.$parent.getAllMealDays();else if (_this6.type == 'weeks') _this6.$parent.getAllMealWeeks();else _this6.$parent.getAllMealPlans();
         } else {
-          _this3.modalTitle = 'Failed';
-          _this3.modalDetail = res.data.message;
-          _this3.informModal = true;
+          _this6.modalTitle = 'Failed';
+          _this6.modalDetail = res.data.message;
+          _this6.informModal = true;
           console.log("update dwp error: ", res.data.error);
         }
       })["catch"](function (er) {
-        _this3.pageLoading = false;
-        _this3.modalTitle = 'Error';
-        _this3.modalDetail = 'Something Went Wrong';
-        _this3.informModal = true;
+        _this6.pageLoading = false;
+        _this6.modalTitle = 'Error';
+        _this6.modalDetail = 'Something Went Wrong';
+        _this6.informModal = true;
         console.log("update dwp error: ", er.message);
       });
     },
@@ -57507,67 +57687,67 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       this.normalizePlanWeeks();
     },
     getAllMeals: function getAllMeals() {
-      var _this4 = this;
+      var _this7 = this;
       this.allMeals = [];
       this.pageLoading = true;
       this.loaderText = 'Fetching';
       axios__WEBPACK_IMPORTED_MODULE_1__["default"].get(_config__WEBPACK_IMPORTED_MODULE_0__["default"].baseApiUrl + "get-meals?lang=" + this.DWPdetails.language, this.apiConfig).then(function (res) {
         if (res.data.status) {
-          _this4.allMeals = res.data.data;
-          _this4.pageLoading = false;
-          _this4.filterMealsByLanguage();
+          _this7.allMeals = res.data.data;
+          _this7.pageLoading = false;
+          _this7.filterMealsByLanguage();
         } else {
-          _this4.modalTitle = 'Error!';
-          _this4.modalDetail = res.data.message;
-          _this4.informModal = true;
+          _this7.modalTitle = 'Error!';
+          _this7.modalDetail = res.data.message;
+          _this7.informModal = true;
         }
       })["catch"](function (er) {
-        _this4.pageLoading = false;
-        _this4.modalTitle = 'Error!';
-        _this4.modalDetail = 'Meals not fetched';
-        _this4.informModal = true;
+        _this7.pageLoading = false;
+        _this7.modalTitle = 'Error!';
+        _this7.modalDetail = 'Meals not fetched';
+        _this7.informModal = true;
       });
     },
     getAllMealDays: function getAllMealDays() {
-      var _this5 = this;
+      var _this8 = this;
       this.allMeals = [];
       this.pageLoading = true;
       this.loaderText = 'Fetching';
       axios__WEBPACK_IMPORTED_MODULE_1__["default"].get(_config__WEBPACK_IMPORTED_MODULE_0__["default"].baseApiUrl + "get-meal-days?lang=" + this.DWPdetails.language, this.apiConfig).then(function (res) {
         if (res.data.status) {
-          _this5.allMeals = res.data.data;
-          _this5.pageLoading = false;
+          _this8.allMeals = res.data.data;
+          _this8.pageLoading = false;
         } else {
-          _this5.modalTitle = 'Error!';
-          _this5.modalDetail = res.data.message;
-          _this5.informModal = true;
+          _this8.modalTitle = 'Error!';
+          _this8.modalDetail = res.data.message;
+          _this8.informModal = true;
         }
       })["catch"](function (er) {
-        _this5.pageLoading = false;
-        _this5.modalTitle = 'Error!';
-        _this5.modalDetail = 'Meals not fetched';
-        _this5.informModal = true;
+        _this8.pageLoading = false;
+        _this8.modalTitle = 'Error!';
+        _this8.modalDetail = 'Meals not fetched';
+        _this8.informModal = true;
       });
     },
     getAllMealWeeks: function getAllMealWeeks() {
-      var _this6 = this;
+      var _this9 = this;
       this.allMeals = [];
       this.pageLoading = true;
       this.loaderText = 'Fetching';
       axios__WEBPACK_IMPORTED_MODULE_1__["default"].get(_config__WEBPACK_IMPORTED_MODULE_0__["default"].baseApiUrl + "get-meal-weeks?lang=" + this.DWPdetails.language, this.apiConfig).then(function (res) {
         if (res.data.status) {
-          _this6.allMeals = res.data.data;
-          _this6.pageLoading = false;
+          _this9.allMeals = res.data.data;
+          _this9.pageLoading = false;
         } else {
-          _this6.modalTitle = 'Error!';
-          _this6.modalDetail = res.data.message;
-          _this6.informModal = true;
+          _this9.modalTitle = 'Error!';
+          _this9.modalDetail = res.data.message;
+          _this9.informModal = true;
         }
       })["catch"](function (er) {
-        _this6.pageLoading = false;
-        _this6.modalTitle = 'Error!';
-        _this6.modalDetail = 'Meals not fetched';
-        _this6.informModal = true;
+        _this9.pageLoading = false;
+        _this9.modalTitle = 'Error!';
+        _this9.modalDetail = 'Meals not fetched';
+        _this9.informModal = true;
       });
     },
     startDrag: function startDrag(item) {
@@ -57587,27 +57767,27 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       }
     },
     onDrop: function onDrop(meal) {
-      var _this7 = this;
+      var _this0 = this;
       return _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
         var tempObj;
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                if (_this7.type == 'days') {
+                if (_this0.type == 'days') {
                   tempObj = {
-                    "file": _this7.tempItem.file,
-                    "file_type": _this7.tempItem.file_type,
-                    "name": _this7.tempItem.name,
-                    "video_thumbnail": _this7.tempItem.video_thumbnail
+                    "file": _this0.tempItem.file,
+                    "file_type": _this0.tempItem.file_type,
+                    "name": _this0.tempItem.name,
+                    "video_thumbnail": _this0.tempItem.video_thumbnail
                   };
-                  _this7.DWPdetails[meal] = _this7.tempItem.id;
-                  _this7.DWPdetails[meal + '_detail'] = tempObj;
-                } else if (_this7.type == 'weeks') {
-                  _this7.DWPdetails[meal] = _this7.tempItem.id;
-                  _this7.DWPdetails[meal + '_detail'] = _this7.tempItem;
-                } else if (_this7.type == 'plan') {
-                  _this7.DWPdetails.week_detail[meal] = _this7.tempItem;
+                  _this0.DWPdetails[meal] = _this0.tempItem.id;
+                  _this0.DWPdetails[meal + '_detail'] = tempObj;
+                } else if (_this0.type == 'weeks') {
+                  _this0.DWPdetails[meal] = _this0.tempItem.id;
+                  _this0.DWPdetails[meal + '_detail'] = _this0.tempItem;
+                } else if (_this0.type == 'plan') {
+                  _this0.DWPdetails.week_detail[meal] = _this0.tempItem;
                 }
               case 1:
               case "end":
@@ -89615,7 +89795,7 @@ var _hoisted_139 = {
 var _hoisted_140 = {
   "class": "col-12 d-flex justify-content-around mt-2"
 };
-var _hoisted_141 = ["onDrop"];
+var _hoisted_141 = ["onClick", "onDrop"];
 var _hoisted_142 = {
   key: 0,
   "class": "mb-0"
@@ -89693,6 +89873,230 @@ var _hoisted_164 = {
   key: 0,
   "class": "mt-3 fw-bold"
 };
+var _hoisted_165 = {
+  "class": "meal-preview-box position-relative p-3"
+};
+var _hoisted_166 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("i", {
+    "class": "fa-solid fa-xmark"
+  }, null, -1 /* HOISTED */);
+});
+var _hoisted_167 = [_hoisted_166];
+var _hoisted_168 = {
+  "class": "row w-100 mx-0"
+};
+var _hoisted_169 = {
+  "class": "col-md-5 p-2"
+};
+var _hoisted_170 = ["src"];
+var _hoisted_171 = ["src"];
+var _hoisted_172 = {
+  "class": "col-md-7 p-2 pe-5"
+};
+var _hoisted_173 = {
+  "class": "fw-bold mb-3"
+};
+var _hoisted_174 = {
+  "class": "mb-1 fs-4"
+};
+var _hoisted_175 = {
+  "class": "mb-3 text-muted"
+};
+var _hoisted_176 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+    "class": "mb-1 fs-5"
+  }, "Recipe Makes", -1 /* HOISTED */);
+});
+var _hoisted_177 = {
+  "class": "mb-3 text-muted"
+};
+var _hoisted_178 = {
+  "class": "mb-1 fs-5"
+};
+var _hoisted_179 = {
+  "class": "mb-0 text-muted"
+};
+var _hoisted_180 = {
+  key: 0
+};
+var _hoisted_181 = {
+  "class": "row w-100 mx-0 mt-3"
+};
+var _hoisted_182 = {
+  "class": "col-md-5 p-2"
+};
+var _hoisted_183 = {
+  "class": "tsh brds-2 p-3 h-100"
+};
+var _hoisted_184 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h5", {
+    "class": "fw-bold"
+  }, "Ingredients", -1 /* HOISTED */);
+});
+var _hoisted_185 = {
+  key: 0,
+  "class": "mb-0"
+};
+var _hoisted_186 = {
+  key: 0
+};
+var _hoisted_187 = {
+  key: 1
+};
+var _hoisted_188 = {
+  "class": "col-md-7 p-2"
+};
+var _hoisted_189 = {
+  "class": "tsh brds-2 p-3 h-100"
+};
+var _hoisted_190 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h5", {
+    "class": "fw-bold"
+  }, "Directions", -1 /* HOISTED */);
+});
+var _hoisted_191 = {
+  key: 0,
+  "class": "mb-0"
+};
+var _hoisted_192 = {
+  "class": "tsh brds-2 p-3 mt-3"
+};
+var _hoisted_193 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h5", {
+    "class": "fw-bold"
+  }, "Tags", -1 /* HOISTED */);
+});
+var _hoisted_194 = {
+  key: 0,
+  "class": "mb-0"
+};
+var _hoisted_195 = {
+  "class": "meal-preview-box position-relative p-3"
+};
+var _hoisted_196 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("i", {
+    "class": "fa-solid fa-xmark"
+  }, null, -1 /* HOISTED */);
+});
+var _hoisted_197 = [_hoisted_196];
+var _hoisted_198 = {
+  "class": "fw-bold pe-5"
+};
+var _hoisted_199 = {
+  "class": "row w-100 mx-0 mt-2"
+};
+var _hoisted_200 = {
+  "class": "col-md-6 p-2"
+};
+var _hoisted_201 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+    "class": "fw-bold mb-1"
+  }, "Tags", -1 /* HOISTED */);
+});
+var _hoisted_202 = {
+  "class": "d-flex flex-wrap brds-1 p-2 border detail-meta-box"
+};
+var _hoisted_203 = {
+  key: 0,
+  "class": "mb-0"
+};
+var _hoisted_204 = {
+  "class": "col-md-6 p-2"
+};
+var _hoisted_205 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+    "class": "fw-bold mb-1"
+  }, "Description", -1 /* HOISTED */);
+});
+var _hoisted_206 = {
+  "class": "brds-1 p-2 border detail-meta-box"
+};
+var _hoisted_207 = {
+  key: 0,
+  "class": "mb-0 wb-all"
+};
+var _hoisted_208 = {
+  key: 1,
+  "class": "mb-0"
+};
+var _hoisted_209 = {
+  "class": "w-100 mt-2"
+};
+var _hoisted_210 = {
+  "class": "ms-3 mb-0 mt-3 fw-bold"
+};
+var _hoisted_211 = ["onClick"];
+var _hoisted_212 = ["src"];
+var _hoisted_213 = ["src"];
+var _hoisted_214 = {
+  "class": "ms-3 mb-0",
+  style: {
+    "align-self": "center"
+  }
+};
+var _hoisted_215 = {
+  "class": "meal-preview-box position-relative p-3"
+};
+var _hoisted_216 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("i", {
+    "class": "fa-solid fa-xmark"
+  }, null, -1 /* HOISTED */);
+});
+var _hoisted_217 = [_hoisted_216];
+var _hoisted_218 = {
+  "class": "fw-bold pe-5"
+};
+var _hoisted_219 = {
+  "class": "row w-100 mx-0 mt-2"
+};
+var _hoisted_220 = {
+  "class": "col-md-6 p-2"
+};
+var _hoisted_221 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+    "class": "fw-bold mb-1"
+  }, "Tags", -1 /* HOISTED */);
+});
+var _hoisted_222 = {
+  "class": "d-flex flex-wrap brds-1 p-2 border detail-meta-box"
+};
+var _hoisted_223 = {
+  key: 0,
+  "class": "mb-0"
+};
+var _hoisted_224 = {
+  "class": "col-md-6 p-2"
+};
+var _hoisted_225 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+    "class": "fw-bold mb-1"
+  }, "Description", -1 /* HOISTED */);
+});
+var _hoisted_226 = {
+  "class": "brds-1 p-2 border detail-meta-box"
+};
+var _hoisted_227 = {
+  key: 0,
+  "class": "mb-0 wb-all"
+};
+var _hoisted_228 = {
+  key: 1,
+  "class": "mb-0"
+};
+var _hoisted_229 = {
+  "class": "w-100 mt-2"
+};
+var _hoisted_230 = {
+  "class": "ms-3 mb-0 mt-3 fw-bold"
+};
+var _hoisted_231 = ["onClick"];
+var _hoisted_232 = ["src"];
+var _hoisted_233 = {
+  "class": "ms-3 mb-0",
+  style: {
+    "align-self": "center"
+  }
+};
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_Loader = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("Loader");
   var _component_Inform = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("Inform");
@@ -89706,7 +90110,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     msgDetail: $data.modalDetail
   }, null, 8 /* PROPS */, ["msgTitle", "msgDetail"])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
     "class": "my-popup-component",
-    onClick: _cache[66] || (_cache[66] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {
+    onClick: _cache[81] || (_cache[81] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {
       return $options.quitComponent && $options.quitComponent.apply($options, arguments);
     }, ["self"]))
   }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
@@ -90039,12 +90443,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "background": "white"
     }
   }, null, 8 /* PROPS */, _hoisted_94))]))], 32 /* HYDRATE_EVENTS */)])])) : $props.type == 'weeks' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_95, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_96, [_hoisted_97, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_98, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": "col-12 brds-2 p-2 text-center",
-    onDrop: _cache[34] || (_cache[34] = function ($event) {
+    "class": "col-12 brds-2 p-2 text-center meal-preview-row",
+    onClick: _cache[35] || (_cache[35] = function ($event) {
+      return $props.DWPdetails.meal_day1 !== null && $options.showMealDayPreview($props.DWPdetails.meal_day1);
+    }),
+    onDrop: _cache[36] || (_cache[36] = function ($event) {
       return $options.onDrop('meal_day1');
     }),
-    onDragover: _cache[35] || (_cache[35] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
-    onDragenter: _cache[36] || (_cache[36] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragover: _cache[37] || (_cache[37] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragenter: _cache[38] || (_cache[38] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
     style: {
       "border": "1px solid #c5c5c5",
       "height": "150px"
@@ -90058,7 +90465,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     value: "meal_day1",
     "onUpdate:modelValue": _cache[33] || (_cache[33] = function ($event) {
       return $data.selectedItems = $event;
-    })
+    }),
+    onClick: _cache[34] || (_cache[34] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["stop"]))
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedItems]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
     src: $props.DWPdetails.meal_day1_detail.image,
     style: {
@@ -90068,12 +90476,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "background": "white"
     }
   }, null, 8 /* PROPS */, _hoisted_101)]))], 32 /* HYDRATE_EVENTS */)])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_102, [_hoisted_103, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_104, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": "col-12 brds-2 p-2 text-center",
-    onDrop: _cache[38] || (_cache[38] = function ($event) {
+    "class": "col-12 brds-2 p-2 text-center meal-preview-row",
+    onClick: _cache[41] || (_cache[41] = function ($event) {
+      return $props.DWPdetails.meal_day2 !== null && $options.showMealDayPreview($props.DWPdetails.meal_day2);
+    }),
+    onDrop: _cache[42] || (_cache[42] = function ($event) {
       return $options.onDrop('meal_day2');
     }),
-    onDragover: _cache[39] || (_cache[39] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
-    onDragenter: _cache[40] || (_cache[40] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragover: _cache[43] || (_cache[43] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragenter: _cache[44] || (_cache[44] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
     style: {
       "border": "1px solid #c5c5c5",
       "height": "150px"
@@ -90085,9 +90496,10 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "left": "0"
     },
     value: "meal_day2",
-    "onUpdate:modelValue": _cache[37] || (_cache[37] = function ($event) {
+    "onUpdate:modelValue": _cache[39] || (_cache[39] = function ($event) {
       return $data.selectedItems = $event;
-    })
+    }),
+    onClick: _cache[40] || (_cache[40] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["stop"]))
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedItems]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
     src: $props.DWPdetails.meal_day2_detail.image,
     style: {
@@ -90097,12 +90509,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "background": "white"
     }
   }, null, 8 /* PROPS */, _hoisted_107)]))], 32 /* HYDRATE_EVENTS */)])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_108, [_hoisted_109, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_110, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": "col-12 brds-2 p-2 text-center",
-    onDrop: _cache[42] || (_cache[42] = function ($event) {
+    "class": "col-12 brds-2 p-2 text-center meal-preview-row",
+    onClick: _cache[47] || (_cache[47] = function ($event) {
+      return $props.DWPdetails.meal_day3 !== null && $options.showMealDayPreview($props.DWPdetails.meal_day3);
+    }),
+    onDrop: _cache[48] || (_cache[48] = function ($event) {
       return $options.onDrop('meal_day3');
     }),
-    onDragover: _cache[43] || (_cache[43] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
-    onDragenter: _cache[44] || (_cache[44] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragover: _cache[49] || (_cache[49] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragenter: _cache[50] || (_cache[50] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
     style: {
       "border": "1px solid #c5c5c5",
       "height": "150px"
@@ -90114,9 +90529,10 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "left": "0"
     },
     value: "meal_day3",
-    "onUpdate:modelValue": _cache[41] || (_cache[41] = function ($event) {
+    "onUpdate:modelValue": _cache[45] || (_cache[45] = function ($event) {
       return $data.selectedItems = $event;
-    })
+    }),
+    onClick: _cache[46] || (_cache[46] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["stop"]))
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedItems]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
     src: $props.DWPdetails.meal_day3_detail.image,
     style: {
@@ -90126,12 +90542,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "background": "white"
     }
   }, null, 8 /* PROPS */, _hoisted_113)]))], 32 /* HYDRATE_EVENTS */)])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_114, [_hoisted_115, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_116, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": "col-12 brds-2 p-2 text-center",
-    onDrop: _cache[46] || (_cache[46] = function ($event) {
+    "class": "col-12 brds-2 p-2 text-center meal-preview-row",
+    onClick: _cache[53] || (_cache[53] = function ($event) {
+      return $props.DWPdetails.meal_day4 !== null && $options.showMealDayPreview($props.DWPdetails.meal_day4);
+    }),
+    onDrop: _cache[54] || (_cache[54] = function ($event) {
       return $options.onDrop('meal_day4');
     }),
-    onDragover: _cache[47] || (_cache[47] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
-    onDragenter: _cache[48] || (_cache[48] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragover: _cache[55] || (_cache[55] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragenter: _cache[56] || (_cache[56] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
     style: {
       "border": "1px solid #c5c5c5",
       "height": "150px"
@@ -90143,9 +90562,10 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "left": "0"
     },
     value: "meal_day4",
-    "onUpdate:modelValue": _cache[45] || (_cache[45] = function ($event) {
+    "onUpdate:modelValue": _cache[51] || (_cache[51] = function ($event) {
       return $data.selectedItems = $event;
-    })
+    }),
+    onClick: _cache[52] || (_cache[52] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["stop"]))
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedItems]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
     src: $props.DWPdetails.meal_day4_detail.image,
     style: {
@@ -90155,12 +90575,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "background": "white"
     }
   }, null, 8 /* PROPS */, _hoisted_119)]))], 32 /* HYDRATE_EVENTS */)])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_120, [_hoisted_121, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_122, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": "col-12 brds-2 p-2 text-center",
-    onDrop: _cache[50] || (_cache[50] = function ($event) {
+    "class": "col-12 brds-2 p-2 text-center meal-preview-row",
+    onClick: _cache[59] || (_cache[59] = function ($event) {
+      return $props.DWPdetails.meal_day5 !== null && $options.showMealDayPreview($props.DWPdetails.meal_day5);
+    }),
+    onDrop: _cache[60] || (_cache[60] = function ($event) {
       return $options.onDrop('meal_day5');
     }),
-    onDragover: _cache[51] || (_cache[51] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
-    onDragenter: _cache[52] || (_cache[52] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragover: _cache[61] || (_cache[61] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragenter: _cache[62] || (_cache[62] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
     style: {
       "border": "1px solid #c5c5c5",
       "height": "150px"
@@ -90172,9 +90595,10 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "left": "0"
     },
     value: "meal_day5",
-    "onUpdate:modelValue": _cache[49] || (_cache[49] = function ($event) {
+    "onUpdate:modelValue": _cache[57] || (_cache[57] = function ($event) {
       return $data.selectedItems = $event;
-    })
+    }),
+    onClick: _cache[58] || (_cache[58] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["stop"]))
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedItems]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
     src: $props.DWPdetails.meal_day5_detail.image,
     style: {
@@ -90184,12 +90608,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "background": "white"
     }
   }, null, 8 /* PROPS */, _hoisted_125)]))], 32 /* HYDRATE_EVENTS */)])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_126, [_hoisted_127, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_128, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": "col-12 brds-2 p-2 text-center",
-    onDrop: _cache[54] || (_cache[54] = function ($event) {
+    "class": "col-12 brds-2 p-2 text-center meal-preview-row",
+    onClick: _cache[65] || (_cache[65] = function ($event) {
+      return $props.DWPdetails.meal_day6 !== null && $options.showMealDayPreview($props.DWPdetails.meal_day6);
+    }),
+    onDrop: _cache[66] || (_cache[66] = function ($event) {
       return $options.onDrop('meal_day6');
     }),
-    onDragover: _cache[55] || (_cache[55] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
-    onDragenter: _cache[56] || (_cache[56] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragover: _cache[67] || (_cache[67] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragenter: _cache[68] || (_cache[68] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
     style: {
       "border": "1px solid #c5c5c5",
       "height": "150px"
@@ -90201,9 +90628,10 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "left": "0"
     },
     value: "meal_day6",
-    "onUpdate:modelValue": _cache[53] || (_cache[53] = function ($event) {
+    "onUpdate:modelValue": _cache[63] || (_cache[63] = function ($event) {
       return $data.selectedItems = $event;
-    })
+    }),
+    onClick: _cache[64] || (_cache[64] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["stop"]))
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedItems]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
     src: $props.DWPdetails.meal_day6_detail.image,
     style: {
@@ -90213,12 +90641,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "background": "white"
     }
   }, null, 8 /* PROPS */, _hoisted_131)]))], 32 /* HYDRATE_EVENTS */)])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_132, [_hoisted_133, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_134, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": "col-12 brds-2 p-2 text-center",
-    onDrop: _cache[58] || (_cache[58] = function ($event) {
+    "class": "col-12 brds-2 p-2 text-center meal-preview-row",
+    onClick: _cache[71] || (_cache[71] = function ($event) {
+      return $props.DWPdetails.meal_day7 !== null && $options.showMealDayPreview($props.DWPdetails.meal_day7);
+    }),
+    onDrop: _cache[72] || (_cache[72] = function ($event) {
       return $options.onDrop('meal_day7');
     }),
-    onDragover: _cache[59] || (_cache[59] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
-    onDragenter: _cache[60] || (_cache[60] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragover: _cache[73] || (_cache[73] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+    onDragenter: _cache[74] || (_cache[74] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
     style: {
       "border": "1px solid #c5c5c5",
       "height": "150px"
@@ -90230,9 +90661,10 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "left": "0"
     },
     value: "meal_day7",
-    "onUpdate:modelValue": _cache[57] || (_cache[57] = function ($event) {
+    "onUpdate:modelValue": _cache[69] || (_cache[69] = function ($event) {
       return $data.selectedItems = $event;
-    })
+    }),
+    onClick: _cache[70] || (_cache[70] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["stop"]))
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedItems]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
     src: $props.DWPdetails.meal_day7_detail.image,
     style: {
@@ -90245,13 +90677,16 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     key: 2
   }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($props.DWPdetails.week_detail, function (item, index) {
     return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_138, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_139, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, " Week" + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(index + 1), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_140, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
-      "class": "col-12 brds-2 p-2 text-center",
+      "class": "col-12 brds-2 p-2 text-center meal-preview-row",
       key: index,
+      onClick: function onClick($event) {
+        return item !== null && $options.showMealWeekPreview(item.id);
+      },
       onDrop: function onDrop($event) {
         return $options.onDrop(index);
       },
-      onDragover: _cache[62] || (_cache[62] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
-      onDragenter: _cache[63] || (_cache[63] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+      onDragover: _cache[77] || (_cache[77] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
+      onDragenter: _cache[78] || (_cache[78] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["prevent"])),
       style: {
         "border": "1px solid #c5c5c5",
         "height": "150px"
@@ -90260,9 +90695,10 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       type: "checkbox",
       "class": "form-check-input position-absolute",
       value: index,
-      "onUpdate:modelValue": _cache[61] || (_cache[61] = function ($event) {
+      "onUpdate:modelValue": _cache[75] || (_cache[75] = function ($event) {
         return $data.selectedItems = $event;
-      })
+      }),
+      onClick: _cache[76] || (_cache[76] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {}, ["stop"]))
     }, null, 8 /* PROPS */, _hoisted_144), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedItems]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
       src: item.image,
       alt: "",
@@ -90277,14 +90713,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_150, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(tag.tagName), 1 /* TEXT */);
   }), 256 /* UNKEYED_FRAGMENT */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "scnd_btn px-4 py-1 brds-2 my-1 mx-2",
-    onClick: _cache[64] || (_cache[64] = function () {
+    onClick: _cache[79] || (_cache[79] = function () {
       return $options.assignTagsShow && $options.assignTagsShow.apply($options, arguments);
     })
   }, "Add/Remove")])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_151, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_152, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_153, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
     type: "text",
     "class": "w-100 exSearch",
     placeholder: "search by name or tag",
-    "onUpdate:modelValue": _cache[65] || (_cache[65] = function ($event) {
+    "onUpdate:modelValue": _cache[80] || (_cache[80] = function ($event) {
       return $data.search = $event;
     })
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.search]]), _hoisted_154]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)(" <div>\r\n                                <button class=\"trans_btn py-2\">\r\n                                    <img src=\"/cms-assets/images/master-libraries/filter.png\" alt=\"\" class=\"img-fluid\">\r\n                                </button>\r\n                            </div> ")]), _hoisted_155, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_156, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_157, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($options.filteredMeals, function (item, index) {
@@ -90328,8 +90764,132 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         "width": "100%"
       }
     }, null, 8 /* PROPS */, _hoisted_163)]))], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_158)]);
-  }), 128 /* KEYED_FRAGMENT */)), $options.filteredMeals.length == 0 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_164, "No Meals to display regarding the filter")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])])])])])])]), $data.showTags ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(_component_assignTags, {
+  }), 128 /* KEYED_FRAGMENT */)), $options.filteredMeals.length == 0 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_164, "No Meals to display regarding the filter")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])])])])])])]), $data.selectedMealDetail ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
     key: 2,
+    "class": "meal-preview-overlay meal-preview-overlay-meal",
+    onClick: _cache[83] || (_cache[83] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {
+      return $options.closeMealPreview && $options.closeMealPreview.apply($options, arguments);
+    }, ["self"]))
+  }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_165, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "trans_btn position-absolute",
+    onClick: _cache[82] || (_cache[82] = function () {
+      return $options.closeMealPreview && $options.closeMealPreview.apply($options, arguments);
+    }),
+    style: {
+      "right": "18px",
+      "top": "12px",
+      "font-size": "25px"
+    }
+  }, _hoisted_167), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_168, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_169, [$data.selectedMealDetail.file_type == 'video' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("video", {
+    key: 0,
+    src: $data.selectedMealDetail.file,
+    controls: "",
+    "class": "img-fluid brds-2 w-100"
+  }, null, 8 /* PROPS */, _hoisted_170)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("img", {
+    key: 1,
+    src: $data.selectedMealDetail.file,
+    alt: "Meal",
+    "class": "img-fluid brds-2 w-100"
+  }, null, 8 /* PROPS */, _hoisted_171))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_172, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h2", _hoisted_173, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.name), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_174, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.calories_per_serving) + " Cal / Serving", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_175, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.protein_per_serving) + "g Protein, " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.carbs_per_serving) + "g Carbs, " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.fat_per_serving) + "g Fat, " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.fiber_per_serving) + "g Fiber", 1 /* TEXT */), _hoisted_176, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_177, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.no_of_servings) + " Servings", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_178, "Total prep time " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.mealTotalPrepTime($data.selectedMealDetail)) + " minutes", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_179, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createTextVNode)("Preparation: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.prep_time) + " minutes", 1 /* TEXT */), $options.hasCookTime($data.selectedMealDetail) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_180, " / Cooking: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDetail.cook_time) + " minutes", 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_181, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_182, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_183, [_hoisted_184, $data.selectedMealIngredients.length < 1 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_185, "No ingredients added")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.selectedMealIngredients, function (item, index) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", {
+      key: index,
+      "class": "mb-1"
+    }, [$data.selectedMealDetail.meal_type == 'auto' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_186, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(item.name) + " - " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(parseInt(item.quantity1) + parseFloat(item.quantity2)), 1 /* TEXT */)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_187, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(item), 1 /* TEXT */))]);
+  }), 128 /* KEYED_FRAGMENT */))])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_188, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_189, [_hoisted_190, $data.selectedMealDirections.length < 1 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_191, "No directions added")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.selectedMealDirections, function (item, index) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", {
+      key: index,
+      "class": "mb-1 wb-all"
+    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(index + 1) + " - " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(item), 1 /* TEXT */);
+  }), 128 /* KEYED_FRAGMENT */))])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_192, [_hoisted_193, ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.selectedMealTags, function (item, index) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", {
+      key: index,
+      "class": "px-2 py-1 prim_bg mx-1 brds-1 my-1 d-inline-block"
+    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(item), 1 /* TEXT */);
+  }), 128 /* KEYED_FRAGMENT */)), $data.selectedMealTags.length < 1 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_194, "No tags added")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])])])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), $data.selectedMealDayDetail ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
+    key: 3,
+    "class": "meal-preview-overlay meal-preview-overlay-day",
+    onClick: _cache[85] || (_cache[85] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {
+      return $options.closeMealDayPreview && $options.closeMealDayPreview.apply($options, arguments);
+    }, ["self"]))
+  }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_195, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "trans_btn position-absolute",
+    onClick: _cache[84] || (_cache[84] = function () {
+      return $options.closeMealDayPreview && $options.closeMealDayPreview.apply($options, arguments);
+    }),
+    style: {
+      "right": "18px",
+      "top": "12px",
+      "font-size": "25px"
+    }
+  }, _hoisted_197), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h3", _hoisted_198, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDayDetail.name), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_199, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_200, [_hoisted_201, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_202, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.selectedMealDayTags, function (item, index) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", {
+      key: index,
+      "class": "px-2 py-1 prim_bg mx-1 brds-1 my-1"
+    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(item), 1 /* TEXT */);
+  }), 128 /* KEYED_FRAGMENT */)), $data.selectedMealDayTags.length < 1 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_203, "No tags added")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_204, [_hoisted_205, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_206, [$data.selectedMealDayDetail.description ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_207, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealDayDetail.description), 1 /* TEXT */)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_208, "No description added"))])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_209, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($options.dayMealSlots($data.selectedMealDayDetail), function (slot) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+      key: slot.label
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_210, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(slot.label) + ":", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+      "class": "float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-preview-row",
+      onClick: function onClick($event) {
+        return $options.showMealPreview(slot.id);
+      }
+    }, [slot.detail.file_type == 'image' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("img", {
+      key: 0,
+      src: slot.detail.file,
+      alt: "",
+      "class": "img-fluid",
+      style: {
+        "max-width": "100px"
+      }
+    }, null, 8 /* PROPS */, _hoisted_212)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("img", {
+      key: 1,
+      src: slot.detail.video_thumbnail,
+      alt: "",
+      "class": "img-fluid",
+      style: {
+        "max-width": "100px"
+      }
+    }, null, 8 /* PROPS */, _hoisted_213)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_214, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(slot.detail.name), 1 /* TEXT */)], 8 /* PROPS */, _hoisted_211)], 64 /* STABLE_FRAGMENT */);
+  }), 128 /* KEYED_FRAGMENT */))])])])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), $data.selectedMealWeekDetail ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
+    key: 4,
+    "class": "meal-preview-overlay meal-preview-overlay-week",
+    onClick: _cache[87] || (_cache[87] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)(function () {
+      return $options.closeMealWeekPreview && $options.closeMealWeekPreview.apply($options, arguments);
+    }, ["self"]))
+  }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_215, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "trans_btn position-absolute",
+    onClick: _cache[86] || (_cache[86] = function () {
+      return $options.closeMealWeekPreview && $options.closeMealWeekPreview.apply($options, arguments);
+    }),
+    style: {
+      "right": "18px",
+      "top": "12px",
+      "font-size": "25px"
+    }
+  }, _hoisted_217), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h3", _hoisted_218, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealWeekDetail.name), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_219, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_220, [_hoisted_221, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_222, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.selectedMealWeekTags, function (item, index) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", {
+      key: index,
+      "class": "px-2 py-1 prim_bg mx-1 brds-1 my-1"
+    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(item), 1 /* TEXT */);
+  }), 128 /* KEYED_FRAGMENT */)), $data.selectedMealWeekTags.length < 1 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_223, "No tags added")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_224, [_hoisted_225, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_226, [$data.selectedMealWeekDetail.description ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_227, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.selectedMealWeekDetail.description), 1 /* TEXT */)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("p", _hoisted_228, "No description added"))])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_229, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($options.weekDaySlots($data.selectedMealWeekDetail), function (slot) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+      key: slot.label
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_230, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(slot.label) + ":", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+      "class": "float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-preview-row",
+      onClick: function onClick($event) {
+        return $options.showMealDayPreview(slot.id);
+      }
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
+      src: slot.detail.image,
+      alt: "",
+      "class": "img-fluid",
+      style: {
+        "max-width": "100px"
+      }
+    }, null, 8 /* PROPS */, _hoisted_232), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_233, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(slot.detail.name), 1 /* TEXT */)], 8 /* PROPS */, _hoisted_231)], 64 /* STABLE_FRAGMENT */);
+  }), 128 /* KEYED_FRAGMENT */))])])])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), $data.showTags ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(_component_assignTags, {
+    key: 5,
     tagType: "meal",
     prefilledTags: $props.DWPdetails.tags
   }, null, 8 /* PROPS */, ["prefilledTags"])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)], 64 /* STABLE_FRAGMENT */);
@@ -119596,7 +120156,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.exSearch[data-v-68c1312e] {\r\n    color: rgb(192, 192, 192);\r\n    background-color: white;\r\n    border-radius: 5px;\r\n    border: 1px solid rgb(197, 197, 197);\r\n    padding: 5px 10px 5px 30px;\n}\n.exSearch+img[data-v-68c1312e] {\r\n    top: 10px;\r\n    left: 10px;\r\n    max-width: 15px;\n}\n.drag-el[data-v-68c1312e] {\r\n    background-color: #fff;\r\n    margin-bottom: 10px;\r\n    padding: 5px;\n}\r\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.exSearch[data-v-68c1312e] {\r\n    color: rgb(192, 192, 192);\r\n    background-color: white;\r\n    border-radius: 5px;\r\n    border: 1px solid rgb(197, 197, 197);\r\n    padding: 5px 10px 5px 30px;\n}\n.exSearch+img[data-v-68c1312e] {\r\n    top: 10px;\r\n    left: 10px;\r\n    max-width: 15px;\n}\n.drag-el[data-v-68c1312e] {\n    background-color: #fff;\n    margin-bottom: 10px;\n    padding: 5px;\n}\n.meal-preview-overlay[data-v-68c1312e] {\n    position: fixed;\n    inset: 0;\n    background: rgba(0, 0, 0, 0.45);\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    padding: 24px;\n}\n.meal-preview-overlay-week[data-v-68c1312e] {\n    z-index: 1080;\n}\n.meal-preview-overlay-day[data-v-68c1312e] {\n    z-index: 1090;\n}\n.meal-preview-overlay-meal[data-v-68c1312e] {\n    z-index: 1100;\n}\n.meal-preview-box[data-v-68c1312e] {\n    background: white;\n    border-radius: 20px;\n    width: min(1000px, 92vw);\n    max-height: 88vh;\n    overflow-y: auto;\n}\n.meal-preview-row[data-v-68c1312e] {\n    cursor: pointer;\n}\n.meal-preview-row[data-v-68c1312e]:hover {\n    transform: translateY(-1px);\n}\n.detail-meta-box[data-v-68c1312e] {\n    min-height: 90px;\n    overflow-y: auto;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

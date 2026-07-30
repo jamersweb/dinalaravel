@@ -134,10 +134,10 @@
                             <div class="tsl brds-2 py-2 px-3 my-2" style="width:200px">
                                 <strong> Day1</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
-                                    <div class="col-12 brds-2 p-2 text-center" @drop="onDrop('meal_day1')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
+                                    <div class="col-12 brds-2 p-2 text-center meal-preview-row" @click="DWPdetails.meal_day1!==null && showMealDayPreview(DWPdetails.meal_day1)" @drop="onDrop('meal_day1')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
                                         <p class="mb-0" v-if="DWPdetails.meal_day1==null">Drag and Drop Meal for the day</p>
                                         <div v-else class="position-relative text-center">
-                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day1" v-model="selectedItems">
+                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day1" v-model="selectedItems" @click.stop>
                                             <img  :src="DWPdetails.meal_day1_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
                                         </div>
                                     </div>
@@ -146,10 +146,10 @@
                             <div class="tsl brds-2 py-2 px-3 my-2" style="width:200px">
                                 <strong> Day2</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
-                                    <div class="col-12 brds-2 p-2 text-center" @drop="onDrop('meal_day2')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
+                                    <div class="col-12 brds-2 p-2 text-center meal-preview-row" @click="DWPdetails.meal_day2!==null && showMealDayPreview(DWPdetails.meal_day2)" @drop="onDrop('meal_day2')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
                                         <p class="mb-0" v-if="DWPdetails.meal_day2==null">Drag and Drop Meal for the day</p>
                                         <div v-else class="position-relative text-center">
-                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day2" v-model="selectedItems">
+                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day2" v-model="selectedItems" @click.stop>
                                             <img  :src="DWPdetails.meal_day2_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
                                         </div>
                                     </div>
@@ -158,10 +158,10 @@
                             <div class="tsl brds-2 py-2 px-3 my-2" style="width:200px">
                                 <strong> Day3</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
-                                    <div class="col-12 brds-2 p-2 text-center" @drop="onDrop('meal_day3')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
+                                    <div class="col-12 brds-2 p-2 text-center meal-preview-row" @click="DWPdetails.meal_day3!==null && showMealDayPreview(DWPdetails.meal_day3)" @drop="onDrop('meal_day3')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
                                         <p class="mb-0" v-if="DWPdetails.meal_day3==null">Drag and Drop Meal for the day</p>
                                         <div v-else class="position-relative text-center">
-                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day3" v-model="selectedItems">
+                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day3" v-model="selectedItems" @click.stop>
                                             <img  :src="DWPdetails.meal_day3_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
                                         </div>
                                     </div>
@@ -170,10 +170,10 @@
                             <div class="tsl brds-2 py-2 px-3 my-2" style="width:200px">
                                 <strong> Day4</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
-                                    <div class="col-12 brds-2 p-2 text-center" @drop="onDrop('meal_day4')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
+                                    <div class="col-12 brds-2 p-2 text-center meal-preview-row" @click="DWPdetails.meal_day4!==null && showMealDayPreview(DWPdetails.meal_day4)" @drop="onDrop('meal_day4')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
                                         <p class="mb-0" v-if="DWPdetails.meal_day4==null">Drag and Drop Meal for the day</p>
                                         <div v-else class="position-relative text-center">
-                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day4" v-model="selectedItems">
+                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day4" v-model="selectedItems" @click.stop>
                                             <img  :src="DWPdetails.meal_day4_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
                                         </div>
                                     </div>
@@ -182,10 +182,10 @@
                             <div class="tsl brds-2 py-2 px-3 my-2" style="width:200px">
                                 <strong> Day5</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
-                                    <div class="col-12 brds-2 p-2 text-center" @drop="onDrop('meal_day5')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
+                                    <div class="col-12 brds-2 p-2 text-center meal-preview-row" @click="DWPdetails.meal_day5!==null && showMealDayPreview(DWPdetails.meal_day5)" @drop="onDrop('meal_day5')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
                                         <p class="mb-0" v-if="DWPdetails.meal_day5==null">Drag and Drop Meal for the day</p>
                                         <div v-else class="position-relative text-center">
-                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day5" v-model="selectedItems">
+                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day5" v-model="selectedItems" @click.stop>
                                             <img  :src="DWPdetails.meal_day5_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
                                         </div>
                                     </div>
@@ -194,10 +194,10 @@
                             <div class="tsl brds-2 py-2 px-3 my-2" style="width:200px">
                                 <strong> Day6</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
-                                    <div class="col-12 brds-2 p-2 text-center" @drop="onDrop('meal_day6')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
+                                    <div class="col-12 brds-2 p-2 text-center meal-preview-row" @click="DWPdetails.meal_day6!==null && showMealDayPreview(DWPdetails.meal_day6)" @drop="onDrop('meal_day6')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
                                         <p class="mb-0" v-if="DWPdetails.meal_day6==null">Drag and Drop Meal for the day</p>
                                         <div v-else class="position-relative text-center">
-                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day6" v-model="selectedItems">
+                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day6" v-model="selectedItems" @click.stop>
                                             <img  :src="DWPdetails.meal_day6_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
                                         </div>
                                     </div>
@@ -206,10 +206,10 @@
                             <div class="tsl brds-2 py-2 px-3 my-2" style="width:200px">
                                 <strong> Day7</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
-                                    <div class="col-12 brds-2 p-2 text-center" @drop="onDrop('meal_day7')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
+                                    <div class="col-12 brds-2 p-2 text-center meal-preview-row" @click="DWPdetails.meal_day7!==null && showMealDayPreview(DWPdetails.meal_day7)" @drop="onDrop('meal_day7')" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
                                         <p class="mb-0" v-if="DWPdetails.meal_day7==null">Drag and Drop Meal for the day</p>
                                         <div v-else class="position-relative text-center">
-                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day7" v-model="selectedItems">
+                                            <input type="checkbox" class="form-check-input position-absolute" style="left:0" value="meal_day7" v-model="selectedItems" @click.stop>
                                             <img  :src="DWPdetails.meal_day7_detail.image" style="max-width: 100%; height:105px; object-fit: contain; background: white;">
                                         </div>
                                     </div>
@@ -220,10 +220,10 @@
                             <div class="tsl brds-2 py-2 px-3">
                                 <strong> Week{{index+1}}</strong>
                                 <div class="col-12 d-flex justify-content-around mt-2">
-                                    <div class="col-12 brds-2 p-2 text-center" :key="index" @drop="onDrop(index)" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
+                                    <div class="col-12 brds-2 p-2 text-center meal-preview-row" :key="index" @click="item!==null && showMealWeekPreview(item.id)" @drop="onDrop(index)" @dragover.prevent @dragenter.prevent style="border:1px solid #c5c5c5;height:150px;">
                                         <p class="mb-0" v-if="item==null">Drag and Drop Week here</p>
                                         <div v-else class="position-relative text-center">
-                                            <input type="checkbox" class="form-check-input position-absolute" :value="index" v-model="selectedItems">
+                                            <input type="checkbox" class="form-check-input position-absolute" :value="index" v-model="selectedItems" @click.stop>
                                             <img :src="item.image" alt="" style="height:80px;width:80%; object-fit: contain; background: white;">
                                         </div>
                                     </div>
@@ -282,6 +282,119 @@
             </div>
         </div>
     </div>
+    <div v-if="selectedMealDetail" class="meal-preview-overlay meal-preview-overlay-meal" @click.self="closeMealPreview">
+        <div class="meal-preview-box position-relative p-3">
+            <button class="trans_btn position-absolute" @click="closeMealPreview" style="right:18px;top:12px;font-size:25px">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="row w-100 mx-0">
+                <div class="col-md-5 p-2">
+                    <video v-if="selectedMealDetail.file_type=='video'" :src="selectedMealDetail.file" controls class="img-fluid brds-2 w-100"></video>
+                    <img v-else :src="selectedMealDetail.file" alt="Meal" class="img-fluid brds-2 w-100">
+                </div>
+                <div class="col-md-7 p-2 pe-5">
+                    <h2 class="fw-bold mb-3">{{selectedMealDetail.name}}</h2>
+                    <p class="mb-1 fs-4">{{selectedMealDetail.calories_per_serving}} Cal / Serving</p>
+                    <p class="mb-3 text-muted">{{selectedMealDetail.protein_per_serving}}g Protein, {{selectedMealDetail.carbs_per_serving}}g Carbs, {{selectedMealDetail.fat_per_serving}}g Fat, {{selectedMealDetail.fiber_per_serving}}g Fiber</p>
+                    <p class="mb-1 fs-5">Recipe Makes</p>
+                    <p class="mb-3 text-muted">{{selectedMealDetail.no_of_servings}} Servings</p>
+                    <p class="mb-1 fs-5">Total prep time {{mealTotalPrepTime(selectedMealDetail)}} minutes</p>
+                    <p class="mb-0 text-muted">Preparation: {{selectedMealDetail.prep_time}} minutes<span v-if="hasCookTime(selectedMealDetail)"> / Cooking: {{selectedMealDetail.cook_time}} minutes</span></p>
+                </div>
+            </div>
+            <div class="row w-100 mx-0 mt-3">
+                <div class="col-md-5 p-2">
+                    <div class="tsh brds-2 p-3 h-100">
+                        <h5 class="fw-bold">Ingredients</h5>
+                        <p v-if="selectedMealIngredients.length < 1" class="mb-0">No ingredients added</p>
+                        <p v-for="(item, index) in selectedMealIngredients" :key="index" class="mb-1">
+                            <span v-if="selectedMealDetail.meal_type=='auto'">{{item.name}} - {{parseInt(item.quantity1) + parseFloat(item.quantity2)}}</span>
+                            <span v-else>{{item}}</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-7 p-2">
+                    <div class="tsh brds-2 p-3 h-100">
+                        <h5 class="fw-bold">Directions</h5>
+                        <p v-if="selectedMealDirections.length < 1" class="mb-0">No directions added</p>
+                        <p v-for="(item, index) in selectedMealDirections" :key="index" class="mb-1 wb-all">{{index+1}} - {{item}}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="tsh brds-2 p-3 mt-3">
+                <h5 class="fw-bold">Tags</h5>
+                <span v-for="(item, index) in selectedMealTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1 d-inline-block">{{item}}</span>
+                <p v-if="selectedMealTags.length < 1" class="mb-0">No tags added</p>
+            </div>
+        </div>
+    </div>
+    <div v-if="selectedMealDayDetail" class="meal-preview-overlay meal-preview-overlay-day" @click.self="closeMealDayPreview">
+        <div class="meal-preview-box position-relative p-3">
+            <button class="trans_btn position-absolute" @click="closeMealDayPreview" style="right:18px;top:12px;font-size:25px">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="fw-bold pe-5">{{selectedMealDayDetail.name}}</h3>
+            <div class="row w-100 mx-0 mt-2">
+                <div class="col-md-6 p-2">
+                    <p class="fw-bold mb-1">Tags</p>
+                    <div class="d-flex flex-wrap brds-1 p-2 border detail-meta-box">
+                        <span v-for="(item, index) in selectedMealDayTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1">{{item}}</span>
+                        <p v-if="selectedMealDayTags.length < 1" class="mb-0">No tags added</p>
+                    </div>
+                </div>
+                <div class="col-md-6 p-2">
+                    <p class="fw-bold mb-1">Description</p>
+                    <div class="brds-1 p-2 border detail-meta-box">
+                        <p class="mb-0 wb-all" v-if="selectedMealDayDetail.description">{{selectedMealDayDetail.description}}</p>
+                        <p class="mb-0" v-else>No description added</p>
+                    </div>
+                </div>
+            </div>
+            <div class="w-100 mt-2">
+                <template v-for="slot in dayMealSlots(selectedMealDayDetail)" :key="slot.label">
+                    <p class="ms-3 mb-0 mt-3 fw-bold">{{slot.label}}:</p>
+                    <div class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-preview-row" @click="showMealPreview(slot.id)">
+                        <img v-if="slot.detail.file_type=='image'" :src="slot.detail.file" alt="" class="img-fluid" style="max-width:100px">
+                        <img v-else :src="slot.detail.video_thumbnail" alt="" class="img-fluid" style="max-width:100px">
+                        <p class="ms-3 mb-0" style="align-self: center;">{{slot.detail.name}}</p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    <div v-if="selectedMealWeekDetail" class="meal-preview-overlay meal-preview-overlay-week" @click.self="closeMealWeekPreview">
+        <div class="meal-preview-box position-relative p-3">
+            <button class="trans_btn position-absolute" @click="closeMealWeekPreview" style="right:18px;top:12px;font-size:25px">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="fw-bold pe-5">{{selectedMealWeekDetail.name}}</h3>
+            <div class="row w-100 mx-0 mt-2">
+                <div class="col-md-6 p-2">
+                    <p class="fw-bold mb-1">Tags</p>
+                    <div class="d-flex flex-wrap brds-1 p-2 border detail-meta-box">
+                        <span v-for="(item, index) in selectedMealWeekTags" :key="index" class="px-2 py-1 prim_bg mx-1 brds-1 my-1">{{item}}</span>
+                        <p v-if="selectedMealWeekTags.length < 1" class="mb-0">No tags added</p>
+                    </div>
+                </div>
+                <div class="col-md-6 p-2">
+                    <p class="fw-bold mb-1">Description</p>
+                    <div class="brds-1 p-2 border detail-meta-box">
+                        <p class="mb-0 wb-all" v-if="selectedMealWeekDetail.description">{{selectedMealWeekDetail.description}}</p>
+                        <p class="mb-0" v-else>No description added</p>
+                    </div>
+                </div>
+            </div>
+            <div class="w-100 mt-2">
+                <template v-for="slot in weekDaySlots(selectedMealWeekDetail)" :key="slot.label">
+                    <p class="ms-3 mb-0 mt-3 fw-bold">{{slot.label}}:</p>
+                    <div class="float-start d-flex shd_card w-100 mt-1 mb-0 py-2 meal-preview-row" @click="showMealDayPreview(slot.id)">
+                        <img :src="slot.detail.image" alt="" class="img-fluid" style="max-width:100px">
+                        <p class="ms-3 mb-0" style="align-self: center;">{{slot.detail.name}}</p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
     <assignTags v-if="showTags" tagType="meal" :prefilledTags="DWPdetails.tags"/>
 </template>
 <script>
@@ -330,7 +443,15 @@ export default {
             modalDetail: '',
             loaderText: '',
             durationweeks: '1',
-            thumbnailPreview: null
+            thumbnailPreview: null,
+            selectedMealDetail: null,
+            selectedMealIngredients: [],
+            selectedMealDirections: [],
+            selectedMealTags: [],
+            selectedMealDayDetail: null,
+            selectedMealDayTags: [],
+            selectedMealWeekDetail: null,
+            selectedMealWeekTags: []
         }
     },
     computed: {
@@ -376,6 +497,148 @@ export default {
             } else {
                 return title;
             }
+        },
+        parseJsonList(value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value === null || value === undefined || value === '') {
+                return [];
+            }
+            try {
+                return JSON.parse(value);
+            } catch (e) {
+                return [];
+            }
+        },
+        mealTotalPrepTime(meal) {
+            return (parseInt(meal.prep_time) || 0) + (parseInt(meal.cook_time) || 0);
+        },
+        hasCookTime(meal) {
+            const value = meal?.cook_time;
+            return value !== null && value !== undefined && value !== '' && value !== 0 && value !== '0';
+        },
+        dayMealSlots(dayDetail) {
+            if (!dayDetail) {
+                return [];
+            }
+
+            return [
+                { label: 'Breakfast', id: dayDetail.breakfast, detail: dayDetail.breakfast_detail },
+                { label: 'Lunch', id: dayDetail.lunch, detail: dayDetail.lunch_detail },
+                { label: 'Dinner', id: dayDetail.dinner, detail: dayDetail.dinner_detail },
+                { label: 'Snacks', id: dayDetail.snacks, detail: dayDetail.snacks_detail },
+                { label: 'Drink', id: dayDetail.drinks, detail: dayDetail.drinks_detail },
+            ].filter((slot) => slot.id !== null && slot.id !== undefined && slot.detail);
+        },
+        weekDaySlots(weekDetail) {
+            if (!weekDetail) {
+                return [];
+            }
+
+            return [
+                { label: 'Day1', id: weekDetail.meal_day1, detail: weekDetail.meal_day1_detail },
+                { label: 'Day2', id: weekDetail.meal_day2, detail: weekDetail.meal_day2_detail },
+                { label: 'Day3', id: weekDetail.meal_day3, detail: weekDetail.meal_day3_detail },
+                { label: 'Day4', id: weekDetail.meal_day4, detail: weekDetail.meal_day4_detail },
+                { label: 'Day5', id: weekDetail.meal_day5, detail: weekDetail.meal_day5_detail },
+                { label: 'Day6', id: weekDetail.meal_day6, detail: weekDetail.meal_day6_detail },
+                { label: 'Day7', id: weekDetail.meal_day7, detail: weekDetail.meal_day7_detail },
+            ].filter((slot) => slot.id !== null && slot.id !== undefined && slot.detail);
+        },
+        showMealPreview(mealId) {
+            if (!mealId) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal';
+            axios.get(config.baseApiUrl + 'get-meal-detail/' + mealId, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealDetail = res.data.data;
+                        this.selectedMealIngredients = this.parseJsonList(this.selectedMealDetail.ingredients);
+                        this.selectedMealDirections = this.parseJsonList(this.selectedMealDetail.directions);
+                        this.selectedMealTags = this.selectedMealDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
+        showMealDayPreview(mealDayId) {
+            if (!mealDayId) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal Day';
+            axios.get(config.baseApiUrl + 'get-meal-day-detail/' + mealDayId, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealDayDetail = res.data.data;
+                        this.selectedMealDayTags = this.selectedMealDayDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
+        showMealWeekPreview(mealWeekId) {
+            if (!mealWeekId) {
+                return;
+            }
+
+            this.pageLoading = true;
+            this.loaderText = 'Fetching Meal Week';
+            axios.get(config.baseApiUrl + 'get-meal-week-detail/' + mealWeekId, this.apiConfig)
+                .then((res) => {
+                    this.pageLoading = false;
+                    if (res.data.status) {
+                        this.selectedMealWeekDetail = res.data.data;
+                        this.selectedMealWeekTags = this.selectedMealWeekDetail.tagNames || [];
+                    }
+                    else {
+                        this.modalTitle = 'Error!';
+                        this.modalDetail = res.data.message;
+                        this.informModal = true;
+                    }
+                }).catch(er => {
+                    this.pageLoading = false;
+                    this.modalTitle = 'Error!';
+                    this.modalDetail = er.message;
+                    this.informModal = true;
+                })
+        },
+        closeMealPreview() {
+            this.selectedMealDetail = null;
+            this.selectedMealIngredients = [];
+            this.selectedMealDirections = [];
+            this.selectedMealTags = [];
+        },
+        closeMealDayPreview() {
+            this.selectedMealDayDetail = null;
+            this.selectedMealDayTags = [];
+        },
+        closeMealWeekPreview() {
+            this.selectedMealWeekDetail = null;
+            this.selectedMealWeekTags = [];
         },
         getImage() {
             const tempFile = this.$refs.thumbnailFile.files[0];
@@ -700,5 +963,48 @@ export default {
     background-color: #fff;
     margin-bottom: 10px;
     padding: 5px;
+}
+
+.meal-preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.meal-preview-overlay-week {
+    z-index: 1080;
+}
+
+.meal-preview-overlay-day {
+    z-index: 1090;
+}
+
+.meal-preview-overlay-meal {
+    z-index: 1100;
+}
+
+.meal-preview-box {
+    background: white;
+    border-radius: 20px;
+    width: min(1000px, 92vw);
+    max-height: 88vh;
+    overflow-y: auto;
+}
+
+.meal-preview-row {
+    cursor: pointer;
+}
+
+.meal-preview-row:hover {
+    transform: translateY(-1px);
+}
+
+.detail-meta-box {
+    min-height: 90px;
+    overflow-y: auto;
 }
 </style>
