@@ -135,6 +135,8 @@
                             <span>Programs {{ launchSummary.programs || 0 }}</span>
                             <span>Built valid {{ launchSummary.built_valid || 0 }}</span>
                             <span>Ready to build {{ launchSummary.ready_to_build || 0 }}</span>
+                            <span>Need routines {{ launchSummary.needs_routines || 0 }}</span>
+                            <span>Need approval {{ launchSummary.needs_routine_review || 0 }}</span>
                             <span>Invalid {{ launchSummary.built_invalid || 0 }}</span>
                             <span>Blocked {{ launchSummary.blocked || 0 }}</span>
                         </div>
@@ -178,8 +180,13 @@
                                     <div class="launch-language-cell">
                                         <span class="badge" :class="launchLanguageClass(program, language)">{{ launchLanguageStatus(program, language) }}</span>
                                         <small v-if="launchLanguage(program, language)?.content_code">{{ launchLanguage(program, language).content_code }}</small>
-                                        <small v-if="launchLanguage(program, language)?.program_id">ID {{ launchLanguage(program, language).program_id }} · {{ launchLanguage(program, language).days }} days</small>
-                                        <button class="tiny-btn approve" @click="buildLaunchProgram(program.number, language)">Build</button>
+                                        <small v-if="launchLanguage(program, language)?.routine_readiness">
+                                            Routines {{ launchLanguage(program, language).routine_readiness.approved_count }}/{{ launchLanguage(program, language).routine_readiness.minimum_required }} approved<span v-if="launchLanguage(program, language).routine_readiness.pending_review_count">, {{ launchLanguage(program, language).routine_readiness.pending_review_count }} pending</span>
+                                        </small>
+                                        <small v-if="launchLanguage(program, language)?.program_id">ID {{ launchLanguage(program, language).program_id }} - {{ launchLanguage(program, language).days }} days</small>
+                                        <button v-if="launchLanguage(program, language)?.status === 'needs_routines'" class="tiny-btn revise" @click="generateLaunchRoutines(program, language)">Generate Routines</button>
+                                        <button v-if="launchLanguage(program, language)?.status === 'needs_routine_review'" class="tiny-btn revise" @click="showPendingLaunchRoutines(program, language)">Review Routines</button>
+                                        <button v-if="['ready_to_build', 'built_invalid'].includes(launchLanguage(program, language)?.status)" class="tiny-btn approve" @click="buildLaunchProgram(program.number, language)">Build</button>
                                         <button v-if="launchLanguage(program, language)?.program_id" class="tiny-btn" @click="openProgram(launchLanguage(program, language).program_id)">Open</button>
                                         <button v-if="launchLanguage(program, language)?.validation && !launchLanguage(program, language).validation.valid"
                                             class="tiny-btn revise" @click="showLaunchErrors(program, language)">Errors</button>
@@ -783,6 +790,41 @@ export default {
                 this.fetchRoutines();
             }).catch(er => this.showError(er.response?.data?.message || er.message));
         },
+        generateLaunchRoutines(program, language) {
+            const state = this.launchLanguage(program, language);
+            const payload = state?.routine_readiness?.generate_payload;
+            if (!payload) {
+                this.showError('No routine generation payload is available for this launch program.');
+                return;
+            }
+            this.loading = true;
+            this.loadingText = 'Generating launch routines';
+            axios.post(config.baseApiUrl + 'routine-library/generate-batch', payload, this.apiConfig).then(res => {
+                this.loading = false;
+                this.modalTitle = res.data.status ? 'Done' : 'Blocked';
+                this.modalDetail = res.data.message || 'Routine batch generated for review.';
+                this.informModal = true;
+                this.filters.language = payload.language;
+                this.filters.equipment_category = payload.equipment_category;
+                this.filters.fitness_level = payload.fitness_level;
+                this.routineStatus = 'pending_review';
+                this.fetchBatches();
+                this.fetchRoutines();
+                this.fetchLaunchDashboard();
+            }).catch(er => this.showError(er.response?.data?.message || er.message));
+        },
+        showPendingLaunchRoutines(program, language) {
+            const state = this.launchLanguage(program, language);
+            const payload = state?.routine_readiness?.generate_payload || {};
+            this.filters.language = payload.language || language;
+            this.filters.equipment_category = payload.equipment_category || program.equipment_category;
+            this.filters.fitness_level = payload.fitness_level || program.level;
+            this.routineStatus = 'pending_review';
+            this.fetchRoutines();
+            this.modalTitle = 'Review routines';
+            this.modalDetail = 'Approve the pending generated routines below, then refresh the launch matrix and build the program.';
+            this.informModal = true;
+        },
         buildFullLaunchMatrix() {
             this.loading = true;
             this.loadingText = 'Building launch matrix';
@@ -886,6 +928,8 @@ export default {
                 built_invalid: 'invalid',
                 ready_to_build: 'ready',
                 needs_review: 'review',
+                needs_routines: 'routines needed',
+                needs_routine_review: 'approve routines',
                 blocked: 'blocked'
             };
             if (labels[state.status]) {
@@ -899,7 +943,7 @@ export default {
             if (state && ['built_valid', 'ready_to_build'].includes(state.status)) {
                 return 'badge-ready';
             }
-            if (state && state.status === 'needs_review') {
+            if (state && ['needs_review', 'needs_routine_review'].includes(state.status)) {
                 return 'badge-review';
             }
             return 'badge-blocked';

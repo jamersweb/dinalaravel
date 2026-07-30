@@ -97,12 +97,25 @@ class RoutineLibraryController extends Controller
                     $phaseIds = $program ? ProgramPhase::where('program_id', $program->id)->pluck('id') : collect();
 
                     $languageReadiness = $readiness->get($definition['number'])['languages'][$language] ?? null;
+                    $routineReadiness = $this->launchRoutineReadiness($definition, $language);
+                    $sourceStatus = $languageReadiness['status'] ?? 'blocked';
+                    $buildStatus = $sourceStatus;
+                    if ($sourceStatus === 'ready') {
+                        if ($routineReadiness['approved_count'] >= $routineReadiness['minimum_required']) {
+                            $buildStatus = 'ready_to_build';
+                        } elseif (($routineReadiness['approved_count'] + $routineReadiness['pending_review_count']) >= $routineReadiness['minimum_required']) {
+                            $buildStatus = 'needs_routine_review';
+                        } else {
+                            $buildStatus = 'needs_routines';
+                        }
+                    }
+
                     $languageStates[$language] = [
                         'language' => $language,
                         'content_code' => $contentCode,
                         'status' => $program
                             ? ($validation && $validation['valid'] ? 'built_valid' : 'built_invalid')
-                            : (($languageReadiness['status'] ?? null) === 'ready' ? 'ready_to_build' : ($languageReadiness['status'] ?? 'blocked')),
+                            : $buildStatus,
                         'program_id' => $program?->id,
                         'weeks' => $program ? (int) $program->aiWeekDays()->distinct('week_no')->count('week_no') : 0,
                         'days' => $program ? (int) $program->ai_week_days_count : 0,
@@ -111,6 +124,7 @@ class RoutineLibraryController extends Controller
                             : 0,
                         'validation' => $validation,
                         'readiness' => $languageReadiness,
+                        'routine_readiness' => $routineReadiness,
                     ];
                 }
 
@@ -142,10 +156,95 @@ class RoutineLibraryController extends Controller
                     'ready_to_build' => $states->where('status', 'ready_to_build')->count(),
                     'blocked' => $states->where('status', 'blocked')->count(),
                     'needs_review' => $states->where('status', 'needs_review')->count(),
+                    'needs_routines' => $states->where('status', 'needs_routines')->count(),
+                    'needs_routine_review' => $states->where('status', 'needs_routine_review')->count(),
                 ],
                 'programs' => $programs,
             ],
         ]);
+    }
+
+    private function launchRoutineReadiness(array $definition, string $language): array
+    {
+        $minimum = $this->launchWorkoutSlots($definition['days_per_week']);
+        $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($definition['equipment_category']);
+        $routines = Workout::query()
+            ->where('routine_source', 'generated')
+            ->where('language', $language)
+            ->whereIn('equipment_category', $allowedEquipment)
+            ->where('fitness_level', $definition['level'])
+            ->get()
+            ->filter(fn (Workout $routine) => $this->routineUsesPhase3Contract($routine))
+            ->filter(fn (Workout $routine) => $this->routineMatchesProgramDuration($routine, (string) $definition['minutes']));
+
+        return [
+            'minimum_required' => $minimum,
+            'approved_count' => $routines->where('routine_status', 'approved')->count(),
+            'pending_review_count' => $routines->where('routine_status', 'pending_review')->count(),
+            'revision_count' => $routines->where('routine_status', 'revision')->count(),
+            'generate_payload' => [
+                'language' => $language,
+                'equipment_category' => $definition['equipment_category'],
+                'fitness_level' => $definition['level'],
+                'target_minutes' => $this->targetMinutesForLaunch((string) $definition['minutes']),
+                'limit' => max(10, $minimum * 3),
+                'variations_per_type' => 1,
+            ],
+        ];
+    }
+
+    private function launchWorkoutSlots(int|string $daysPerWeek): int
+    {
+        if (is_string($daysPerWeek) && str_contains($daysPerWeek, '-')) {
+            return max(array_map('intval', explode('-', $daysPerWeek)));
+        }
+
+        return max(1, (int) $daysPerWeek);
+    }
+
+    private function targetMinutesForLaunch(string $minutes): int
+    {
+        preg_match_all('/\d+/', $minutes, $matches);
+        $numbers = array_map('intval', $matches[0] ?? []);
+        $target = $numbers === [] ? 30 : max($numbers);
+        $allowed = collect(RoutineLibraryRules::PROGRAM_DURATIONS_MINUTES);
+
+        return (int) $allowed
+            ->sortBy(fn (int $allowedMinutes) => abs($allowedMinutes - $target))
+            ->first();
+    }
+
+    private function routineUsesPhase3Contract(Workout $routine): bool
+    {
+        $routineSections = is_array($routine->routine_sections) ? $routine->routine_sections : [];
+        if (($routineSections['_meta']['section_contract'] ?? null) !== 'ai_program_builder_phase_3') {
+            return false;
+        }
+
+        $categories = $routine->workoutExercises()
+            ->whereIn('category', RoutineLibraryRules::REQUIRED_WORKOUT_SECTIONS)
+            ->distinct()
+            ->pluck('category')
+            ->all();
+
+        return array_diff(RoutineLibraryRules::REQUIRED_WORKOUT_SECTIONS, $categories) === [];
+    }
+
+    private function routineMatchesProgramDuration(Workout $routine, string $minutes): bool
+    {
+        $routineSections = is_array($routine->routine_sections) ? $routine->routine_sections : [];
+        $targetMinutes = (int) ($routineSections['_meta']['target_minutes'] ?? 0);
+        if ($targetMinutes <= 0) {
+            return false;
+        }
+
+        preg_match_all('/\d+/', $minutes, $matches);
+        $numbers = array_map('intval', $matches[0] ?? []);
+        if ($numbers === []) {
+            return true;
+        }
+
+        return $targetMinutes >= min($numbers) && $targetMinutes <= max($numbers);
     }
 
     public function buildLaunchMatrix(Request $request, AiLaunchProgramBuilderService $builder)
