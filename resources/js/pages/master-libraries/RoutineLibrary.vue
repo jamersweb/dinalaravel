@@ -968,8 +968,48 @@ export default {
             const state = this.launchLanguage(program, language);
             const errors = state?.validation?.errors || [];
             this.modalTitle = 'Validation errors';
-            this.modalDetail = errors.slice(0, 5).map(error => `${error.code}: ${error.message}`).join('\n') || 'No error details.';
+            this.modalDetail = this.launchErrorSummary(errors);
             this.informModal = true;
+        },
+        launchErrorSummary(errors) {
+            if (!Array.isArray(errors) || errors.length === 0) {
+                return 'No error details.';
+            }
+
+            const seen = new Set();
+            const lines = [];
+            errors.forEach(error => {
+                const detail = error.routine_error || error;
+                const location = [];
+                if (error.workout_id) {
+                    location.push(`routine ${error.workout_id}`);
+                }
+                if (error.week_no && error.day_no) {
+                    location.push(`week ${error.week_no} day ${error.day_no}`);
+                }
+                if (detail.section) {
+                    location.push(this.readableStatus(detail.section));
+                }
+                if (detail.exercise_id) {
+                    location.push(`exercise ${detail.exercise_id}`);
+                }
+
+                const code = detail.code || error.code || 'validation_error';
+                const message = detail.message || error.message || 'Validation failed.';
+                const line = `${location.length ? location.join(' / ') + ': ' : ''}${code} - ${message}`;
+                if (seen.has(line)) {
+                    return;
+                }
+                seen.add(line);
+                lines.push(line);
+            });
+
+            const visible = lines.slice(0, 10);
+            if (lines.length > visible.length) {
+                visible.push(`...and ${lines.length - visible.length} more.`);
+            }
+
+            return visible.join('\n');
         },
         openProgram(programId) {
             this.$router.push({ path: '/cms/program', query: { program_id: programId } });

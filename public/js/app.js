@@ -67564,10 +67564,45 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       var state = this.launchLanguage(program, language);
       var errors = (state === null || state === void 0 ? void 0 : (_state$validation = state.validation) === null || _state$validation === void 0 ? void 0 : _state$validation.errors) || [];
       this.modalTitle = 'Validation errors';
-      this.modalDetail = errors.slice(0, 5).map(function (error) {
-        return "".concat(error.code, ": ").concat(error.message);
-      }).join('\n') || 'No error details.';
+      this.modalDetail = this.launchErrorSummary(errors);
       this.informModal = true;
+    },
+    launchErrorSummary: function launchErrorSummary(errors) {
+      var _this13 = this;
+      if (!Array.isArray(errors) || errors.length === 0) {
+        return 'No error details.';
+      }
+      var seen = new Set();
+      var lines = [];
+      errors.forEach(function (error) {
+        var detail = error.routine_error || error;
+        var location = [];
+        if (error.workout_id) {
+          location.push("routine ".concat(error.workout_id));
+        }
+        if (error.week_no && error.day_no) {
+          location.push("week ".concat(error.week_no, " day ").concat(error.day_no));
+        }
+        if (detail.section) {
+          location.push(_this13.readableStatus(detail.section));
+        }
+        if (detail.exercise_id) {
+          location.push("exercise ".concat(detail.exercise_id));
+        }
+        var code = detail.code || error.code || 'validation_error';
+        var message = detail.message || error.message || 'Validation failed.';
+        var line = "".concat(location.length ? location.join(' / ') + ': ' : '').concat(code, " - ").concat(message);
+        if (seen.has(line)) {
+          return;
+        }
+        seen.add(line);
+        lines.push(line);
+      });
+      var visible = lines.slice(0, 10);
+      if (lines.length > visible.length) {
+        visible.push("...and ".concat(lines.length - visible.length, " more."));
+      }
+      return visible.join('\n');
     },
     openProgram: function openProgram(programId) {
       this.$router.push({
