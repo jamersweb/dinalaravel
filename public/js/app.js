@@ -294,7 +294,7 @@ class Firestore {
             if (!expQuery) {
                 return null;
             }
-            return new Query(this, 
+            return new Query(this,
             // We can pass `expQuery` here directly since named queries don't have a UserDataConverter.
             // Otherwise, we would have to create a new ExpQuery and pass the old UserDataConverter.
             expQuery);
@@ -405,7 +405,7 @@ class FirestoreDataConverter {
         this._delegate = _delegate;
     }
     fromFirestore(snapshot, options) {
-        const expSnapshot = new _firebase_firestore__WEBPACK_IMPORTED_MODULE_1__.QueryDocumentSnapshot(this._firestore._delegate, this._userDataWriter, snapshot._key, snapshot._document, snapshot.metadata, 
+        const expSnapshot = new _firebase_firestore__WEBPACK_IMPORTED_MODULE_1__.QueryDocumentSnapshot(this._firestore._delegate, this._userDataWriter, snapshot._key, snapshot._document, snapshot.metadata,
         /* converter= */ null);
         return this._delegate.fromFirestore(new QueryDocumentSnapshot(this._firestore, expSnapshot), options ?? {});
     }
@@ -1227,10 +1227,10 @@ __webpack_require__.r(__webpack_exports__);
     }
 }
 
-/** A user with a null UID. */ User.UNAUTHENTICATED = new User(null), 
+/** A user with a null UID. */ User.UNAUTHENTICATED = new User(null),
 // TODO(mikelehen): Look into getting a proper uid-equivalent for
 // non-FirebaseAuth providers.
-User.GOOGLE_CREDENTIALS = new User("google-credentials-uid"), User.FIRST_PARTY = new User("first-party-uid"), 
+User.GOOGLE_CREDENTIALS = new User("google-credentials-uid"), User.FIRST_PARTY = new User("first-party-uid"),
 User.MOCK_USER = new User("mock-user");
 
 /**
@@ -1404,7 +1404,7 @@ function __PRIVATE_hardAssert(e, t, n, r) {
 /**
  * Casts `obj` to `T`. In non-production builds, verifies that `obj` is an
  * instance of `T` before casting.
- */ function __PRIVATE_debugCast(e, 
+ */ function __PRIVATE_debugCast(e,
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 t) {
     return e;
@@ -1544,12 +1544,12 @@ t) {
     /**
      * The backend error code associated with this error.
      */
-    e, 
+    e,
     /**
      * A custom error description.
      */
     t) {
-        super(e, t), this.code = e, this.message = t, 
+        super(e, t), this.code = e, this.message = t,
         // HACK: We write a toString property directly because Error is not a real
         // class and so inheritance does not work correctly. We could alternatively
         // do the same "back-door inheritance" trick that FirebaseError does.
@@ -1621,7 +1621,7 @@ t) {
  * emulator token mocking.
  */ class __PRIVATE_EmulatorAuthCredentialsProvider {
     constructor(e) {
-        this.token = e, 
+        this.token = e,
         /**
          * Stores the listener registered with setChangeListener()
          * This isn't actually necessary since the UID never changes, but we use this
@@ -1634,7 +1634,7 @@ t) {
     }
     invalidateToken() {}
     start(e, t) {
-        this.changeListener = t, 
+        this.changeListener = t,
         // Fire with initial user.
         e.enqueueRetryable((() => t(this.token.user)));
     }
@@ -1645,9 +1645,9 @@ t) {
 
 class __PRIVATE_FirebaseAuthCredentialsProvider {
     constructor(e) {
-        this.t = e, 
+        this.t = e,
         /** Tracks the current User. */
-        this.currentUser = User.UNAUTHENTICATED, 
+        this.currentUser = User.UNAUTHENTICATED,
         /**
          * Counter used to detect if the token changed while a getToken request was
          * outstanding.
@@ -1658,13 +1658,13 @@ class __PRIVATE_FirebaseAuthCredentialsProvider {
         __PRIVATE_hardAssert(void 0 === this.o, 42304);
         let n = this.i;
         // A change listener that prevents double-firing for the same token change.
-                const __PRIVATE_guardedChangeListener = e => this.i !== n ? (n = this.i, 
+                const __PRIVATE_guardedChangeListener = e => this.i !== n ? (n = this.i,
         t(e)) : Promise.resolve();
         // A promise that can be waited on to block on the next token change.
         // This promise is re-created after each change.
                 let r = new __PRIVATE_Deferred;
         this.o = () => {
-            this.i++, this.currentUser = this.u(), r.resolve(), r = new __PRIVATE_Deferred, 
+            this.i++, this.currentUser = this.u(), r.resolve(), r = new __PRIVATE_Deferred,
             e.enqueueRetryable((() => __PRIVATE_guardedChangeListener(this.currentUser)));
         };
         const __PRIVATE_awaitNextToken = () => {
@@ -1673,10 +1673,10 @@ class __PRIVATE_FirebaseAuthCredentialsProvider {
                 await t.promise, await __PRIVATE_guardedChangeListener(this.currentUser);
             }));
         }, __PRIVATE_registerAuth = e => {
-            __PRIVATE_logDebug("FirebaseAuthCredentialsProvider", "Auth detected"), this.auth = e, 
+            __PRIVATE_logDebug("FirebaseAuthCredentialsProvider", "Auth detected"), this.auth = e,
             this.o && (this.auth.addAuthTokenListener(this.o), __PRIVATE_awaitNextToken());
         };
-        this.t.onInit((e => __PRIVATE_registerAuth(e))), 
+        this.t.onInit((e => __PRIVATE_registerAuth(e))),
         // Our users can initialize Auth right after Firestore, so we give it
         // a chance to register itself with the component framework before we
         // determine whether to start up in unauthenticated mode.
@@ -1687,7 +1687,7 @@ class __PRIVATE_FirebaseAuthCredentialsProvider {
                 });
                 e ? __PRIVATE_registerAuth(e) : (
                 // If auth is still not available, proceed with `null` user
-                __PRIVATE_logDebug("FirebaseAuthCredentialsProvider", "Auth not yet detected"), 
+                __PRIVATE_logDebug("FirebaseAuthCredentialsProvider", "Auth not yet detected"),
                 r.resolve(), r = new __PRIVATE_Deferred);
             }
         }), 0), __PRIVATE_awaitNextToken();
@@ -1697,11 +1697,11 @@ class __PRIVATE_FirebaseAuthCredentialsProvider {
         // can fail (with an ABORTED error) if there is a token change while the
         // request is outstanding.
         const e = this.i, t = this.forceRefresh;
-        return this.forceRefresh = !1, this.auth ? this.auth.getToken(t).then((t => 
+        return this.forceRefresh = !1, this.auth ? this.auth.getToken(t).then((t =>
         // Cancel the request since the token changed while the request was
         // outstanding so the response is potentially for a previous user (which
         // user, we can't be sure).
-        this.i !== e ? (__PRIVATE_logDebug("FirebaseAuthCredentialsProvider", "getToken aborted due to token change."), 
+        this.i !== e ? (__PRIVATE_logDebug("FirebaseAuthCredentialsProvider", "getToken aborted due to token change."),
         this.getToken()) : t ? (__PRIVATE_hardAssert("string" == typeof t.accessToken, 31837, {
             l: t
         }), new __PRIVATE_OAuthToken(t.accessToken, this.currentUser)) : null)) : Promise.resolve(null);
@@ -1732,7 +1732,7 @@ class __PRIVATE_FirebaseAuthCredentialsProvider {
  * safer to keep the implementation as-is.
  */ class __PRIVATE_FirstPartyToken {
     constructor(e, t, n) {
-        this.P = e, this.T = t, this.I = n, this.type = "FirstParty", this.user = User.FIRST_PARTY, 
+        this.P = e, this.T = t, this.I = n, this.type = "FirstParty", this.user = User.FIRST_PARTY,
         this.R = new Map;
     }
     /**
@@ -1745,7 +1745,7 @@ class __PRIVATE_FirebaseAuthCredentialsProvider {
         this.R.set("X-Goog-AuthUser", this.P);
         // Use array notation to prevent minification
         const e = this.A();
-        return e && this.R.set("Authorization", e), this.T && this.R.set("X-Goog-Iam-Authorization-Token", this.T), 
+        return e && this.R.set("Authorization", e), this.T && this.R.set("X-Goog-Iam-Authorization-Token", this.T),
         this.R;
     }
 }
@@ -1777,7 +1777,7 @@ class AppCheckToken {
 
 class __PRIVATE_FirebaseAppCheckTokenProvider {
     constructor(t, n) {
-        this.V = n, this.forceRefresh = !1, this.appCheck = null, this.m = null, this.p = null, 
+        this.V = n, this.forceRefresh = !1, this.appCheck = null, this.m = null, this.p = null,
         (0,_firebase_app__WEBPACK_IMPORTED_MODULE_0__._isFirebaseServerApp)(t) && t.settings.appCheckToken && (this.p = t.settings.appCheckToken);
     }
     start(e, t) {
@@ -1785,17 +1785,17 @@ class __PRIVATE_FirebaseAppCheckTokenProvider {
         const onTokenChanged = e => {
             null != e.error && __PRIVATE_logDebug("FirebaseAppCheckTokenProvider", `Error getting App Check token; using placeholder token instead. Error: ${e.error.message}`);
             const n = e.token !== this.m;
-            return this.m = e.token, __PRIVATE_logDebug("FirebaseAppCheckTokenProvider", `Received ${n ? "new" : "existing"} token.`), 
+            return this.m = e.token, __PRIVATE_logDebug("FirebaseAppCheckTokenProvider", `Received ${n ? "new" : "existing"} token.`),
             n ? t(e.token) : Promise.resolve();
         };
         this.o = t => {
             e.enqueueRetryable((() => onTokenChanged(t)));
         };
         const __PRIVATE_registerAppCheck = e => {
-            __PRIVATE_logDebug("FirebaseAppCheckTokenProvider", "AppCheck detected"), this.appCheck = e, 
+            __PRIVATE_logDebug("FirebaseAppCheckTokenProvider", "AppCheck detected"), this.appCheck = e,
             this.o && this.appCheck.addTokenListener(this.o);
         };
-        this.V.onInit((e => __PRIVATE_registerAppCheck(e))), 
+        this.V.onInit((e => __PRIVATE_registerAppCheck(e))),
         // Our users can initialize AppCheck after Firestore, so we give it
         // a chance to register itself with the component framework.
         setTimeout((() => {
@@ -1803,7 +1803,7 @@ class __PRIVATE_FirebaseAppCheckTokenProvider {
                 const e = this.V.getImmediate({
                     optional: !0
                 });
-                e ? __PRIVATE_registerAppCheck(e) : 
+                e ? __PRIVATE_registerAppCheck(e) :
                 // If AppCheck is still not available, proceed without it.
                 __PRIVATE_logDebug("FirebaseAppCheckTokenProvider", "AppCheck not yet detected");
             }
@@ -1863,10 +1863,10 @@ class __PRIVATE_FirebaseAppCheckTokenProvider {
  */
 function __PRIVATE_randomBytes(e) {
     // Polyfills for IE and WebWorker by using `self` and `msCrypto` when `crypto` is not available.
-    const t = 
+    const t =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     "undefined" != typeof self && (self.crypto || self.msCrypto), n = new Uint8Array(e);
-    if (t && "function" == typeof t.getRandomValues) t.getRandomValues(n); else 
+    if (t && "function" == typeof t.getRandomValues) t.getRandomValues(n); else
     // Falls back to Math.random
     for (let t = 0; t < e; t++) n[t] = Math.floor(256 * Math.random());
     return n;
@@ -1901,7 +1901,7 @@ function __PRIVATE_randomBytes(e) {
                 let n = "";
         for (;n.length < 20; ) {
             const r = __PRIVATE_randomBytes(40);
-            for (let i = 0; i < r.length; ++i) 
+            for (let i = 0; i < r.length; ++i)
             // Only accept values that are [0, maxMultiple), this ensures they can
             // be evenly mapped to indices of `chars` via a modulo operation.
             n.length < 20 && r[i] < t && (n += e.charAt(r[i] % 62));
@@ -2144,7 +2144,7 @@ const x = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
         return x.test(e);
     }
     canonicalString() {
-        return this.toArray().map((e => (e = e.replace(/\\/g, "\\\\").replace(/`/g, "\\`"), 
+        return this.toArray().map((e => (e = e.replace(/\\/g, "\\\\").replace(/`/g, "\\`"),
         FieldPath$1.isValidIdentifier(e) || (e = "`" + e + "`"), e))).join(".");
     }
     toString() {
@@ -2184,7 +2184,7 @@ const x = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
                 const t = e[r + 1];
                 if ("\\" !== t && "." !== t && "`" !== t) throw new FirestoreError(C.INVALID_ARGUMENT, "Path has invalid escape sequence: " + e);
                 n += t, r += 2;
-            } else "`" === t ? (i = !i, r++) : "." !== t || i ? (n += t, r++) : (__PRIVATE_addCurrentSegment(), 
+            } else "`" === t ? (i = !i, r++) : "." !== t || i ? (n += t, r++) : (__PRIVATE_addCurrentSegment(),
             r++);
         }
         if (__PRIVATE_addCurrentSegment(), i) throw new FirestoreError(C.INVALID_ARGUMENT, "Unterminated ` in path: " + e);
@@ -2310,13 +2310,13 @@ const x = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 /** Returns a string describing the type / value of the provided input. */ function __PRIVATE_valueDescription(e) {
     if (void 0 === e) return "undefined";
     if (null === e) return "null";
-    if ("string" == typeof e) return e.length > 20 && (e = `${e.substring(0, 20)}...`), 
+    if ("string" == typeof e) return e.length > 20 && (e = `${e.substring(0, 20)}...`),
     JSON.stringify(e);
     if ("number" == typeof e || "boolean" == typeof e) return "" + e;
     if ("object" == typeof e) {
         if (e instanceof Array) return "an array";
         {
-            const t = 
+            const t =
             /** try to get the constructor name for an object. */
             function __PRIVATE_tryGetCustomObjectType(e) {
                 if (e.constructor) return e.constructor.name;
@@ -2338,7 +2338,7 @@ const x = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
     });
 }
 
-function __PRIVATE_cast(e, 
+function __PRIVATE_cast(e,
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 t) {
     if ("_delegate" in e && (
@@ -2497,7 +2497,7 @@ class Timestamp {
     /**
      * The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
      */
-    e, 
+    e,
     /**
      * The fractions of a second at nanosecond resolution.*
      */
@@ -2672,11 +2672,11 @@ class FieldIndex {
      * The index ID. Returns -1 if the index ID is not available (e.g. the index
      * has not yet been persisted).
      */
-    e, 
+    e,
     /** The collection ID this index applies to. */
-    t, 
+    t,
     /** The field segments for this index. */
-    n, 
+    n,
     /** Shows how up-to-date the index is for the current user. */
     r) {
         this.indexId = e, this.collectionGroup = t, this.fields = n, this.indexState = r;
@@ -2705,7 +2705,7 @@ function __PRIVATE_fieldIndexGetArraySegment(e) {
 function __PRIVATE_fieldIndexSemanticComparator(e, t) {
     let n = __PRIVATE_primitiveComparator(e.collectionGroup, t.collectionGroup);
     if (0 !== n) return n;
-    for (let r = 0; r < Math.min(e.fields.length, t.fields.length); ++r) if (n = __PRIVATE_indexSegmentComparator(e.fields[r], t.fields[r]), 
+    for (let r = 0; r < Math.min(e.fields.length, t.fields.length); ++r) if (n = __PRIVATE_indexSegmentComparator(e.fields[r], t.fields[r]),
     0 !== n) return n;
     return __PRIVATE_primitiveComparator(e.fields.length, t.fields.length);
 }
@@ -2716,7 +2716,7 @@ function __PRIVATE_fieldIndexSemanticComparator(e, t) {
 class IndexSegment {
     constructor(
     /** The field path of the component. */
-    e, 
+    e,
     /** The fields sorting order. */
     t) {
         this.fieldPath = e, this.kind = t;
@@ -2736,7 +2736,7 @@ function __PRIVATE_indexSegmentComparator(e, t) {
     /**
      * Indicates when the index was last updated (relative to other indexes).
      */
-    e, 
+    e,
     /** The the latest indexed read time, document and batch id. */
     t) {
         this.sequenceNumber = e, this.offset = t;
@@ -2773,12 +2773,12 @@ function __PRIVATE_indexSegmentComparator(e, t) {
      * The latest read time version that has been indexed by Firestore for this
      * field index.
      */
-    e, 
+    e,
     /**
      * The key of the last document that was indexed for this query. Use
      * `DocumentKey.empty()` if no document has been indexed.
      */
-    t, 
+    t,
     /*
      * The largest mutation batch id that's been processed by Firestore.
      */
@@ -2795,7 +2795,7 @@ function __PRIVATE_indexSegmentComparator(e, t) {
 
 function __PRIVATE_indexOffsetComparator(e, t) {
     let n = e.readTime.compareTo(t.readTime);
-    return 0 !== n ? n : (n = DocumentKey.comparator(e.documentKey, t.documentKey), 
+    return 0 !== n ? n : (n = DocumentKey.comparator(e.documentKey, t.documentKey),
     0 !== n ? n : __PRIVATE_primitiveComparator(e.largestBatchId, t.largestBatchId));
 }
 
@@ -2897,13 +2897,13 @@ function __PRIVATE_indexOffsetComparator(e, t) {
     constructor(e) {
         // NOTE: next/catchCallback will always point to our own wrapper functions,
         // not the user's raw next() or catch() callbacks.
-        this.nextCallback = null, this.catchCallback = null, 
+        this.nextCallback = null, this.catchCallback = null,
         // When the operation resolves, we'll set result or error and mark isDone.
-        this.result = void 0, this.error = void 0, this.isDone = !1, 
+        this.result = void 0, this.error = void 0, this.isDone = !1,
         // Set to true when .then() or .catch() are called and prevents additional
         // chaining.
         this.callbackAttached = !1, e((e => {
-            this.isDone = !0, this.result = e, this.nextCallback && 
+            this.isDone = !0, this.result = e, this.nextCallback &&
             // value should be defined unless T is Void, but we can't express
             // that in the type system.
             this.nextCallback(e);
@@ -3048,7 +3048,7 @@ class __PRIVATE_SimpleDbTransaction {
         }
     }
     constructor(e, t) {
-        this.action = e, this.transaction = t, this.aborted = !1, 
+        this.action = e, this.transaction = t, this.aborted = !1,
         /**
          * A `Promise` that resolves with the result of the IndexedDb transaction.
          */
@@ -3065,7 +3065,7 @@ class __PRIVATE_SimpleDbTransaction {
         return this.S.promise;
     }
     abort(e) {
-        e && this.S.reject(e), this.aborted || (__PRIVATE_logDebug(k, "Aborting transaction:", e ? e.message : "Client-initiated abort"), 
+        e && this.S.reject(e), this.aborted || (__PRIVATE_logDebug(k, "Aborting transaction:", e ? e.message : "Client-initiated abort"),
         this.aborted = !0, this.transaction.abort());
     }
     C() {
@@ -3190,13 +3190,13 @@ class __PRIVATE_SimpleDbTransaction {
             ++s;
             try {
                 this.db = await this.L(e);
-                const t = __PRIVATE_SimpleDbTransaction.open(this.db, e, i ? "readonly" : "readwrite", n), s = r(t).next((e => (t.C(), 
+                const t = __PRIVATE_SimpleDbTransaction.open(this.db, e, i ? "readonly" : "readwrite", n), s = r(t).next((e => (t.C(),
                 e))).catch((e => (
                 // Abort the transaction if there was an error.
                 t.abort(e), PersistencePromise.reject(e)))).toPromise();
                 // As noted above, errors are propagated by aborting the transaction. So
                 // we swallow any error here to avoid the browser logging it as unhandled.
-                return s.catch((() => {})), 
+                return s.catch((() => {})),
                 // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
                 // fire), but still return the original transactionFnResult back to the
                 // caller.
@@ -3208,7 +3208,7 @@ class __PRIVATE_SimpleDbTransaction {
                 // exceeded errors).
                 // Note: We cannot use an instanceof check for FirestoreException, since the
                 // exception is wrapped in a generic error by our async/await handling.
-                                if (__PRIVATE_logDebug(k, "Transaction failed with error:", t.message, "Retrying:", n), 
+                                if (__PRIVATE_logDebug(k, "Transaction failed with error:", t.message, "Retrying:", n),
                 this.close(), !n) return Promise.reject(t);
             }
         }
@@ -3287,7 +3287,7 @@ class __PRIVATE_SimpleDbTransaction {
     }
     put(e, t) {
         let n;
-        return void 0 !== t ? (__PRIVATE_logDebug(k, "PUT", this.store.name, e, t), n = this.store.put(t, e)) : (__PRIVATE_logDebug(k, "PUT", this.store.name, "<auto-key>", e), 
+        return void 0 !== t ? (__PRIVATE_logDebug(k, "PUT", this.store.name, e, t), n = this.store.put(t, e)) : (__PRIVATE_logDebug(k, "PUT", this.store.name, "<auto-key>", e),
         n = this.store.put(e)), __PRIVATE_wrapRequest(n);
     }
     /**
@@ -3311,7 +3311,7 @@ class __PRIVATE_SimpleDbTransaction {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return __PRIVATE_wrapRequest(this.store.get(e)).next((t => (
         // Normalize nonexistence to null.
-        void 0 === t && (t = null), __PRIVATE_logDebug(k, "GET", this.store.name, e, t), 
+        void 0 === t && (t = null), __PRIVATE_logDebug(k, "GET", this.store.name, e, t),
         t)));
     }
     delete(e) {
@@ -3454,7 +3454,7 @@ function __PRIVATE_checkForAndReportiOSError(e) {
         if (e.message.indexOf(t) >= 0) {
             // Wrap error in a more descriptive one.
             const e = new FirestoreError("internal", `IOS_INDEXEDDB_BUG1: IndexedDb has thrown '${t}'. This is likely due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 for details and a potential workaround.`);
-            return K || (K = !0, 
+            return K || (K = !0,
             // Throw a global exception outside of this promise chain, for the user to
             // potentially catch.
             setTimeout((() => {
@@ -3515,7 +3515,7 @@ class __PRIVATE_IndexBackfillerScheduler {
         const n = new Set;
         let r = t, i = !0;
         return PersistencePromise.doWhile((() => !0 === i && r > 0), (() => this.localStore.indexManager.getNextCollectionGroupToUpdate(e).next((t => {
-            if (null !== t && !n.has(t)) return __PRIVATE_logDebug(q, `Processing collection: ${t}`), 
+            if (null !== t && !n.has(t)) return __PRIVATE_logDebug(q, `Processing collection: ${t}`),
             this.oe(e, t, r).next((e => {
                 r -= e, n.add(t);
             }));
@@ -3528,7 +3528,7 @@ class __PRIVATE_IndexBackfillerScheduler {
         // Use the earliest offset of all field indexes to query the local cache.
         return this.localStore.indexManager.getMinOffsetFromCollectionGroup(e, t).next((r => this.localStore.localDocuments.getNextDocuments(e, t, r, n).next((n => {
             const i = n.changes;
-            return this.localStore.indexManager.updateIndexEntries(e, i).next((() => this._e(r, n))).next((n => (__PRIVATE_logDebug(q, `Updating offset: ${n}`), 
+            return this.localStore.indexManager.updateIndexEntries(e, i).next((() => this._e(r, n))).next((n => (__PRIVATE_logDebug(q, `Updating offset: ${n}`),
             this.localStore.indexManager.updateCollectionGroup(e, t, n)))).next((() => i.size));
         }))));
     }
@@ -3645,7 +3645,7 @@ function __PRIVATE_isString(e) {
  */
 function __PRIVATE_encodeResourcePath(e) {
     let t = "";
-    for (let n = 0; n < e.length; n++) t.length > 0 && (t = __PRIVATE_encodeSeparator(t)), 
+    for (let n = 0; n < e.length; n++) t.length > 0 && (t = __PRIVATE_encodeSeparator(t)),
     t = __PRIVATE_encodeSegment(e.get(n), t);
     return __PRIVATE_encodeSeparator(t);
 }
@@ -3704,7 +3704,7 @@ function __PRIVATE_encodeResourcePath(e) {
           case "":
             const s = e.substring(i, t);
             let o;
-            0 === r.length ? 
+            0 === r.length ?
             // Avoid copying for the common case of a segment that excludes \0
             // and \001
             o = s : (r += s, o = r, r = ""), n.push(o);
@@ -3967,9 +3967,9 @@ class SortedMapIterator {
     constructor(e, t, n, r) {
         this.isReverse = r, this.nodeStack = [];
         let i = 1;
-        for (;!e.isEmpty(); ) if (i = t ? n(e.key, t) : 1, 
+        for (;!e.isEmpty(); ) if (i = t ? n(e.key, t) : 1,
         // flip the comparison if we're going in reverse
-        t && r && (i *= -1), i < 0) 
+        t && r && (i *= -1), i < 0)
         // This node is less than our start key. ignore it
         e = this.isReverse ? e.left : e.right; else {
             if (0 === i) {
@@ -3989,7 +3989,7 @@ class SortedMapIterator {
             key: e.key,
             value: e.value
         };
-        if (this.isReverse) for (e = e.left; !e.isEmpty(); ) this.nodeStack.push(e), e = e.right; else for (e = e.right; !e.isEmpty(); ) this.nodeStack.push(e), 
+        if (this.isReverse) for (e = e.left; !e.isEmpty(); ) this.nodeStack.push(e), e = e.right; else for (e = e.right; !e.isEmpty(); ) this.nodeStack.push(e),
         e = e.left;
         return t;
     }
@@ -4010,7 +4010,7 @@ class SortedMapIterator {
 // Represents a node in a Left-leaning Red-Black tree.
 class LLRBNode {
     constructor(e, t, n, r, i) {
-        this.key = e, this.value = t, this.color = null != n ? n : LLRBNode.RED, this.left = null != r ? r : LLRBNode.EMPTY, 
+        this.key = e, this.value = t, this.color = null != n ? n : LLRBNode.RED, this.left = null != r ? r : LLRBNode.EMPTY,
         this.right = null != i ? i : LLRBNode.EMPTY, this.size = this.left.size + 1 + this.right.size;
     }
     // Returns a copy of the current node, optionally replacing pieces of it.
@@ -4050,21 +4050,21 @@ class LLRBNode {
     insert(e, t, n) {
         let r = this;
         const i = n(e, r.key);
-        return r = i < 0 ? r.copy(null, null, null, r.left.insert(e, t, n), null) : 0 === i ? r.copy(null, t, null, null, null) : r.copy(null, null, null, null, r.right.insert(e, t, n)), 
+        return r = i < 0 ? r.copy(null, null, null, r.left.insert(e, t, n), null) : 0 === i ? r.copy(null, t, null, null, null) : r.copy(null, null, null, null, r.right.insert(e, t, n)),
         r.fixUp();
     }
     removeMin() {
         if (this.left.isEmpty()) return LLRBNode.EMPTY;
         let e = this;
-        return e.left.isRed() || e.left.left.isRed() || (e = e.moveRedLeft()), e = e.copy(null, null, null, e.left.removeMin(), null), 
+        return e.left.isRed() || e.left.left.isRed() || (e = e.moveRedLeft()), e = e.copy(null, null, null, e.left.removeMin(), null),
         e.fixUp();
     }
     // Returns new tree, with the specified item removed.
     remove(e, t) {
         let n, r = this;
-        if (t(e, r.key) < 0) r.left.isEmpty() || r.left.isRed() || r.left.left.isRed() || (r = r.moveRedLeft()), 
+        if (t(e, r.key) < 0) r.left.isEmpty() || r.left.isRed() || r.left.left.isRed() || (r = r.moveRedLeft()),
         r = r.copy(null, null, null, r.left.remove(e, t), null); else {
-            if (r.left.isRed() && (r = r.rotateRight()), r.right.isEmpty() || r.right.isRed() || r.right.left.isRed() || (r = r.moveRedRight()), 
+            if (r.left.isRed() && (r = r.rotateRight()), r.right.isEmpty() || r.right.isRed() || r.right.left.isRed() || (r = r.moveRedRight()),
             0 === t(e, r.key)) {
                 if (r.right.isEmpty()) return LLRBNode.EMPTY;
                 n = r.right.min(), r = r.copy(n.key, n.value, null, null, r.right.removeMin());
@@ -4079,12 +4079,12 @@ class LLRBNode {
     // Returns new tree after performing any needed rotations.
     fixUp() {
         let e = this;
-        return e.right.isRed() && !e.left.isRed() && (e = e.rotateLeft()), e.left.isRed() && e.left.left.isRed() && (e = e.rotateRight()), 
+        return e.right.isRed() && !e.left.isRed() && (e = e.rotateLeft()), e.left.isRed() && e.left.left.isRed() && (e = e.rotateRight()),
         e.left.isRed() && e.right.isRed() && (e = e.colorFlip()), e;
     }
     moveRedLeft() {
         let e = this.colorFlip();
-        return e.right.left.isRed() && (e = e.copy(null, null, null, null, e.right.rotateRight()), 
+        return e.right.left.isRed() && (e = e.copy(null, null, null, null, e.right.rotateRight()),
         e = e.rotateLeft(), e = e.colorFlip()), e;
     }
     moveRedRight() {
@@ -4131,7 +4131,7 @@ class LLRBNode {
 LLRBNode.EMPTY = null, LLRBNode.RED = !0, LLRBNode.BLACK = !1;
 
 // end LLRBEmptyNode
-LLRBNode.EMPTY = new 
+LLRBNode.EMPTY = new
 // Represents an empty node (a leaf node in the Red-Black Tree).
 class LLRBEmptyNode {
     constructor() {
@@ -4367,7 +4367,7 @@ function __PRIVATE_advanceIterator(e) {
  *             containing foo
  */ class FieldMask {
     constructor(e) {
-        this.fields = e, 
+        this.fields = e,
         // TODO(dimond): validation of FieldMask
         // Sort the field mask to support `FieldMask.isEqual()` and assert below.
         e.sort(FieldPath$1.comparator);
@@ -4489,7 +4489,7 @@ function __PRIVATE_isBase64Available() {
     static fromUint8Array(e) {
         // TODO(indexing); Remove the copy of the byte string here as this method
         // is frequently called during indexing.
-        const t = 
+        const t =
         /**
  * Helper function to convert an Uint8array to a binary string.
  */
@@ -4701,8 +4701,8 @@ function __PRIVATE_getPreviousValue(e) {
      * XMLHTTPRequest
      */
     constructor(e, t, n, r, i, s, o, _, a, u, c) {
-        this.databaseId = e, this.appId = t, this.persistenceKey = n, this.host = r, this.ssl = i, 
-        this.forceLongPolling = s, this.autoDetectLongPolling = o, this.longPollingOptions = _, 
+        this.databaseId = e, this.appId = t, this.persistenceKey = n, this.host = r, this.ssl = i,
+        this.forceLongPolling = s, this.autoDetectLongPolling = o, this.longPollingOptions = _,
         this.useFetchStreams = a, this.isUsingEmulator = u, this.apiKey = c;
     }
 }
@@ -4783,7 +4783,7 @@ function __PRIVATE_typeOrder(e) {
 
       case 3 /* TypeOrder.TimestampValue */ :
         return function __PRIVATE_timestampEquals(e, t) {
-            if ("string" == typeof e.timestampValue && "string" == typeof t.timestampValue && e.timestampValue.length === t.timestampValue.length) 
+            if ("string" == typeof e.timestampValue && "string" == typeof t.timestampValue && e.timestampValue.length === t.timestampValue.length)
             // Use string equality for ISO 8601 timestamps
             return e.timestampValue === t.timestampValue;
             const n = __PRIVATE_normalizeTimestamp(e.timestampValue), r = __PRIVATE_normalizeTimestamp(t.timestampValue);
@@ -4855,7 +4855,7 @@ function __PRIVATE_valueCompare(e, t) {
       case 2 /* TypeOrder.NumberValue */ :
         return function __PRIVATE_compareNumbers(e, t) {
             const n = __PRIVATE_normalizeNumber(e.integerValue || e.doubleValue), r = __PRIVATE_normalizeNumber(t.integerValue || t.doubleValue);
-            return n < r ? -1 : n > r ? 1 : n === r ? 0 : 
+            return n < r ? -1 : n > r ? 1 : n === r ? 0 :
             // one or both are NaN.
             isNaN(n) ? isNaN(r) ? 0 : -1 : 1;
         }(e, t);
@@ -5087,7 +5087,7 @@ function isArray(e) {
                 fields: {}
             }
         };
-        return forEach(e.mapValue.fields, ((e, n) => t.mapValue.fields[e] = __PRIVATE_deepClone(n))), 
+        return forEach(e.mapValue.fields, ((e, n) => t.mapValue.fields[e] = __PRIVATE_deepClone(n))),
         t;
     }
     if (e.arrayValue) {
@@ -5222,7 +5222,7 @@ function __PRIVATE_upperBoundCompare(e, t) {
         if (e.isEmpty()) return this.value;
         {
             let t = this.value;
-            for (let n = 0; n < e.length - 1; ++n) if (t = (t.mapValue.fields || {})[e.get(n)], 
+            for (let n = 0; n < e.length - 1; ++n) if (t = (t.mapValue.fields || {})[e.get(n)],
             !__PRIVATE_isMapValue(t)) return null;
             return t = (t.mapValue.fields || {})[e.lastSegment()], t || null;
         }
@@ -5302,13 +5302,13 @@ function __PRIVATE_upperBoundCompare(e, t) {
         const r = new FieldPath$1([ e ]);
         if (__PRIVATE_isMapValue(n)) {
             const e = __PRIVATE_extractFieldMask(n.mapValue).fields;
-            if (0 === e.length) 
+            if (0 === e.length)
             // Preserve the empty map by adding it to the FieldMask.
-            t.push(r); else 
+            t.push(r); else
             // For nested and non-empty ObjectValues, add the FieldPath of the
             // leaf nodes.
             for (const n of e) t.push(r.child(n));
-        } else 
+        } else
         // For nested and non-empty ObjectValues, add the FieldPath of the leaf
         // nodes.
         t.push(r);
@@ -5342,31 +5342,31 @@ function __PRIVATE_upperBoundCompare(e, t) {
  * from all views.
  */ class MutableDocument {
     constructor(e, t, n, r, i, s, o) {
-        this.key = e, this.documentType = t, this.version = n, this.readTime = r, this.createTime = i, 
+        this.key = e, this.documentType = t, this.version = n, this.readTime = r, this.createTime = i,
         this.data = s, this.documentState = o;
     }
     /**
      * Creates a document with no known version or data, but which can serve as
      * base document for mutations.
      */    static newInvalidDocument(e) {
-        return new MutableDocument(e, 0 /* DocumentType.INVALID */ , 
-        /* version */ SnapshotVersion.min(), 
-        /* readTime */ SnapshotVersion.min(), 
+        return new MutableDocument(e, 0 /* DocumentType.INVALID */ ,
+        /* version */ SnapshotVersion.min(),
+        /* readTime */ SnapshotVersion.min(),
         /* createTime */ SnapshotVersion.min(), ObjectValue.empty(), 0 /* DocumentState.SYNCED */);
     }
     /**
      * Creates a new document that is known to exist with the given data at the
      * given version.
      */    static newFoundDocument(e, t, n, r) {
-        return new MutableDocument(e, 1 /* DocumentType.FOUND_DOCUMENT */ , 
-        /* version */ t, 
-        /* readTime */ SnapshotVersion.min(), 
+        return new MutableDocument(e, 1 /* DocumentType.FOUND_DOCUMENT */ ,
+        /* version */ t,
+        /* readTime */ SnapshotVersion.min(),
         /* createTime */ n, r, 0 /* DocumentState.SYNCED */);
     }
     /** Creates a new document that is known to not exist at the given version. */    static newNoDocument(e, t) {
-        return new MutableDocument(e, 2 /* DocumentType.NO_DOCUMENT */ , 
-        /* version */ t, 
-        /* readTime */ SnapshotVersion.min(), 
+        return new MutableDocument(e, 2 /* DocumentType.NO_DOCUMENT */ ,
+        /* version */ t,
+        /* readTime */ SnapshotVersion.min(),
         /* createTime */ SnapshotVersion.min(), ObjectValue.empty(), 0 /* DocumentState.SYNCED */);
     }
     /**
@@ -5374,9 +5374,9 @@ function __PRIVATE_upperBoundCompare(e, t) {
      * whose data is not known (e.g. a document that was updated without a known
      * base document).
      */    static newUnknownDocument(e, t) {
-        return new MutableDocument(e, 3 /* DocumentType.UNKNOWN_DOCUMENT */ , 
-        /* version */ t, 
-        /* readTime */ SnapshotVersion.min(), 
+        return new MutableDocument(e, 3 /* DocumentType.UNKNOWN_DOCUMENT */ ,
+        /* version */ t,
+        /* readTime */ SnapshotVersion.min(),
         /* createTime */ SnapshotVersion.min(), ObjectValue.empty(), 2 /* DocumentState.HAS_COMMITTED_MUTATIONS */);
     }
     /**
@@ -5388,16 +5388,16 @@ function __PRIVATE_upperBoundCompare(e, t) {
         // update from Watch or due to applying a local set mutation on top
         // of a deleted document, our best guess about its createTime would be the
         // version at which the document transitioned to a FOUND_DOCUMENT.
-        return !this.createTime.isEqual(SnapshotVersion.min()) || 2 /* DocumentType.NO_DOCUMENT */ !== this.documentType && 0 /* DocumentType.INVALID */ !== this.documentType || (this.createTime = e), 
-        this.version = e, this.documentType = 1 /* DocumentType.FOUND_DOCUMENT */ , this.data = t, 
+        return !this.createTime.isEqual(SnapshotVersion.min()) || 2 /* DocumentType.NO_DOCUMENT */ !== this.documentType && 0 /* DocumentType.INVALID */ !== this.documentType || (this.createTime = e),
+        this.version = e, this.documentType = 1 /* DocumentType.FOUND_DOCUMENT */ , this.data = t,
         this.documentState = 0 /* DocumentState.SYNCED */ , this;
     }
     /**
      * Changes the document type to indicate that it doesn't exist at the given
      * version.
      */    convertToNoDocument(e) {
-        return this.version = e, this.documentType = 2 /* DocumentType.NO_DOCUMENT */ , 
-        this.data = ObjectValue.empty(), this.documentState = 0 /* DocumentState.SYNCED */ , 
+        return this.version = e, this.documentType = 2 /* DocumentType.NO_DOCUMENT */ ,
+        this.data = ObjectValue.empty(), this.documentState = 0 /* DocumentState.SYNCED */ ,
         this;
     }
     /**
@@ -5405,15 +5405,15 @@ function __PRIVATE_upperBoundCompare(e, t) {
      * that its data is not known (e.g. a document that was updated without a known
      * base document).
      */    convertToUnknownDocument(e) {
-        return this.version = e, this.documentType = 3 /* DocumentType.UNKNOWN_DOCUMENT */ , 
-        this.data = ObjectValue.empty(), this.documentState = 2 /* DocumentState.HAS_COMMITTED_MUTATIONS */ , 
+        return this.version = e, this.documentType = 3 /* DocumentType.UNKNOWN_DOCUMENT */ ,
+        this.data = ObjectValue.empty(), this.documentState = 2 /* DocumentState.HAS_COMMITTED_MUTATIONS */ ,
         this;
     }
     setHasCommittedMutations() {
         return this.documentState = 2 /* DocumentState.HAS_COMMITTED_MUTATIONS */ , this;
     }
     setHasLocalMutations() {
-        return this.documentState = 1 /* DocumentState.HAS_LOCAL_MUTATIONS */ , this.version = SnapshotVersion.min(), 
+        return this.documentState = 1 /* DocumentState.HAS_LOCAL_MUTATIONS */ , this.version = SnapshotVersion.min(),
         this;
     }
     setReadTime(e) {
@@ -5629,7 +5629,7 @@ class CompositeFilter extends Filter {
         return __PRIVATE_compositeFilterIsConjunction(this) ? void 0 === this.filters.find((t => !t.matches(e))) : void 0 !== this.filters.find((t => t.matches(e)));
     }
     getFlattenedFilters() {
-        return null !== this.Pe || (this.Pe = this.filters.reduce(((e, t) => e.concat(t.getFlattenedFilters())), [])), 
+        return null !== this.Pe || (this.Pe = this.filters.reduce(((e, t) => e.concat(t.getFlattenedFilters())), [])),
         this.Pe;
     }
     // Returns a mutable copy of `this.filters`
@@ -5660,12 +5660,12 @@ function __PRIVATE_compositeFilterIsDisjunction(e) {
 }
 
 function __PRIVATE_canonifyFilter(e) {
-    if (e instanceof FieldFilter) 
+    if (e instanceof FieldFilter)
     // TODO(b/29183165): Technically, this won't be unique if two values have
     // the same description, such as the int 3 and the string "3". So we should
     // add the types in here somehow, too.
     return e.field.canonicalString() + e.op.toString() + canonicalId(e.value);
-    if (__PRIVATE_compositeFilterIsFlatConjunction(e)) 
+    if (__PRIVATE_compositeFilterIsFlatConjunction(e))
     // Older SDK versions use an implicit AND operation between their filters.
     // In the new SDK versions, the developer may use an explicit AND filter.
     // To stay consistent with the old usages, we add a special case to ensure
@@ -5803,7 +5803,7 @@ function __PRIVATE_extractDocumentKeysFromArrayValue(e, t) {
 // Visible for testing
 class __PRIVATE_TargetImpl {
     constructor(e, t = null, n = [], r = [], i = null, s = null, o = null) {
-        this.path = e, this.collectionGroup = t, this.orderBy = n, this.filters = r, this.limit = i, 
+        this.path = e, this.collectionGroup = t, this.orderBy = n, this.filters = r, this.limit = i,
         this.startAt = s, this.endAt = o, this.Te = null;
     }
 }
@@ -5823,13 +5823,13 @@ function __PRIVATE_canonifyTarget(e) {
     const t = __PRIVATE_debugCast(e);
     if (null === t.Te) {
         let e = t.path.canonicalString();
-        null !== t.collectionGroup && (e += "|cg:" + t.collectionGroup), e += "|f:", e += t.filters.map((e => __PRIVATE_canonifyFilter(e))).join(","), 
+        null !== t.collectionGroup && (e += "|cg:" + t.collectionGroup), e += "|f:", e += t.filters.map((e => __PRIVATE_canonifyFilter(e))).join(","),
         e += "|ob:", e += t.orderBy.map((e => function __PRIVATE_canonifyOrderBy(e) {
             // TODO(b/29183165): Make this collision robust.
             return e.field.canonicalString() + e.dir;
-        }(e))).join(","), __PRIVATE_isNullOrUndefined(t.limit) || (e += "|l:", e += t.limit), 
-        t.startAt && (e += "|lb:", e += t.startAt.inclusive ? "b:" : "a:", e += t.startAt.position.map((e => canonicalId(e))).join(",")), 
-        t.endAt && (e += "|ub:", e += t.endAt.inclusive ? "a:" : "b:", e += t.endAt.position.map((e => canonicalId(e))).join(",")), 
+        }(e))).join(","), __PRIVATE_isNullOrUndefined(t.limit) || (e += "|l:", e += t.limit),
+        t.startAt && (e += "|lb:", e += t.startAt.inclusive ? "b:" : "a:", e += t.startAt.position.map((e => canonicalId(e))).join(",")),
+        t.endAt && (e += "|ub:", e += t.endAt.inclusive ? "a:" : "b:", e += t.endAt.position.map((e => canonicalId(e))).join(",")),
         t.Te = e;
     }
     return t.Te;
@@ -6003,11 +6003,11 @@ class __PRIVATE_QueryImpl {
      * Path must currently be empty if this is a collection group query.
      */
     constructor(e, t = null, n = [], r = [], i = null, s = "F" /* LimitType.First */ , o = null, _ = null) {
-        this.path = e, this.collectionGroup = t, this.explicitOrderBy = n, this.filters = r, 
-        this.limit = i, this.limitType = s, this.startAt = o, this.endAt = _, this.Ie = null, 
+        this.path = e, this.collectionGroup = t, this.explicitOrderBy = n, this.filters = r,
+        this.limit = i, this.limitType = s, this.startAt = o, this.endAt = _, this.Ie = null,
         // The corresponding `Target` of this `Query` instance, for use with
         // non-aggregate queries.
-        this.Ee = null, 
+        this.Ee = null,
         // The corresponding `Target` of this `Query` instance, for use with
         // aggregate queries. Unlike targets for non-aggregate queries,
         // aggregate query targets do not contain normalized order-bys, they only
@@ -6087,7 +6087,7 @@ function __PRIVATE_isDocumentQuery$1(e) {
         // field to be sorted last.
                 r.forEach((r => {
             e.has(r.canonicalString()) || r.isKeyField() || t.Ie.push(new OrderBy(r, n));
-        })), 
+        })),
         // Add the document key field to the last if it is not explicitly ordered.
         e.has(FieldPath$1.keyField().canonicalString()) || t.Ie.push(new OrderBy(FieldPath$1.keyField(), n));
     }
@@ -6098,7 +6098,7 @@ function __PRIVATE_isDocumentQuery$1(e) {
  * Converts this `Query` instance to its corresponding `Target` representation.
  */ function __PRIVATE_queryToTarget(e) {
     const t = __PRIVATE_debugCast(e);
-    return t.Ee || (t.Ee = __PRIVATE__queryToTarget(t, __PRIVATE_queryNormalizedOrderBy(e))), 
+    return t.Ee || (t.Ee = __PRIVATE__queryToTarget(t, __PRIVATE_queryNormalizedOrderBy(e))),
     t.Ee;
 }
 
@@ -6166,13 +6166,13 @@ function __PRIVATE_canonifyQuery(e) {
 function __PRIVATE_stringifyQuery(e) {
     return `Query(target=${function __PRIVATE_stringifyTarget(e) {
         let t = e.path.canonicalString();
-        return null !== e.collectionGroup && (t += " collectionGroup=" + e.collectionGroup), 
-        e.filters.length > 0 && (t += `, filters: [${e.filters.map((e => __PRIVATE_stringifyFilter(e))).join(", ")}]`), 
+        return null !== e.collectionGroup && (t += " collectionGroup=" + e.collectionGroup),
+        e.filters.length > 0 && (t += `, filters: [${e.filters.map((e => __PRIVATE_stringifyFilter(e))).join(", ")}]`),
         __PRIVATE_isNullOrUndefined(e.limit) || (t += ", limit: " + e.limit), e.orderBy.length > 0 && (t += `, orderBy: [${e.orderBy.map((e => function __PRIVATE_stringifyOrderBy(e) {
             return `${e.field.canonicalString()} (${e.dir})`;
-        }(e))).join(", ")}]`), e.startAt && (t += ", startAt: ", t += e.startAt.inclusive ? "b:" : "a:", 
-        t += e.startAt.position.map((e => canonicalId(e))).join(",")), e.endAt && (t += ", endAt: ", 
-        t += e.endAt.inclusive ? "a:" : "b:", t += e.endAt.position.map((e => canonicalId(e))).join(",")), 
+        }(e))).join(", ")}]`), e.startAt && (t += ", startAt: ", t += e.startAt.inclusive ? "b:" : "a:",
+        t += e.startAt.position.map((e => canonicalId(e))).join(",")), e.endAt && (t += ", endAt: ",
+        t += e.endAt.inclusive ? "a:" : "b:", t += e.endAt.position.map((e => canonicalId(e))).join(",")),
         `Target(${t})`;
     }(__PRIVATE_queryToTarget(e))}; limitType=${e.limitType})`;
 }
@@ -6192,7 +6192,7 @@ function __PRIVATE_stringifyQuery(e) {
         // to the inequality, and is evaluated as "a > 1 orderBy a || b==1 orderBy a".
         // A document with content of {b:1} matches the filters, but does not match the orderBy because
         // it's missing the field 'a'.
-        for (const n of __PRIVATE_queryNormalizedOrderBy(e)) 
+        for (const n of __PRIVATE_queryNormalizedOrderBy(e))
         // order-by key always matches
         if (!n.field.isKeyField() && null === t.data.field(n.field)) return !1;
         return !0;
@@ -6285,14 +6285,14 @@ function __PRIVATE_compareDocs(e, t, n) {
  * automatically handles collisions of keys.
  */ class ObjectMap {
     constructor(e, t) {
-        this.mapKeyFn = e, this.equalsFn = t, 
+        this.mapKeyFn = e, this.equalsFn = t,
         /**
          * The inner map for a key/value pair. Due to the possibility of collisions we
          * keep a list of entries that we do a linear search through to find an actual
          * match. Note that collisions should be rare, so we still expect near
          * constant time lookups in practice.
          */
-        this.inner = {}, 
+        this.inner = {},
         /** The number of entries stored in the map */
         this.innerSize = 0;
     }
@@ -6306,7 +6306,7 @@ function __PRIVATE_compareDocs(e, t, n) {
     /** Put this key and value in the map. */    set(e, t) {
         const n = this.mapKeyFn(e), r = this.inner[n];
         if (void 0 === r) return this.inner[n] = [ [ e, t ] ], void this.innerSize++;
-        for (let n = 0; n < r.length; n++) if (this.equalsFn(r[n][0], e)) 
+        for (let n = 0; n < r.length; n++) if (this.equalsFn(r[n][0], e))
         // This is updating an existing entry and does not increase `innerSize`.
         return void (r[n] = [ e, t ]);
         r.push([ e, t ]), this.innerSize++;
@@ -6316,7 +6316,7 @@ function __PRIVATE_compareDocs(e, t, n) {
      */    delete(e) {
         const t = this.mapKeyFn(e), n = this.inner[t];
         if (void 0 === n) return !1;
-        for (let r = 0; r < n.length; r++) if (this.equalsFn(n[r][0], e)) return 1 === n.length ? delete this.inner[t] : n.splice(r, 1), 
+        for (let r = 0; r < n.length; r++) if (this.equalsFn(n[r][0], e)) return 1 === n.length ? delete this.inner[t] : n.splice(r, 1),
         this.innerSize--, !0;
         return !1;
     }
@@ -6497,7 +6497,7 @@ function __PRIVATE_targetIdSet() {
         // previous: t2,  add: t3, result: t3 -> 42L (NOT t3 -> t2 -> t1 -> 42L)
         // `getPreviousValue` recursively traverses server timestamps to find the
         // least recent Value.
-                return t && __PRIVATE_isServerTimestamp(t) && (t = __PRIVATE_getPreviousValue(t)), 
+                return t && __PRIVATE_isServerTimestamp(t) && (t = __PRIVATE_getPreviousValue(t)),
         t && (n.fields[rt] = t), {
             mapValue: n
         };
@@ -6535,7 +6535,7 @@ function __PRIVATE_targetIdSet() {
  * @returns a base value to store along with the mutation, or null for
  * idempotent transforms.
  */ function __PRIVATE_computeTransformOperationBaseValue(e, t) {
-    return e instanceof __PRIVATE_NumericIncrementTransformOperation ? 
+    return e instanceof __PRIVATE_NumericIncrementTransformOperation ?
     /** Returns true if `value` is either an IntegerValue or a DoubleValue. */
     function __PRIVATE_isNumber(e) {
         return isInteger(e) || function __PRIVATE_isDouble(e) {
@@ -6641,7 +6641,7 @@ class MutationResult {
      * Note that these versions can be different: No-op writes will not change
      * the updateTime even though the commitTime advances.
      */
-    e, 
+    e,
     /**
      * The resulting fields returned from the backend after a mutation
      * containing field transforms has been committed. Contains one FieldValue
@@ -6750,7 +6750,7 @@ class MutationResult {
             // This leaves the final result (foo, {}). Despite the fact that `doc`
             // has the correct result, `foo` is not in `mask`, and the resulting
             // mutation would miss `foo`.
-                        null === t && e.length > 1 && (e = e.popLast(), t = n.field(e)), null === t ? r.delete(e) : r.set(e, t), 
+                        null === t && e.length > 1 && (e = e.popLast(), t = n.field(e)), null === t ? r.delete(e) : r.set(e, t),
             i = i.add(e);
         }
         return new __PRIVATE_PatchMutation(e.key, r, new FieldMask(i.toArray()), Precondition.none());
@@ -6776,7 +6776,7 @@ class MutationResult {
         const r = e.value.clone(), i = __PRIVATE_serverTransformResults(e.fieldTransforms, t, n.transformResults);
         r.setAll(i), t.convertToFoundDocument(n.version, r).setHasCommittedMutations();
     }(e, t, n) : e instanceof __PRIVATE_PatchMutation ? function __PRIVATE_patchMutationApplyToRemoteDocument(e, t, n) {
-        if (!__PRIVATE_preconditionIsValidForDocument(e.precondition, t)) 
+        if (!__PRIVATE_preconditionIsValidForDocument(e.precondition, t))
         // Since the mutation was not rejected, we know that the precondition
         // matched on the backend. We therefore must not have the expected version
         // of the document in our cache and convert to an UnknownDocument with a
@@ -6807,12 +6807,12 @@ class MutationResult {
  * @returns A `FieldMask` representing the fields that are changed by applying this mutation.
  */ function __PRIVATE_mutationApplyToLocalView(e, t, n, r) {
     return e instanceof __PRIVATE_SetMutation ? function __PRIVATE_setMutationApplyToLocalView(e, t, n, r) {
-        if (!__PRIVATE_preconditionIsValidForDocument(e.precondition, t)) 
+        if (!__PRIVATE_preconditionIsValidForDocument(e.precondition, t))
         // The mutation failed to apply (e.g. a document ID created with add()
         // caused a name collision).
         return n;
         const i = e.value.clone(), s = __PRIVATE_localTransformResults(e.fieldTransforms, r, t);
-        return i.setAll(s), t.convertToFoundDocument(t.version, i).setHasLocalMutations(), 
+        return i.setAll(s), t.convertToFoundDocument(t.version, i).setHasLocalMutations(),
         null;
  // SetMutation overwrites all fields.
         }
@@ -6831,14 +6831,14 @@ class MutationResult {
  */ (e, t, n, r) : e instanceof __PRIVATE_PatchMutation ? function __PRIVATE_patchMutationApplyToLocalView(e, t, n, r) {
         if (!__PRIVATE_preconditionIsValidForDocument(e.precondition, t)) return n;
         const i = __PRIVATE_localTransformResults(e.fieldTransforms, r, t), s = t.data;
-        if (s.setAll(__PRIVATE_getPatch(e)), s.setAll(i), t.convertToFoundDocument(t.version, s).setHasLocalMutations(), 
+        if (s.setAll(__PRIVATE_getPatch(e)), s.setAll(i), t.convertToFoundDocument(t.version, s).setHasLocalMutations(),
         null === n) return null;
         return n.unionWith(e.fieldMask.fields).unionWith(e.fieldTransforms.map((e => e.field)));
     }
     /**
  * Returns a FieldPath/Value map with the content of the PatchMutation.
  */ (e, t, n, r) : function __PRIVATE_deleteMutationApplyToLocalView(e, t, n) {
-        if (__PRIVATE_preconditionIsValidForDocument(e.precondition, t)) return t.convertToNoDocument(t.version).setHasLocalMutations(), 
+        if (__PRIVATE_preconditionIsValidForDocument(e.precondition, t)) return t.convertToNoDocument(t.version).setHasLocalMutations(),
         null;
         return n;
     }
@@ -6886,7 +6886,7 @@ function __PRIVATE_mutationEquals(e, t) {
  * object value contents.
  */ class __PRIVATE_SetMutation extends Mutation {
     constructor(e, t, n, r = []) {
-        super(), this.key = e, this.value = t, this.precondition = n, this.fieldTransforms = r, 
+        super(), this.key = e, this.value = t, this.precondition = n, this.fieldTransforms = r,
         this.type = 0 /* MutationType.Set */;
     }
     getFieldMask() {
@@ -6896,7 +6896,7 @@ function __PRIVATE_mutationEquals(e, t) {
 
 class __PRIVATE_PatchMutation extends Mutation {
     constructor(e, t, n, r, i = []) {
-        super(), this.key = e, this.data = t, this.fieldMask = n, this.precondition = r, 
+        super(), this.key = e, this.data = t, this.fieldMask = n, this.precondition = r,
         this.fieldTransforms = i, this.type = 1 /* MutationType.Patch */;
     }
     getFieldMask() {
@@ -6958,7 +6958,7 @@ function __PRIVATE_getPatch(e) {
 
 /** A mutation that deletes the document at the given key. */ class __PRIVATE_DeleteMutation extends Mutation {
     constructor(e, t) {
-        super(), this.key = e, this.precondition = t, this.type = 2 /* MutationType.Delete */ , 
+        super(), this.key = e, this.precondition = t, this.type = 2 /* MutationType.Delete */ ,
         this.fieldTransforms = [];
     }
     getFieldMask() {
@@ -6968,7 +6968,7 @@ function __PRIVATE_getPatch(e) {
 
 class __PRIVATE_VerifyMutation extends Mutation {
     constructor(e, t) {
-        super(), this.key = e, this.precondition = t, this.type = 3 /* MutationType.Verify */ , 
+        super(), this.key = e, this.precondition = t, this.type = 3 /* MutationType.Verify */ ,
         this.fieldTransforms = [];
     }
     getFieldMask() {
@@ -7071,7 +7071,7 @@ class __PRIVATE_VerifyMutation extends Mutation {
 }
 
 /** The result of applying a mutation batch to the backend. */ class MutationBatchResult {
-    constructor(e, t, n, 
+    constructor(e, t, n,
     /**
      * A pre-computed mapping from each mutated document to the resulting
      * version.
@@ -7268,7 +7268,7 @@ function __PRIVATE_isPermanentError(e) {
  *     is no match.
  */
 function __PRIVATE_mapCodeFromRpcCode(e) {
-    if (void 0 === e) 
+    if (void 0 === e)
     // This shouldn't normally happen, but in certain error cases (like trying
     // to send invalid proto messages) we may get an error with no GRPC code.
     return __PRIVATE_logError("GRPC error has no .code"), C.UNKNOWN;
@@ -7338,13 +7338,13 @@ function __PRIVATE_mapCodeFromRpcCode(e) {
  * "UNKNOWN", etc.)
  * @returns The equivalent Code. Non-matching responses are mapped to
  *     Code.UNKNOWN.
- */ (Vt = At || (At = {}))[Vt.OK = 0] = "OK", Vt[Vt.CANCELLED = 1] = "CANCELLED", 
-Vt[Vt.UNKNOWN = 2] = "UNKNOWN", Vt[Vt.INVALID_ARGUMENT = 3] = "INVALID_ARGUMENT", 
-Vt[Vt.DEADLINE_EXCEEDED = 4] = "DEADLINE_EXCEEDED", Vt[Vt.NOT_FOUND = 5] = "NOT_FOUND", 
-Vt[Vt.ALREADY_EXISTS = 6] = "ALREADY_EXISTS", Vt[Vt.PERMISSION_DENIED = 7] = "PERMISSION_DENIED", 
-Vt[Vt.UNAUTHENTICATED = 16] = "UNAUTHENTICATED", Vt[Vt.RESOURCE_EXHAUSTED = 8] = "RESOURCE_EXHAUSTED", 
-Vt[Vt.FAILED_PRECONDITION = 9] = "FAILED_PRECONDITION", Vt[Vt.ABORTED = 10] = "ABORTED", 
-Vt[Vt.OUT_OF_RANGE = 11] = "OUT_OF_RANGE", Vt[Vt.UNIMPLEMENTED = 12] = "UNIMPLEMENTED", 
+ */ (Vt = At || (At = {}))[Vt.OK = 0] = "OK", Vt[Vt.CANCELLED = 1] = "CANCELLED",
+Vt[Vt.UNKNOWN = 2] = "UNKNOWN", Vt[Vt.INVALID_ARGUMENT = 3] = "INVALID_ARGUMENT",
+Vt[Vt.DEADLINE_EXCEEDED = 4] = "DEADLINE_EXCEEDED", Vt[Vt.NOT_FOUND = 5] = "NOT_FOUND",
+Vt[Vt.ALREADY_EXISTS = 6] = "ALREADY_EXISTS", Vt[Vt.PERMISSION_DENIED = 7] = "PERMISSION_DENIED",
+Vt[Vt.UNAUTHENTICATED = 16] = "UNAUTHENTICATED", Vt[Vt.RESOURCE_EXHAUSTED = 8] = "RESOURCE_EXHAUSTED",
+Vt[Vt.FAILED_PRECONDITION = 9] = "FAILED_PRECONDITION", Vt[Vt.ABORTED = 10] = "ABORTED",
+Vt[Vt.OUT_OF_RANGE = 11] = "OUT_OF_RANGE", Vt[Vt.UNIMPLEMENTED = 12] = "UNIMPLEMENTED",
 Vt[Vt.INTERNAL = 13] = "INTERNAL", Vt[Vt.UNAVAILABLE = 14] = "UNAVAILABLE", Vt[Vt.DATA_LOSS = 15] = "DATA_LOSS";
 
 /**
@@ -7440,13 +7440,13 @@ class BloomFilter {
     constructor(e, t, n) {
         if (this.bitmap = e, this.padding = t, this.hashCount = n, t < 0 || t >= 8) throw new __PRIVATE_BloomFilterError(`Invalid padding: ${t}`);
         if (n < 0) throw new __PRIVATE_BloomFilterError(`Invalid hash count: ${n}`);
-        if (e.length > 0 && 0 === this.hashCount) 
+        if (e.length > 0 && 0 === this.hashCount)
         // Only empty bloom filter can have 0 hash count.
         throw new __PRIVATE_BloomFilterError(`Invalid hash count: ${n}`);
-        if (0 === e.length && 0 !== t) 
+        if (0 === e.length && 0 !== t)
         // Empty bloom filter should have 0 padding.
         throw new __PRIVATE_BloomFilterError(`Invalid padding when bitmap length is 0: ${t}`);
-        this.ge = 8 * e.length - t, 
+        this.ge = 8 * e.length - t,
         // Set the bit count in Integer to avoid repetition in mightContain().
         this.pe = _firebase_webchannel_wrapper_bloom_blob__WEBPACK_IMPORTED_MODULE_2__.Integer.fromNumber(this.ge);
     }
@@ -7456,7 +7456,7 @@ class BloomFilter {
         // Calculate hashed value h(i) = h1 + (i * h2).
         let r = e.add(t.multiply(_firebase_webchannel_wrapper_bloom_blob__WEBPACK_IMPORTED_MODULE_2__.Integer.fromNumber(n)));
         // Wrap if hash value overflow 64bit.
-                return 1 === r.compare(mt) && (r = new _firebase_webchannel_wrapper_bloom_blob__WEBPACK_IMPORTED_MODULE_2__.Integer([ r.getBits(0), r.getBits(1) ], 0)), 
+                return 1 === r.compare(mt) && (r = new _firebase_webchannel_wrapper_bloom_blob__WEBPACK_IMPORTED_MODULE_2__.Integer([ r.getBits(0), r.getBits(1) ], 0)),
         r.modulo(this.pe).toNumber();
     }
     // Return whether the bit on the given index in the bitmap is set to 1.
@@ -7522,27 +7522,27 @@ class __PRIVATE_BloomFilterError extends Error {
     /**
      * The snapshot version this event brings us up to, or MIN if not set.
      */
-    e, 
+    e,
     /**
      * A map from target to changes to the target. See TargetChange.
      */
-    t, 
+    t,
     /**
      * A map of targets that is known to be inconsistent, and the purpose for
      * re-listening. Listens for these targets should be re-established without
      * resume tokens.
      */
-    n, 
+    n,
     /**
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).
      */
-    r, 
+    r,
     /**
      * A set of which document updates are due only to limbo resolution targets.
      */
     i) {
-        this.snapshotVersion = e, this.targetChanges = t, this.targetMismatches = n, this.documentUpdates = r, 
+        this.snapshotVersion = e, this.targetChanges = t, this.targetMismatches = n, this.documentUpdates = r,
         this.resolvedLimboDocuments = i;
     }
     /**
@@ -7554,7 +7554,7 @@ class __PRIVATE_BloomFilterError extends Error {
     // PORTING NOTE: Multi-tab only
     static createSynthesizedRemoteEventForCurrentChange(e, t, n) {
         const r = new Map;
-        return r.set(e, TargetChange.createSynthesizedTargetChangeForCurrentChange(e, t, n)), 
+        return r.set(e, TargetChange.createSynthesizedTargetChangeForCurrentChange(e, t, n)),
         new RemoteEvent(SnapshotVersion.min(), r, new SortedMap(__PRIVATE_primitiveComparator), __PRIVATE_mutableDocumentMap(), __PRIVATE_documentKeySet());
     }
 }
@@ -7574,29 +7574,29 @@ class __PRIVATE_BloomFilterError extends Error {
      * query. The resume token essentially identifies a point in time from which
      * the server should resume sending results.
      */
-    e, 
+    e,
     /**
      * The "current" (synced) status of this target. Note that "current"
      * has special meaning in the RPC protocol that implies that a target is
      * both up-to-date and consistent with the rest of the watch stream.
      */
-    t, 
+    t,
     /**
      * The set of documents that were newly assigned to this target as part of
      * this remote event.
      */
-    n, 
+    n,
     /**
      * The set of documents that were already assigned to this target but received
      * an update during this remote event.
      */
-    r, 
+    r,
     /**
      * The set of documents that were removed from this target as part of this
      * remote event.
      */
     i) {
-        this.resumeToken = e, this.current = t, this.addedDocuments = n, this.modifiedDocuments = r, 
+        this.resumeToken = e, this.current = t, this.addedDocuments = n, this.modifiedDocuments = r,
         this.removedDocuments = i;
     }
     /**
@@ -7632,11 +7632,11 @@ class __PRIVATE_BloomFilterError extends Error {
  */ class __PRIVATE_DocumentWatchChange {
     constructor(
     /** The new document applies to all of these targets. */
-    e, 
+    e,
     /** The new document is removed from all of these targets. */
-    t, 
+    t,
     /** The key of the document for this change. */
-    n, 
+    n,
     /**
      * The new document or NoDocument if it was deleted. Is null if the
      * document went out of view without the server sending a new document.
@@ -7655,9 +7655,9 @@ class __PRIVATE_ExistenceFilterChange {
 class __PRIVATE_WatchTargetChange {
     constructor(
     /** What kind of change occurred to the watch target. */
-    e, 
+    e,
     /** The target IDs that were added/removed/set. */
-    t, 
+    t,
     /**
      * An opaque, server-assigned token that allows watching a target to be
      * resumed after disconnecting without retransmitting all the data that
@@ -7676,16 +7676,16 @@ class __PRIVATE_WatchTargetChange {
          * The number of pending responses (adds or removes) that we are waiting on.
          * We only consider targets active that have no pending responses.
          */
-        this.ve = 0, 
+        this.ve = 0,
         /**
          * Keeps track of the document changes since the last raised snapshot.
          *
          * These changes are continuously updated as we receive document updates and
          * always reflect the current set of changes against the last issued snapshot.
          */
-        this.Fe = __PRIVATE_snapshotChangesMap(), 
+        this.Fe = __PRIVATE_snapshotChangesMap(),
         /** See public getters for explanations of these fields. */
-        this.Me = ByteString.EMPTY_BYTE_STRING, this.xe = !1, 
+        this.Me = ByteString.EMPTY_BYTE_STRING, this.xe = !1,
         /**
          * Whether this target state should be included in the next snapshot. We
          * initialize to true so that newly-added targets are included in the next
@@ -7775,13 +7775,13 @@ class __PRIVATE_WatchTargetChange {
  */
 class __PRIVATE_WatchChangeAggregator {
     constructor(e) {
-        this.Ge = e, 
+        this.Ge = e,
         /** The internal state of all tracked targets. */
-        this.ze = new Map, 
+        this.ze = new Map,
         /** Keeps track of the documents to update since the last raised snapshot. */
-        this.je = __PRIVATE_mutableDocumentMap(), this.He = __PRIVATE_documentTargetMap(), 
+        this.je = __PRIVATE_mutableDocumentMap(), this.He = __PRIVATE_documentTargetMap(),
         /** A mapping of document keys to their set of target IDs. */
-        this.Je = __PRIVATE_documentTargetMap(), 
+        this.Je = __PRIVATE_documentTargetMap(),
         /**
          * A map of targets with existence filter mismatches. These targets are
          * known to be inconsistent and their listens needs to be re-established by
@@ -7806,7 +7806,7 @@ class __PRIVATE_WatchChangeAggregator {
               case 1 /* WatchTargetChangeState.Added */ :
                 // We need to decrement the number of pending acks needed from watch
                 // for this targetId.
-                n.We(), n.Ne || 
+                n.We(), n.Ne ||
                 // We have a freshly added target, so we need to reset any state
                 // that we had previously. This can happen e.g. when remove and add
                 // back a target for existence filter mismatches.
@@ -7929,7 +7929,7 @@ class __PRIVATE_WatchChangeAggregator {
         try {
             s = __PRIVATE_normalizeByteString(n).toUint8Array();
         } catch (e) {
-            if (e instanceof __PRIVATE_Base64DecodeError) return __PRIVATE_logWarn("Decoding the base64 bloom filter in existence filter failed (" + e.message + "); ignoring the bloom filter and falling back to full re-query."), 
+            if (e instanceof __PRIVATE_Base64DecodeError) return __PRIVATE_logWarn("Decoding the base64 bloom filter in existence filter failed (" + e.message + "); ignoring the bloom filter and falling back to full re-query."),
             null;
             throw e;
         }
@@ -7937,7 +7937,7 @@ class __PRIVATE_WatchChangeAggregator {
             // BloomFilter throws error if the inputs are invalid.
             o = new BloomFilter(s, r, i);
         } catch (e) {
-            return __PRIVATE_logWarn(e instanceof __PRIVATE_BloomFilterError ? "BloomFilter error: " : "Applying bloom filter failed: ", e), 
+            return __PRIVATE_logWarn(e instanceof __PRIVATE_BloomFilterError ? "BloomFilter error: " : "Applying bloom filter failed: ", e),
             null;
         }
         return 0 === o.ge ? null : o;
@@ -7985,20 +7985,20 @@ class __PRIVATE_WatchChangeAggregator {
         let n = __PRIVATE_documentKeySet();
         // We extract the set of limbo-only document updates as the GC logic
         // special-cases documents that do not appear in the target cache.
-        
+
         // TODO(gsoltis): Expand on this comment once GC is available in the JS
         // client.
                 this.Je.forEach(((e, t) => {
             let r = !0;
             t.forEachWhile((e => {
                 const t = this.ot(e);
-                return !t || "TargetPurposeLimboResolution" /* TargetPurpose.LimboResolution */ === t.purpose || (r = !1, 
+                return !t || "TargetPurposeLimboResolution" /* TargetPurpose.LimboResolution */ === t.purpose || (r = !1,
                 !1);
             })), r && (n = n.add(e));
         })), this.je.forEach(((t, n) => n.setReadTime(e)));
         const r = new RemoteEvent(e, t, this.Ze, this.je, n);
-        return this.je = __PRIVATE_mutableDocumentMap(), this.He = __PRIVATE_documentTargetMap(), 
-        this.Je = __PRIVATE_documentTargetMap(), this.Ze = new SortedMap(__PRIVATE_primitiveComparator), 
+        return this.je = __PRIVATE_mutableDocumentMap(), this.He = __PRIVATE_documentTargetMap(),
+        this.Je = __PRIVATE_documentTargetMap(), this.Ze = new SortedMap(__PRIVATE_primitiveComparator),
         r;
     }
     /**
@@ -8009,7 +8009,7 @@ class __PRIVATE_WatchChangeAggregator {
     Ye(e, t) {
         if (!this.rt(e)) return;
         const n = this.Et(e, t.key) ? 2 /* ChangeType.Modified */ : 0 /* ChangeType.Added */;
-        this.nt(e).qe(t.key, n), this.je = this.je.insert(t.key, t), this.He = this.He.insert(t.key, this.It(t.key).add(e)), 
+        this.nt(e).qe(t.key, n), this.je = this.je.insert(t.key, t), this.He = this.He.insert(t.key, this.It(t.key).add(e)),
         this.Je = this.Je.insert(t.key, this.Rt(t.key).add(e));
     }
     /**
@@ -8023,10 +8023,10 @@ class __PRIVATE_WatchChangeAggregator {
     et(e, t, n) {
         if (!this.rt(e)) return;
         const r = this.nt(e);
-        this.Et(e, t) ? r.qe(t, 1 /* ChangeType.Removed */) : 
+        this.Et(e, t) ? r.qe(t, 1 /* ChangeType.Removed */) :
         // The document may have entered and left the target before we raised a
         // snapshot, so we can just ignore the change.
-        r.Ue(t), this.Je = this.Je.insert(t, this.Rt(t).delete(e)), this.Je = this.Je.insert(t, this.Rt(t).add(e)), 
+        r.Ue(t), this.Je = this.Je.insert(t, this.Rt(t).delete(e)), this.Je = this.Je.insert(t, this.Rt(t).add(e)),
         n && (this.je = this.je.insert(t, n));
     }
     removeTarget(e) {
@@ -8052,12 +8052,12 @@ class __PRIVATE_WatchChangeAggregator {
     }
     Rt(e) {
         let t = this.Je.get(e);
-        return t || (t = new SortedSet(__PRIVATE_primitiveComparator), this.Je = this.Je.insert(e, t)), 
+        return t || (t = new SortedSet(__PRIVATE_primitiveComparator), this.Je = this.Je.insert(e, t)),
         t;
     }
     It(e) {
         let t = this.He.get(e);
-        return t || (t = new SortedSet(__PRIVATE_primitiveComparator), this.He = this.He.insert(e, t)), 
+        return t || (t = new SortedSet(__PRIVATE_primitiveComparator), this.He = this.He.insert(e, t)),
         t;
     }
     /**
@@ -8066,7 +8066,7 @@ class __PRIVATE_WatchChangeAggregator {
      * from watch.
      */    rt(e) {
         const t = null !== this.ot(e);
-        return t || __PRIVATE_logDebug("WatchChangeAggregator", "Detected inactive target", e), 
+        return t || __PRIVATE_logDebug("WatchChangeAggregator", "Detected inactive target", e),
         t;
     }
     /**
@@ -8268,12 +8268,12 @@ function __PRIVATE_fromPipelineResponse(e, t, n) {
     const r = {};
     t.transaction?.length && (r.transaction = t.transaction);
     const i = t.executionTime ? __PRIVATE_fromVersion(t.executionTime) : void 0;
-    return r.executionTime = i, n && (r.key = n.name ? fromName(e, n.name) : void 0, 
+    return r.executionTime = i, n && (r.key = n.name ? fromName(e, n.name) : void 0,
     r.fields = new ObjectValue({
         mapValue: {
             fields: n.fields
         }
-    }), r.createTime = n.createTime ? __PRIVATE_fromVersion(n.createTime) : void 0, 
+    }), r.createTime = n.createTime ? __PRIVATE_fromVersion(n.createTime) : void 0,
     r.updateTime = n.updateTime ? __PRIVATE_fromVersion(n.updateTime) : void 0), r;
 }
 
@@ -8315,8 +8315,8 @@ function __PRIVATE_fromWatchChange(e, t) {
                 state: e
             });
         }(t.targetChange.targetChangeType || "NO_CHANGE"), i = t.targetChange.targetIds || [], s = function __PRIVATE_fromBytes(e, t) {
-            return e.useProto3Json ? (__PRIVATE_hardAssert(void 0 === t || "string" == typeof t, 58123), 
-            ByteString.fromBase64String(t || "")) : (__PRIVATE_hardAssert(void 0 === t || 
+            return e.useProto3Json ? (__PRIVATE_hardAssert(void 0 === t || "string" == typeof t, 58123),
+            ByteString.fromBase64String(t || "")) : (__PRIVATE_hardAssert(void 0 === t ||
             // Check if the value is an instance of both Buffer and Uint8Array,
             // despite the fact that Buffer extends Uint8Array. In some
             // environments, such as jsdom, the prototype chain of Buffer
@@ -8502,7 +8502,7 @@ function __PRIVATE_toQueryTarget(e, t) {
     s && (n.structuredQuery.where = s);
     const o = function __PRIVATE_toOrder(e) {
         if (0 === e.length) return;
-        return e.map((e => 
+        return e.map((e =>
         // visible for testing
         function __PRIVATE_toPropertyOrder(e) {
             return {
@@ -8582,7 +8582,7 @@ function __PRIVATE_convertQueryTargetToQuery(e) {
     let o = [];
     n.orderBy && (o = function __PRIVATE_fromOrder(e) {
         return e.map((e => function __PRIVATE_fromPropertyOrder(e) {
-            return new OrderBy(__PRIVATE_fromFieldPathReference(e.field), 
+            return new OrderBy(__PRIVATE_fromFieldPathReference(e.field),
             // visible for testing
             function __PRIVATE_fromDirection(e) {
                 switch (e) {
@@ -8873,19 +8873,19 @@ function __PRIVATE_toPipelineValue(e) {
  */ class TargetData {
     constructor(
     /** The target being listened to. */
-    e, 
+    e,
     /**
      * The target ID to which the target corresponds; Assigned by the
      * LocalStore for user listens and by the SyncEngine for limbo watches.
      */
-    t, 
+    t,
     /** The purpose of the target. */
-    n, 
+    n,
     /**
      * The sequence number of the last transaction during which this target data
      * was modified.
      */
-    r, 
+    r,
     /** The latest snapshot version seen for this target. */
     i = SnapshotVersion.min()
     /**
@@ -8903,7 +8903,7 @@ function __PRIVATE_toPipelineValue(e) {
      * read time. Documents are counted only when making a listen request with
      * resume token or read time, otherwise, keep it null.
      */ , _ = null) {
-        this.target = e, this.targetId = t, this.purpose = n, this.sequenceNumber = r, this.snapshotVersion = i, 
+        this.target = e, this.targetId = t, this.purpose = n, this.sequenceNumber = r, this.snapshotVersion = i,
         this.lastLimboFreeSnapshotVersion = s, this.resumeToken = o, this.expectedCount = _;
     }
     /** Creates a new target data instance with an updated sequence number. */    withSequenceNumber(e) {
@@ -8913,7 +8913,7 @@ function __PRIVATE_toPipelineValue(e) {
      * Creates a new target data instance with an updated resume token and
      * snapshot version.
      */    withResumeToken(e, t) {
-        return new TargetData(this.target, this.targetId, this.purpose, this.sequenceNumber, t, this.lastLimboFreeSnapshotVersion, e, 
+        return new TargetData(this.target, this.targetId, this.purpose, this.sequenceNumber, t, this.lastLimboFreeSnapshotVersion, e,
         /* expectedCount= */ null);
     }
     /**
@@ -9030,7 +9030,7 @@ function __PRIVATE_fromDbMutationBatch(e, t) {
         const n = t.mutations[e];
         if (e + 1 < t.mutations.length && void 0 !== t.mutations[e + 1].transform) {
             const r = t.mutations[e + 1];
-            n.updateTransforms = r.transform.fieldTransforms, t.mutations.splice(e + 1, 1), 
+            n.updateTransforms = r.transform.fieldTransforms, t.mutations.splice(e + 1, 1),
             ++e;
         }
     }
@@ -9041,7 +9041,7 @@ function __PRIVATE_fromDbMutationBatch(e, t) {
 /** Decodes a DbTarget into TargetData */ function __PRIVATE_fromDbTarget(e) {
     const t = __PRIVATE_fromDbTimestamp(e.readTime), n = void 0 !== e.lastLimboFreeSnapshotVersion ? __PRIVATE_fromDbTimestamp(e.lastLimboFreeSnapshotVersion) : SnapshotVersion.min();
     let r;
-    return r = 
+    return r =
     /**
  * A helper function for figuring out what kind of query has been stored.
  */
@@ -9243,14 +9243,14 @@ function __PRIVATE_toDbIndexState(e, t, n, r) {
                 t.forEach((e => r.add(__PRIVATE_encodeResourcePath(e.getCollectionPath()))));
         const i = [];
         return r.forEach((t => {
-            const r = IDBKeyRange.bound([ this.userId, t, n ], [ this.userId, t, n + 1 ], 
-            /*lowerOpen=*/ !1, 
+            const r = IDBKeyRange.bound([ this.userId, t, n ], [ this.userId, t, n + 1 ],
+            /*lowerOpen=*/ !1,
             /*upperOpen=*/ !0);
             i.push(__PRIVATE_documentOverlayStore(e).X(Ke, r));
         })), PersistencePromise.waitFor(i);
     }
     getOverlaysForCollection(e, t, n) {
-        const r = __PRIVATE_newOverlayMap(), i = __PRIVATE_encodeResourcePath(t), s = IDBKeyRange.bound([ this.userId, i, n ], [ this.userId, i, Number.POSITIVE_INFINITY ], 
+        const r = __PRIVATE_newOverlayMap(), i = __PRIVATE_encodeResourcePath(t), s = IDBKeyRange.bound([ this.userId, i, n ], [ this.userId, i, Number.POSITIVE_INFINITY ],
         /*lowerOpen=*/ !0);
         return __PRIVATE_documentOverlayStore(e).H(Ke, s).next((e => {
             for (const t of e) {
@@ -9265,7 +9265,7 @@ function __PRIVATE_toDbIndexState(e, t, n, r) {
         let s;
         // We want batch IDs larger than `sinceBatchId`, and so the lower bound
         // is not inclusive.
-                const o = IDBKeyRange.bound([ this.userId, t, n ], [ this.userId, t, Number.POSITIVE_INFINITY ], 
+                const o = IDBKeyRange.bound([ this.userId, t, n ], [ this.userId, t, Number.POSITIVE_INFINITY ],
         /*lowerOpen=*/ !0);
         return __PRIVATE_documentOverlayStore(e).ee({
             index: Ue,
@@ -9362,27 +9362,27 @@ class __PRIVATE_FirestoreIndexValueWriter {
     // ["bar", truncated(["foo"])] -> (STRING, "bar", TERM, ARRAY. STRING, "foo", TERM, TRUNC)
     /** Writes an index value.  */
     Dt(e, t) {
-        this.Ct(e, t), 
+        this.Ct(e, t),
         // Write separator to split index values
         // (see go/firestore-storage-format#encodings).
         t.vt();
     }
     Ct(e, t) {
-        if ("nullValue" in e) this.Ft(t, 5); else if ("booleanValue" in e) this.Ft(t, 10), 
+        if ("nullValue" in e) this.Ft(t, 5); else if ("booleanValue" in e) this.Ft(t, 10),
         t.Mt(e.booleanValue ? 1 : 0); else if ("integerValue" in e) this.Ft(t, 15), t.Mt(__PRIVATE_normalizeNumber(e.integerValue)); else if ("doubleValue" in e) {
             const n = __PRIVATE_normalizeNumber(e.doubleValue);
-            isNaN(n) ? this.Ft(t, 13) : (this.Ft(t, 15), __PRIVATE_isNegativeZero(n) ? 
+            isNaN(n) ? this.Ft(t, 13) : (this.Ft(t, 15), __PRIVATE_isNegativeZero(n) ?
             // -0.0, 0 and 0.0 are all considered the same
             t.Mt(0) : t.Mt(n));
         } else if ("timestampValue" in e) {
             let n = e.timestampValue;
-            this.Ft(t, 20), "string" == typeof n && (n = __PRIVATE_normalizeTimestamp(n)), t.xt(`${n.seconds || ""}`), 
+            this.Ft(t, 20), "string" == typeof n && (n = __PRIVATE_normalizeTimestamp(n)), t.xt(`${n.seconds || ""}`),
             t.Mt(n.nanos || 0);
-        } else if ("stringValue" in e) this.Ot(e.stringValue, t), this.Nt(t); else if ("bytesValue" in e) this.Ft(t, 30), 
+        } else if ("stringValue" in e) this.Ot(e.stringValue, t), this.Nt(t); else if ("bytesValue" in e) this.Ft(t, 30),
         t.Bt(__PRIVATE_normalizeByteString(e.bytesValue)), this.Nt(t); else if ("referenceValue" in e) this.Lt(e.referenceValue, t); else if ("geoPointValue" in e) {
             const n = e.geoPointValue;
             this.Ft(t, 45), t.Mt(n.latitude || 0), t.Mt(n.longitude || 0);
-        } else "mapValue" in e ? __PRIVATE_isMaxValue(e) ? this.Ft(t, Number.MAX_SAFE_INTEGER) : __PRIVATE_isVectorValue(e) ? this.kt(e.mapValue, t) : (this.Kt(e.mapValue, t), 
+        } else "mapValue" in e ? __PRIVATE_isMaxValue(e) ? this.Ft(t, Number.MAX_SAFE_INTEGER) : __PRIVATE_isVectorValue(e) ? this.kt(e.mapValue, t) : (this.Kt(e.mapValue, t),
         this.Nt(t)) : "arrayValue" in e ? (this.qt(e.arrayValue, t), this.Nt(t)) : fail(19022, {
             Ut: e
         });
@@ -9403,7 +9403,7 @@ class __PRIVATE_FirestoreIndexValueWriter {
         this.Ft(t, 53);
         // Vectors sort first by length
         const r = ct, i = n[r].arrayValue?.values?.length || 0;
-        this.Ft(t, 15), t.Mt(__PRIVATE_normalizeNumber(i)), 
+        this.Ft(t, 15), t.Mt(__PRIVATE_normalizeNumber(i)),
         // Vectors then sort by position value
         this.Ot(r, t), this.Ct(n[r], t);
     }
@@ -9509,10 +9509,10 @@ function __PRIVATE_unsignedNumLength(e) {
     /** Writes utf8 bytes into this byte sequence, ascending. */    Zt(e) {
         for (const t of e) {
             const e = t.charCodeAt(0);
-            if (e < 128) this.Gt(e); else if (e < 2048) this.Gt(960 | e >>> 6), this.Gt(128 | 63 & e); else if (t < "\ud800" || "\udbff" < t) this.Gt(480 | e >>> 12), 
+            if (e < 128) this.Gt(e); else if (e < 2048) this.Gt(960 | e >>> 6), this.Gt(128 | 63 & e); else if (t < "\ud800" || "\udbff" < t) this.Gt(480 | e >>> 12),
             this.Gt(128 | 63 & e >>> 6), this.Gt(128 | 63 & e); else {
                 const e = t.codePointAt(0);
-                this.Gt(240 | e >>> 18), this.Gt(128 | 63 & e >>> 12), this.Gt(128 | 63 & e >>> 6), 
+                this.Gt(240 | e >>> 18), this.Gt(128 | 63 & e >>> 12), this.Gt(128 | 63 & e >>> 6),
                 this.Gt(128 | 63 & e);
             }
         }
@@ -9521,10 +9521,10 @@ function __PRIVATE_unsignedNumLength(e) {
     /** Writes utf8 bytes into this byte sequence, descending */    Xt(e) {
         for (const t of e) {
             const e = t.charCodeAt(0);
-            if (e < 128) this.Ht(e); else if (e < 2048) this.Ht(960 | e >>> 6), this.Ht(128 | 63 & e); else if (t < "\ud800" || "\udbff" < t) this.Ht(480 | e >>> 12), 
+            if (e < 128) this.Ht(e); else if (e < 2048) this.Ht(960 | e >>> 6), this.Ht(128 | 63 & e); else if (t < "\ud800" || "\udbff" < t) this.Ht(480 | e >>> 12),
             this.Ht(128 | 63 & e >>> 6), this.Ht(128 | 63 & e); else {
                 const e = t.codePointAt(0);
-                this.Ht(240 | e >>> 18), this.Ht(128 | 63 & e >>> 12), this.Ht(128 | 63 & e >>> 6), 
+                this.Ht(240 | e >>> 18), this.Ht(128 | 63 & e >>> 12), this.Ht(128 | 63 & e >>> 6),
                 this.Ht(128 | 63 & e);
             }
         }
@@ -9577,7 +9577,7 @@ function __PRIVATE_unsignedNumLength(e) {
      *   all non-NaN < NaN
      *   NaN = NaN
      */    en(e) {
-        const t = 
+        const t =
         /** Converts a JavaScript number to a byte array (using big endian encoding). */
         function __PRIVATE_doubleToLongBits(e) {
             const t = new DataView(new ArrayBuffer(8));
@@ -9665,7 +9665,7 @@ class __PRIVATE_DescendingIndexByteEncoder {
  * actual encoding.
  */ class __PRIVATE_IndexByteEncoder {
     constructor() {
-        this.cn = new __PRIVATE_OrderedCodeWriter, this.ascending = new __PRIVATE_AscendingIndexByteEncoder(this.cn), 
+        this.cn = new __PRIVATE_OrderedCodeWriter, this.ascending = new __PRIVATE_AscendingIndexByteEncoder(this.cn),
         this.descending = new __PRIVATE_DescendingIndexByteEncoder(this.cn);
     }
     seed(e) {
@@ -9707,7 +9707,7 @@ class __PRIVATE_DescendingIndexByteEncoder {
      * directional value.
      */    En() {
         const e = this.In.length, t = 0 === e || 255 === this.In[e - 1] ? e + 1 : e, n = new Uint8Array(t);
-        return n.set(this.In, 0), t !== e ? n.set([ 0 ], this.In.length) : ++n[n.length - 1], 
+        return n.set(this.In, 0), t !== e ? n.set([ 0 ], this.In.length) : ++n[n.length - 1],
         new __PRIVATE_IndexEntry(this.hn, this.Pn, this.Tn, n);
     }
     // Create a representation of the Index Entry as a DbIndexEntry
@@ -9730,7 +9730,7 @@ class __PRIVATE_DescendingIndexByteEncoder {
 
 function __PRIVATE_indexEntryComparator(e, t) {
     let n = e.hn - t.hn;
-    return 0 !== n ? n : (n = __PRIVATE_compareByteArrays(e.Tn, t.Tn), 0 !== n ? n : (n = __PRIVATE_compareByteArrays(e.In, t.In), 
+    return 0 !== n ? n : (n = __PRIVATE_compareByteArrays(e.Tn, t.Tn), 0 !== n ? n : (n = __PRIVATE_compareByteArrays(e.In, t.In),
     0 !== n ? n : DocumentKey.comparator(e.Pn, t.Pn)));
 }
 
@@ -9749,7 +9749,7 @@ function __PRIVATE_compareByteArrays(e, t) {
  * the input array will be converted to "sortable byte string".
  * Otherwise, the input array will be returned in its original type.
  */ function __PRIVATE_encodeKeySafeBytes(e) {
-    return (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.isSafariOrWebkit)() ? 
+    return (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.isSafariOrWebkit)() ?
     /**
  * Encodes a Uint8Array into a "sortable byte string".
  * A "sortable byte string" sorts in the same order as the Uint8Array.
@@ -9819,7 +9819,7 @@ class __PRIVATE_TargetIndexMatcher {
         // The inequality filters of the target (if it exists).
         // Note: The sort on FieldFilters is not required. Using SortedSet here just to utilize the custom
         // comparator.
-        this.Vn = new SortedSet(((e, t) => FieldPath$1.comparator(e.field, t.field))), this.collectionId = null != e.collectionGroup ? e.collectionGroup : e.path.lastSegment(), 
+        this.Vn = new SortedSet(((e, t) => FieldPath$1.comparator(e.field, t.field))), this.collectionId = null != e.collectionGroup ? e.collectionGroup : e.path.lastSegment(),
         this.dn = e.orderBy, this.mn = [];
         for (const t of e.filters) {
             const e = t;
@@ -9850,7 +9850,7 @@ class __PRIVATE_TargetIndexMatcher {
      *   clauses cannot be skipped, but a continuous orderBy suffix may be
      *   omitted.
      */    gn(e) {
-        if (__PRIVATE_hardAssert(e.collectionGroup === this.collectionId, 49279), this.fn) 
+        if (__PRIVATE_hardAssert(e.collectionGroup === this.collectionId, 49279), this.fn)
         // Only single inequality is supported for now.
         // TODO(Add support for multiple inequality query): b/298441043
         return !1;
@@ -9906,7 +9906,7 @@ class __PRIVATE_TargetIndexMatcher {
         // on the target defining an appropriate "order by" to ensure that the
         // required index segment is added. The query engine would reject a query
         // with an inequality filter that lacks the required order-by clause.
-                for (const n of this.dn) 
+                for (const n of this.dn)
         // Stop adding more segments if we see a order-by on key. Typically this
         // is the default implicit order-by which is covered in the index_entry
         // table as a separate column. If it is not the default order-by, the
@@ -9954,7 +9954,7 @@ class __PRIVATE_TargetIndexMatcher {
  * [1,2,3]` is in fact `a==1 || a==2 || a==3`. This method expands any `in` filter in the given
  * input into a disjunction of equality filters and returns the expanded filter.
  */ function __PRIVATE_computeInExpansion(e) {
-    if (__PRIVATE_hardAssert(e instanceof FieldFilter || e instanceof CompositeFilter, 20012), 
+    if (__PRIVATE_hardAssert(e instanceof FieldFilter || e instanceof CompositeFilter, 20012),
     e instanceof FieldFilter) {
         if (e instanceof __PRIVATE_InFilter) {
             const t = e.value.arrayValue?.values?.map((t => FieldFilter.create(e.field, "==" /* Operator.EQUAL */ , t))) || [];
@@ -10003,7 +10003,7 @@ class __PRIVATE_TargetIndexMatcher {
  *
  * <p>For more info, visit: https://en.wikipedia.org/wiki/Disjunctive_normal_form
  */ function __PRIVATE_isDisjunctiveNormalForm(e) {
-    return __PRIVATE_isSingleFieldFilter(e) || __PRIVATE_isFlatConjunction(e) || 
+    return __PRIVATE_isSingleFieldFilter(e) || __PRIVATE_isFlatConjunction(e) ||
     /**
  * Returns true if the given filter is the disjunction of one or more "flat conjunctions" and
  * field filters. e.g. (a == 10) || (b==20 && c==30)
@@ -10018,21 +10018,21 @@ class __PRIVATE_TargetIndexMatcher {
 }
 
 function __PRIVATE_computeDistributedNormalForm(e) {
-    if (__PRIVATE_hardAssert(e instanceof FieldFilter || e instanceof CompositeFilter, 34018), 
+    if (__PRIVATE_hardAssert(e instanceof FieldFilter || e instanceof CompositeFilter, 34018),
     e instanceof FieldFilter) return e;
     if (1 === e.filters.length) return __PRIVATE_computeDistributedNormalForm(e.filters[0]);
     // Compute DNF for each of the subfilters first
         const t = e.filters.map((e => __PRIVATE_computeDistributedNormalForm(e)));
     let n = CompositeFilter.create(t, e.op);
-    return n = __PRIVATE_applyAssociation(n), __PRIVATE_isDisjunctiveNormalForm(n) ? n : (__PRIVATE_hardAssert(n instanceof CompositeFilter, 64498), 
-    __PRIVATE_hardAssert(__PRIVATE_compositeFilterIsConjunction(n), 40251), __PRIVATE_hardAssert(n.filters.length > 1, 57927), 
+    return n = __PRIVATE_applyAssociation(n), __PRIVATE_isDisjunctiveNormalForm(n) ? n : (__PRIVATE_hardAssert(n instanceof CompositeFilter, 64498),
+    __PRIVATE_hardAssert(__PRIVATE_compositeFilterIsConjunction(n), 40251), __PRIVATE_hardAssert(n.filters.length > 1, 57927),
     n.filters.reduce(((e, t) => __PRIVATE_applyDistribution(e, t))));
 }
 
 function __PRIVATE_applyDistribution(e, t) {
     let n;
-    return __PRIVATE_hardAssert(e instanceof FieldFilter || e instanceof CompositeFilter, 38388), 
-    __PRIVATE_hardAssert(t instanceof FieldFilter || t instanceof CompositeFilter, 25473), 
+    return __PRIVATE_hardAssert(e instanceof FieldFilter || e instanceof CompositeFilter, 38388),
+    __PRIVATE_hardAssert(t instanceof FieldFilter || t instanceof CompositeFilter, 25473),
     // FieldFilter FieldFilter
     n = e instanceof FieldFilter ? t instanceof FieldFilter ? function __PRIVATE_applyDistributionFieldFilters(e, t) {
         // Conjunction distribution for two field filters is the conjunction of them.
@@ -10057,7 +10057,7 @@ function __PRIVATE_applyDistributionFieldAndCompositeFilters(e, t) {
     // There are two cases:
     // A & (B & C) --> (A & B & C)
     // A & (B | C) --> (A & B) | (A & C)
-    if (__PRIVATE_compositeFilterIsConjunction(t)) 
+    if (__PRIVATE_compositeFilterIsConjunction(t))
     // Case 1
     return __PRIVATE_compositeFilterWithAddedFilters(t, e.getFilters());
     {
@@ -10077,7 +10077,7 @@ function __PRIVATE_applyDistributionFieldAndCompositeFilters(e, t) {
  *
  * <p>For more info, visit: https://en.wikipedia.org/wiki/Associative_property#Propositional_logic
  */ function __PRIVATE_applyAssociation(e) {
-    if (__PRIVATE_hardAssert(e instanceof FieldFilter || e instanceof CompositeFilter, 11850), 
+    if (__PRIVATE_hardAssert(e instanceof FieldFilter || e instanceof CompositeFilter, 11850),
     e instanceof FieldFilter) return e;
     const t = e.getFilters();
     // If the composite filter only contains 1 filter, apply associativity to it.
@@ -10095,11 +10095,11 @@ function __PRIVATE_applyDistributionFieldAndCompositeFilters(e, t) {
     // Note that the `compositeSubfilter` has been eliminated, and its filters (B, C, D) have been
     // added to the top-level "compositeFilter".
         return n.forEach((t => {
-        t instanceof FieldFilter ? r.push(t) : t instanceof CompositeFilter && (t.op === e.op ? 
+        t instanceof FieldFilter ? r.push(t) : t instanceof CompositeFilter && (t.op === e.op ?
         // compositeFilter: (A | (B | C))
         // compositeSubfilter: (B | C)
         // Result: (A | B | C)
-        r.push(...t.filters) : 
+        r.push(...t.filters) :
         // compositeFilter: (A | (B & C))
         // compositeSubfilter: (B & C)
         // Result: (A | (B & C))
@@ -10230,7 +10230,7 @@ function __PRIVATE_applyDistributionFieldAndCompositeFilters(e, t) {
  */
 class __PRIVATE_IndexedDbIndexManager {
     constructor(e, t) {
-        this.databaseId = t, 
+        this.databaseId = t,
         /**
          * An in-memory copy of the index entries we've already written since the SDK
          * launched. Used to avoid re-writing the same entry repeatedly.
@@ -10238,12 +10238,12 @@ class __PRIVATE_IndexedDbIndexManager {
          * This is *NOT* a complete cache of what's in persistence and so can never be
          * used to satisfy reads.
          */
-        this.Dn = new __PRIVATE_MemoryCollectionParentIndex, 
+        this.Dn = new __PRIVATE_MemoryCollectionParentIndex,
         /**
          * Maps from a target to its equivalent list of sub-targets. Each sub-target
          * contains only one term from the target's disjunctive normal form (DNF).
          */
-        this.Cn = new ObjectMap((e => __PRIVATE_canonifyTarget(e)), ((e, t) => __PRIVATE_targetEquals(e, t))), 
+        this.Cn = new ObjectMap((e => __PRIVATE_canonifyTarget(e)), ((e, t) => __PRIVATE_targetEquals(e, t))),
         this.uid = e.uid || "";
     }
     /**
@@ -10269,8 +10269,8 @@ class __PRIVATE_IndexedDbIndexManager {
         return PersistencePromise.resolve();
     }
     getCollectionParents(e, t) {
-        const n = [], r = IDBKeyRange.bound([ t, "" ], [ __PRIVATE_immediateSuccessor(t), "" ], 
-        /*lowerOpen=*/ !1, 
+        const n = [], r = IDBKeyRange.bound([ t, "" ], [ __PRIVATE_immediateSuccessor(t), "" ],
+        /*lowerOpen=*/ !1,
         /*upperOpen=*/ !0);
         return __PRIVATE_collectionParentsStore(e).H(r).next((e => {
             for (const r of e) {
@@ -10307,10 +10307,10 @@ class __PRIVATE_IndexedDbIndexManager {
     }
     deleteFieldIndex(e, t) {
         const n = __PRIVATE_indexConfigurationStore(e), r = __PRIVATE_indexStateStore(e), i = __PRIVATE_indexEntriesStore(e);
-        return n.delete(t.indexId).next((() => r.delete(IDBKeyRange.bound([ t.indexId ], [ t.indexId + 1 ], 
-        /*lowerOpen=*/ !1, 
-        /*upperOpen=*/ !0)))).next((() => i.delete(IDBKeyRange.bound([ t.indexId ], [ t.indexId + 1 ], 
-        /*lowerOpen=*/ !1, 
+        return n.delete(t.indexId).next((() => r.delete(IDBKeyRange.bound([ t.indexId ], [ t.indexId + 1 ],
+        /*lowerOpen=*/ !1,
+        /*upperOpen=*/ !0)))).next((() => i.delete(IDBKeyRange.bound([ t.indexId ], [ t.indexId + 1 ],
+        /*lowerOpen=*/ !1,
         /*upperOpen=*/ !0))));
     }
     deleteAllFieldIndexes(e) {
@@ -10434,7 +10434,7 @@ class __PRIVATE_IndexedDbIndexManager {
         // combined with the values from the query bounds.
         const _ = (null != t ? t.length : 1) * Math.max(n.length, i.length), a = _ / (null != t ? t.length : 1), u = [];
         for (let c = 0; c < _; ++c) {
-            const _ = t ? this.Nn(t[c / a]) : bt, l = this.Bn(e, _, n[c % a], r), h = this.Ln(e, _, i[c % a], s), P = o.map((t => this.Bn(e, _, t, 
+            const _ = t ? this.Nn(t[c / a]) : bt, l = this.Bn(e, _, n[c % a], r), h = this.Ln(e, _, i[c % a], s), P = o.map((t => this.Bn(e, _, t,
             /* inclusive= */ !0)));
             u.push(...this.createRange(l, h, P));
         }
@@ -10465,7 +10465,7 @@ class __PRIVATE_IndexedDbIndexManager {
         return PersistencePromise.forEach(r, (t => this.Fn(e, t).next((e => {
             e ? 0 /* IndexType.NONE */ !== n && e.fields.length < function __PRIVATE_targetGetSegmentCount(e) {
                 let t = new SortedSet(FieldPath$1.comparator), n = !1;
-                for (const r of e.filters) for (const e of r.getFlattenedFilters()) 
+                for (const r of e.filters) for (const e of r.getFlattenedFilters())
                 // __name__ is not an explicit segment of any index, so we don't need to
                 // count it.
                 e.field.isKeyField() || (
@@ -10474,13 +10474,13 @@ class __PRIVATE_IndexedDbIndexManager {
                 // though these are on the same field, they should be counted as two
                 // separate segments in an index.
                 "array-contains" /* Operator.ARRAY_CONTAINS */ === e.op || "array-contains-any" /* Operator.ARRAY_CONTAINS_ANY */ === e.op ? n = !0 : t = t.add(e.field));
-                for (const n of e.orderBy) 
+                for (const n of e.orderBy)
                 // __name__ is not an explicit segment of any index, so we don't need to
                 // count it.
                 n.field.isKeyField() || (t = t.add(n.field));
                 return t.size + (n ? 1 : 0);
             }(t) && (n = 1 /* IndexType.PARTIAL */) : n = 0 /* IndexType.NONE */;
-        })))).next((() => 
+        })))).next((() =>
         // OR queries have more than one sub-target (one sub-target per DNF term). We currently consider
         // OR queries that have a `limit` to have a partial index. For such queries we perform sorting
         // and apply the limit in memory as a post-processing step.
@@ -10504,7 +10504,7 @@ class __PRIVATE_IndexedDbIndexManager {
     }
     /** Encodes a single value to the ascending index format. */    Nn(e) {
         const t = new __PRIVATE_IndexByteEncoder;
-        return __PRIVATE_FirestoreIndexValueWriter.Wt.Dt(e, t.ln(0 /* IndexKind.ASCENDING */)), 
+        return __PRIVATE_FirestoreIndexValueWriter.Wt.Dt(e, t.ln(0 /* IndexKind.ASCENDING */)),
         t.un();
     }
     /**
@@ -10593,7 +10593,7 @@ class __PRIVATE_IndexedDbIndexManager {
         const n = new Map;
         return PersistencePromise.forEach(t, ((t, r) => {
             const i = n.get(t.collectionGroup);
-            return (i ? PersistencePromise.resolve(i) : this.getFieldIndexes(e, t.collectionGroup)).next((i => (n.set(t.collectionGroup, i), 
+            return (i ? PersistencePromise.resolve(i) : this.getFieldIndexes(e, t.collectionGroup)).next((i => (n.set(t.collectionGroup, i),
             PersistencePromise.forEach(i, (n => this.Qn(e, t, n).next((t => {
                 const i = this.Gn(r, n);
                 return t.isEqual(i) ? PersistencePromise.resolve() : this.zn(e, r, n, t, i);
@@ -10643,7 +10643,7 @@ class __PRIVATE_IndexedDbIndexManager {
                 let e = !1, t = !1;
                 if (_ && a) {
                     const r = n(_, a);
-                    r < 0 ? 
+                    r < 0 ?
                     // The element was removed if the next element in our ordered
                     // walkthrough is only in `before`.
                     t = !0 : r > 0 && (
@@ -10651,7 +10651,7 @@ class __PRIVATE_IndexedDbIndexManager {
                     // is only in `after`.
                     e = !0);
                 } else null != _ ? t = !0 : e = !0;
-                e ? (r(a), a = __PRIVATE_advanceIterator(o)) : t ? (i(_), _ = __PRIVATE_advanceIterator(s)) : (_ = __PRIVATE_advanceIterator(s), 
+                e ? (r(a), a = __PRIVATE_advanceIterator(o)) : t ? (i(_), _ = __PRIVATE_advanceIterator(s)) : (_ = __PRIVATE_advanceIterator(s),
                 a = __PRIVATE_advanceIterator(o));
             }
         }(r, i, __PRIVATE_indexEntryComparator, (
@@ -10684,12 +10684,12 @@ class __PRIVATE_IndexedDbIndexManager {
         r.push(e);
         for (const i of n) {
             const n = __PRIVATE_indexEntryComparator(i, e), s = __PRIVATE_indexEntryComparator(i, t);
-            if (0 === n) 
+            if (0 === n)
             // `notInValue` is the lower bound. We therefore need to raise the bound
             // to the next value.
-            r[0] = e.En(); else if (n > 0 && s < 0) 
+            r[0] = e.En(); else if (n > 0 && s < 0)
             // `notInValue` is in the middle of the range
-            r.push(i), r.push(i.En()); else if (s > 0) 
+            r.push(i), r.push(i.En()); else if (s > 0)
             // `notInValue` (and all following values) are out of the range
             break;
         }
@@ -10781,9 +10781,9 @@ class LruParams {
     constructor(
     // When we attempt to collect, we will only do so if the cache size is greater than this
     // threshold. Passing `COLLECTION_DISABLED` here will cause collection to always be skipped.
-    e, 
+    e,
     // The percentage of sequence numbers that we will attempt to collect
-    t, 
+    t,
     // A cap on the total number of sequence numbers that will be collected. This prevents
     // us from collecting a huge number of sequence numbers if the cache has grown very large.
     n) {
@@ -10858,8 +10858,8 @@ function removeMutationBatch(e, t, n) {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/** A mutation queue for a specific user, backed by IndexedDB. */ LruParams.DEFAULT_COLLECTION_PERCENTILE = 10, 
-LruParams.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT = 1e3, LruParams.DEFAULT = new LruParams(Dt, LruParams.DEFAULT_COLLECTION_PERCENTILE, LruParams.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT), 
+/** A mutation queue for a specific user, backed by IndexedDB. */ LruParams.DEFAULT_COLLECTION_PERCENTILE = 10,
+LruParams.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT = 1e3, LruParams.DEFAULT = new LruParams(Dt, LruParams.DEFAULT_COLLECTION_PERCENTILE, LruParams.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT),
 LruParams.DISABLED = new LruParams(-1, 0, 0);
 
 class __PRIVATE_IndexedDbMutationQueue {
@@ -10869,7 +10869,7 @@ class __PRIVATE_IndexedDbMutationQueue {
      * retrieve mutations.
      */
     e, t, n, r) {
-        this.userId = e, this.serializer = t, this.indexManager = n, this.referenceDelegate = r, 
+        this.userId = e, this.serializer = t, this.indexManager = n, this.referenceDelegate = r,
         /**
          * Caches the document keys for pending mutation batches. If the mutation
          * has been removed from IndexedDb, the cached value may continue to
@@ -11006,7 +11006,7 @@ class __PRIVATE_IndexedDbMutationQueue {
             // the rows for documentKey will occur before any rows for
             // documents nested in a subcollection beneath documentKey so we
             // can stop as soon as we hit any such row.
-                        if (o === this.userId && t.path.isEqual(u)) 
+                        if (o === this.userId && t.path.isEqual(u))
             // Look up the mutation batch in the store.
             return __PRIVATE_mutationsStore(e).get(a).next((e => {
                 if (!e) throw fail(61480, {
@@ -11051,7 +11051,7 @@ class __PRIVATE_IndexedDbMutationQueue {
             range: s
         }, ((e, t, i) => {
             const [s, _, a] = e, u = __PRIVATE_decodeResourcePath(_);
-            s === this.userId && n.isPrefixOf(u) ? 
+            s === this.userId && n.isPrefixOf(u) ?
             // Rows with document keys more than one segment longer than the
             // query path can't be matches. For example, a query on 'rooms'
             // can't match the document /rooms/abc/messages/xyx.
@@ -11257,18 +11257,18 @@ class __PRIVATE_TargetIdGenerator {
         return this.ur(e).next((e => e.highestListenSequenceNumber));
     }
     setTargetsMetadata(e, t, n) {
-        return this.ur(e).next((r => (r.highestListenSequenceNumber = t, n && (r.lastRemoteSnapshotVersion = n.toTimestamp()), 
+        return this.ur(e).next((r => (r.highestListenSequenceNumber = t, n && (r.lastRemoteSnapshotVersion = n.toTimestamp()),
         t > r.highestListenSequenceNumber && (r.highestListenSequenceNumber = t), this.cr(e, r))));
     }
     addTargetData(e, t) {
-        return this.lr(e, t).next((() => this.ur(e).next((n => (n.targetCount += 1, this.hr(t, n), 
+        return this.lr(e, t).next((() => this.ur(e).next((n => (n.targetCount += 1, this.hr(t, n),
         this.cr(e, n))))));
     }
     updateTargetData(e, t) {
         return this.lr(e, t);
     }
     removeTargetData(e, t) {
-        return this.removeMatchingKeysForTargetId(e, t.targetId).next((() => __PRIVATE_targetsStore(e).delete(t.targetId))).next((() => this.ur(e))).next((t => (__PRIVATE_hardAssert(t.targetCount > 0, 8065), 
+        return this.removeMatchingKeysForTargetId(e, t.targetId).next((() => __PRIVATE_targetsStore(e).delete(t.targetId))).next((() => this.ur(e))).next((t => (__PRIVATE_hardAssert(t.targetCount > 0, 8065),
         t.targetCount -= 1, this.cr(e, t))));
     }
     /**
@@ -11292,7 +11292,7 @@ class __PRIVATE_TargetIdGenerator {
         }));
     }
     ur(e) {
-        return __PRIVATE_globalTargetStore(e).get(Ee).next((e => (__PRIVATE_hardAssert(null !== e, 2888), 
+        return __PRIVATE_globalTargetStore(e).get(Ee).next((e => (__PRIVATE_hardAssert(null !== e, 2888),
         e)));
     }
     cr(e, t) {
@@ -11307,8 +11307,8 @@ class __PRIVATE_TargetIdGenerator {
      * changes to the metadata.
      */    hr(e, t) {
         let n = !1;
-        return e.targetId > t.highestTargetId && (t.highestTargetId = e.targetId, n = !0), 
-        e.sequenceNumber > t.highestListenSequenceNumber && (t.highestListenSequenceNumber = e.sequenceNumber, 
+        return e.targetId > t.highestTargetId && (t.highestTargetId = e.targetId, n = !0),
+        e.sequenceNumber > t.highestListenSequenceNumber && (t.highestListenSequenceNumber = e.sequenceNumber,
         n = !0), n;
     }
     getTargetCount(e) {
@@ -11352,14 +11352,14 @@ class __PRIVATE_TargetIdGenerator {
         }));
     }
     removeMatchingKeysForTargetId(e, t) {
-        const n = __PRIVATE_documentTargetStore(e), r = IDBKeyRange.bound([ t ], [ t + 1 ], 
-        /*lowerOpen=*/ !1, 
+        const n = __PRIVATE_documentTargetStore(e), r = IDBKeyRange.bound([ t ], [ t + 1 ],
+        /*lowerOpen=*/ !1,
         /*upperOpen=*/ !0);
         return n.delete(r);
     }
     getMatchingKeysForTargetId(e, t) {
-        const n = IDBKeyRange.bound([ t ], [ t + 1 ], 
-        /*lowerOpen=*/ !1, 
+        const n = IDBKeyRange.bound([ t ], [ t + 1 ],
+        /*lowerOpen=*/ !1,
         /*upperOpen=*/ !0), r = __PRIVATE_documentTargetStore(e);
         let i = __PRIVATE_documentKeySet();
         return r.ee({
@@ -11371,8 +11371,8 @@ class __PRIVATE_TargetIdGenerator {
         })).next((() => i));
     }
     containsKey(e, t) {
-        const n = __PRIVATE_encodeResourcePath(t.path), r = IDBKeyRange.bound([ n ], [ __PRIVATE_immediateSuccessor(n) ], 
-        /*lowerOpen=*/ !1, 
+        const n = __PRIVATE_encodeResourcePath(t.path), r = IDBKeyRange.bound([ n ], [ __PRIVATE_immediateSuccessor(n) ],
+        /*lowerOpen=*/ !1,
         /*upperOpen=*/ !0);
         let i = 0;
         return __PRIVATE_documentTargetStore(e).ee({
@@ -11518,8 +11518,8 @@ function __PRIVATE_bufferEntryComparator([e, t], [n, r]) {
         return this.Vr.removeOrphanedDocuments(e, t);
     }
     collect(e, t) {
-        return -1 === this.params.cacheSizeCollectionThreshold ? (__PRIVATE_logDebug("LruGarbageCollector", "Garbage collection skipped; disabled"), 
-        PersistencePromise.resolve(St)) : this.getCacheSize(e).next((n => n < this.params.cacheSizeCollectionThreshold ? (__PRIVATE_logDebug("LruGarbageCollector", `Garbage collection skipped; Cache size ${n} is lower than threshold ${this.params.cacheSizeCollectionThreshold}`), 
+        return -1 === this.params.cacheSizeCollectionThreshold ? (__PRIVATE_logDebug("LruGarbageCollector", "Garbage collection skipped; disabled"),
+        PersistencePromise.resolve(St)) : this.getCacheSize(e).next((n => n < this.params.cacheSizeCollectionThreshold ? (__PRIVATE_logDebug("LruGarbageCollector", `Garbage collection skipped; Cache size ${n} is lower than threshold ${this.params.cacheSizeCollectionThreshold}`),
         St) : this.gr(e, t)));
     }
     getCacheSize(e) {
@@ -11530,9 +11530,9 @@ function __PRIVATE_bufferEntryComparator([e, t], [n, r]) {
         const u = Date.now();
         return this.calculateTargetCount(e, this.params.percentileToCollect).next((t => (
         // Cap at the configured max
-        t > this.params.maximumSequenceNumbersToCollect ? (__PRIVATE_logDebug("LruGarbageCollector", `Capping sequence numbers to collect down to the maximum of ${this.params.maximumSequenceNumbersToCollect} from ${t}`), 
-        r = this.params.maximumSequenceNumbersToCollect) : r = t, s = Date.now(), this.nthSequenceNumber(e, r)))).next((r => (n = r, 
-        o = Date.now(), this.removeTargets(e, n, t)))).next((t => (i = t, _ = Date.now(), 
+        t > this.params.maximumSequenceNumbersToCollect ? (__PRIVATE_logDebug("LruGarbageCollector", `Capping sequence numbers to collect down to the maximum of ${this.params.maximumSequenceNumbersToCollect} from ${t}`),
+        r = this.params.maximumSequenceNumbersToCollect) : r = t, s = Date.now(), this.nthSequenceNumber(e, r)))).next((r => (n = r,
+        o = Date.now(), this.removeTargets(e, n, t)))).next((t => (i = t, _ = Date.now(),
         this.removeOrphanedDocuments(e, n)))).next((e => {
             if (a = Date.now(), __PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG) {
                 __PRIVATE_logDebug("LruGarbageCollector", `LRU Garbage Collection\n\tCounted targets in ${s - u}ms\n\tDetermined least recently used ${r} in ` + (o - s) + "ms\n" + `\tRemoved ${i} targets in ` + (_ - o) + "ms\n" + `\tRemoved ${e} documents in ` + (a - _) + "ms\n" + `Total Duration: ${a - u}ms`);
@@ -11607,7 +11607,7 @@ function __PRIVATE_newLruGarbageCollector(e, t) {
      */    wr(e, t) {
         return function __PRIVATE_mutationQueuesContainKey(e, t) {
             let n = !1;
-            return __PRIVATE_mutationQueuesStore(e).te((r => __PRIVATE_mutationQueueContainsKey(e, r, t).next((e => (e && (n = !0), 
+            return __PRIVATE_mutationQueuesStore(e).te((r => __PRIVATE_mutationQueueContainsKey(e, r, t).next((e => (e && (n = !0),
             PersistencePromise.resolve(!e)))))).next((() => n));
         }(e, t);
     }
@@ -11617,10 +11617,10 @@ function __PRIVATE_newLruGarbageCollector(e, t) {
         return this.yr(e, ((s, o) => {
             if (o <= t) {
                 const t = this.wr(e, s).next((t => {
-                    if (!t) 
+                    if (!t)
                     // Our size accounting requires us to read all documents before
                     // removing them.
-                    return i++, n.getEntry(e, s).next((() => (n.removeEntry(s, SnapshotVersion.min()), 
+                    return i++, n.getEntry(e, s).next((() => (n.removeEntry(s, SnapshotVersion.min()),
                     __PRIVATE_documentTargetStore(e).delete(function __PRIVATE_sentinelKey$1(e) {
                         return [ 0, __PRIVATE_encodeResourcePath(e.path) ];
                     }
@@ -11654,12 +11654,12 @@ function __PRIVATE_newLruGarbageCollector(e, t) {
             0 === e ? (
             // if nextToReport is valid, report it, this is a new key so the
             // last one must not be a member of any targets.
-            i !== __PRIVATE_ListenSequence.ce && t(new DocumentKey(__PRIVATE_decodeResourcePath(r)), i), 
+            i !== __PRIVATE_ListenSequence.ce && t(new DocumentKey(__PRIVATE_decodeResourcePath(r)), i),
             // set nextToReport to be this sequence number. It's the next one we
             // might report, if we don't find any targets for this document.
             // Note that the sequence number must be defined when the targetId
             // is 0.
-            i = o, r = s) : 
+            i = o, r = s) :
             // set nextToReport to be invalid, we know we don't need to report
             // this one since we found a target for it.
             i = __PRIVATE_ListenSequence.ce;
@@ -11818,9 +11818,9 @@ function __PRIVATE_writeSentinelKey(e, t) {
  */
         function __PRIVATE_dbReadTimeKey(e, t) {
             const n = e.path.toArray();
-            return [ 
-            /* prefix path */ n.slice(0, n.length - 2), 
-            /* collection id */ n[n.length - 2], __PRIVATE_toDbTimestampKey(t), 
+            return [
+            /* prefix path */ n.slice(0, n.length - 2),
+            /* collection id */ n[n.length - 2], __PRIVATE_toDbTimestampKey(t),
             /* document id */ n[n.length - 1] ];
         }
         /**
@@ -11903,7 +11903,7 @@ function __PRIVATE_writeSentinelKey(e, t) {
                         for (;o && __PRIVATE_dbKeyComparator(o, i) < 0; ) n(o, null), o = s.getNext();
             o && o.isEqual(i) && (
             // Key found in cache.
-            n(o, t), o = s.hasNext() ? s.getNext() : null), 
+            n(o, t), o = s.hasNext() ? s.getNext() : null),
             // Skip to the next key (if there is one).
             o ? r.j(__PRIVATE_dbKey(o)) : r.done();
         })).next((() => {
@@ -11944,7 +11944,7 @@ function __PRIVATE_writeSentinelKey(e, t) {
         return this.getMetadata(e).next((e => e.byteSize));
     }
     getMetadata(e) {
-        return __PRIVATE_documentGlobalStore(e).get(ae).next((e => (__PRIVATE_hardAssert(!!e, 20021), 
+        return __PRIVATE_documentGlobalStore(e).get(ae).next((e => (__PRIVATE_hardAssert(!!e, 20021),
         e)));
     }
     br(e, t) {
@@ -11981,7 +11981,7 @@ function __PRIVATE_writeSentinelKey(e, t) {
      * `getNewDocumentChanges()`.
      */
     constructor(e, t) {
-        super(), this.Mr = e, this.trackRemovals = t, 
+        super(), this.Mr = e, this.trackRemovals = t,
         // A map of document sizes and read times prior to applying the changes in
         // this buffer.
         this.Or = new ObjectMap((e => e.toString()), ((e, t) => e.isEqual(t)));
@@ -12046,17 +12046,17 @@ function __PRIVATE_documentGlobalStore(e) {
  * `DbRemoteDocumentDocumentKeyIndex` index.
  */ function __PRIVATE_dbKey(e) {
     const t = e.path.toArray();
-    return [ 
-    /* prefix path */ t.slice(0, t.length - 2), 
-    /* collection id */ t[t.length - 2], 
+    return [
+    /* prefix path */ t.slice(0, t.length - 2),
+    /* collection id */ t[t.length - 2],
     /* document id */ t[t.length - 1] ];
 }
 
 function __PRIVATE_dbCollectionGroupKey(e, t) {
     const n = t.documentKey.path.toArray();
-    return [ 
-    /* collection id */ e, __PRIVATE_toDbTimestampKey(t.readTime), 
-    /* prefix path */ n.slice(0, n.length - 2), 
+    return [
+    /* collection id */ e, __PRIVATE_toDbTimestampKey(t.readTime),
+    /* prefix path */ n.slice(0, n.length - 2),
     /* document id */ n.length > 0 ? n[n.length - 1] : "" ];
 }
 
@@ -12070,9 +12070,9 @@ function __PRIVATE_dbCollectionGroupKey(e, t) {
     const n = e.path.toArray(), r = t.path.toArray();
     // The ordering is based on https://chromium.googlesource.com/chromium/blink/+/fe5c21fef94dae71c1c3344775b8d8a7f7e6d9ec/Source/modules/indexeddb/IDBKey.cpp#74
     let i = 0;
-    for (let e = 0; e < n.length - 2 && e < r.length - 2; ++e) if (i = __PRIVATE_primitiveComparator(n[e], r[e]), 
+    for (let e = 0; e < n.length - 2 && e < r.length - 2; ++e) if (i = __PRIVATE_primitiveComparator(n[e], r[e]),
     i) return i;
-    return i = __PRIVATE_primitiveComparator(n.length, r.length), i || (i = __PRIVATE_primitiveComparator(n[n.length - 2], r[r.length - 2]), 
+    return i = __PRIVATE_primitiveComparator(n.length, r.length), i || (i = __PRIVATE_primitiveComparator(n[n.length - 2], r[r.length - 2]),
     i || __PRIVATE_primitiveComparator(n[n.length - 1], r[r.length - 1]));
 }
 
@@ -12140,7 +12140,7 @@ function __PRIVATE_dbCollectionGroupKey(e, t) {
  * locally mutated.
  */
 class OverlayedDocument {
-    constructor(e, 
+    constructor(e,
     /**
      * The fields that are locally mutated by patch mutations.
      *
@@ -12175,7 +12175,7 @@ class OverlayedDocument {
  * MutationQueue to the RemoteDocumentCache.
  */ class LocalDocumentsView {
     constructor(e, t, n, r) {
-        this.remoteDocumentCache = e, this.mutationQueue = t, this.documentOverlayCache = n, 
+        this.remoteDocumentCache = e, this.mutationQueue = t, this.documentOverlayCache = n,
         this.indexManager = r;
     }
     /**
@@ -12185,7 +12185,7 @@ class OverlayedDocument {
      * state for it.
      */    getDocument(e, t) {
         let n = null;
-        return this.documentOverlayCache.getOverlay(e, t).next((r => (n = r, this.remoteDocumentCache.getEntry(e, t)))).next((e => (null !== n && __PRIVATE_mutationApplyToLocalView(n.mutation, e, FieldMask.empty(), Timestamp.now()), 
+        return this.documentOverlayCache.getOverlay(e, t).next((r => (n = r, this.remoteDocumentCache.getEntry(e, t)))).next((e => (null !== n && __PRIVATE_mutationApplyToLocalView(n.mutation, e, FieldMask.empty(), Timestamp.now()),
         e)));
     }
     /**
@@ -12260,12 +12260,12 @@ class OverlayedDocument {
             // NOTE: we recalculate when `overlay` is undefined as well, because there
             // might be a patch mutation whose precondition does not match before the
             // change (hence overlay is undefined), but would now match.
-                        r.has(t.key) && (void 0 === o || o.mutation instanceof __PRIVATE_PatchMutation) ? i = i.insert(t.key, t) : void 0 !== o ? (s.set(t.key, o.mutation.getFieldMask()), 
-            __PRIVATE_mutationApplyToLocalView(o.mutation, t, o.mutation.getFieldMask(), Timestamp.now())) : 
+                        r.has(t.key) && (void 0 === o || o.mutation instanceof __PRIVATE_PatchMutation) ? i = i.insert(t.key, t) : void 0 !== o ? (s.set(t.key, o.mutation.getFieldMask()),
+            __PRIVATE_mutationApplyToLocalView(o.mutation, t, o.mutation.getFieldMask(), Timestamp.now())) :
             // no overlay exists
             // Using EMPTY to indicate there is no overlay for the document.
             s.set(t.key, FieldMask.empty());
-        })), this.recalculateAndSaveOverlays(e, i).next((e => (e.forEach(((e, t) => s.set(e, t))), 
+        })), this.recalculateAndSaveOverlays(e, i).next((e => (e.forEach(((e, t) => s.set(e, t))),
         t.forEach(((e, t) => o.set(e, new OverlayedDocument(t, s.get(e) ?? null)))), o)));
     }
     recalculateAndSaveOverlays(e, t) {
@@ -12336,7 +12336,7 @@ class OverlayedDocument {
             // no overlay will increase the overall read time. This is why we only need to special case
             // the batch id.
                         let o = B, _ = i;
-            return s.next((t => PersistencePromise.forEach(t, ((t, n) => (o < n.largestBatchId && (o = n.largestBatchId), 
+            return s.next((t => PersistencePromise.forEach(t, ((t, n) => (o < n.largestBatchId && (o = n.largestBatchId),
             i.get(t) ? PersistencePromise.resolve() : this.remoteDocumentCache.getEntry(e, t).next((e => {
                 _ = _.insert(t, e);
             }))))).next((() => this.populateOverlays(e, t, i))).next((() => this.computeViews(e, _, t, __PRIVATE_documentKeySet()))).next((e => ({
@@ -12357,7 +12357,7 @@ class OverlayedDocument {
         let s = documentMap();
         return this.indexManager.getCollectionParents(e, i).next((o => PersistencePromise.forEach(o, (o => {
             const _ = function __PRIVATE_asCollectionQueryAtPath(e, t) {
-                return new __PRIVATE_QueryImpl(t, 
+                return new __PRIVATE_QueryImpl(t,
                 /*collectionGroup=*/ null, e.explicitOrderBy.slice(), e.filters.slice(), e.limit, e.limitType, e.startAt, e.endAt);
             }(t, o.child(i));
             return this.getDocumentsMatchingCollectionQuery(e, _, n, r).next((e => {
@@ -12370,7 +12370,7 @@ class OverlayedDocument {
     getDocumentsMatchingCollectionQuery(e, t, n, r) {
         // Query the remote documents and overlay mutations.
         let i;
-        return this.documentOverlayCache.getOverlaysForCollection(e, t.path, n.largestBatchId).next((s => (i = s, 
+        return this.documentOverlayCache.getOverlaysForCollection(e, t.path, n.largestBatchId).next((s => (i = s,
         this.remoteDocumentCache.getDocumentsMatchingQuery(e, t, n, i, r)))).next((e => {
             // As documents might match the query because of their overlay we need to
             // include documents for all overlays in the initial document set.
@@ -12382,7 +12382,7 @@ class OverlayedDocument {
             let n = documentMap();
             return e.forEach(((e, r) => {
                 const s = i.get(e);
-                void 0 !== s && __PRIVATE_mutationApplyToLocalView(s.mutation, r, FieldMask.empty(), Timestamp.now()), 
+                void 0 !== s && __PRIVATE_mutationApplyToLocalView(s.mutation, r, FieldMask.empty(), Timestamp.now()),
                 // Finally, insert the documents that still match the query
                 __PRIVATE_queryMatches(t, r) && (n = n.insert(e, r));
             })), n;
@@ -12413,7 +12413,7 @@ class OverlayedDocument {
         return PersistencePromise.resolve(this.Nr.get(t));
     }
     saveBundleMetadata(e, t) {
-        return this.Nr.set(t.id, 
+        return this.Nr.set(t.id,
         /** Decodes a BundleMetadata proto into a BundleMetadata object. */
         function __PRIVATE_fromBundleMetadata(e) {
             return {
@@ -12477,7 +12477,7 @@ class OverlayedDocument {
     }
     removeOverlaysForBatchId(e, t, n) {
         const r = this.Lr.get(n);
-        return void 0 !== r && (r.forEach((e => this.overlays = this.overlays.remove(e))), 
+        return void 0 !== r && (r.forEach((e => this.overlays = this.overlays.remove(e))),
         this.Lr.delete(n)), PersistencePromise.resolve();
     }
     getOverlaysForCollection(e, t, n) {
@@ -12497,7 +12497,7 @@ class OverlayedDocument {
             const e = s.getNext().value;
             if (e.getKey().getCollectionGroup() === t && e.largestBatchId > n) {
                 let t = i.get(e.largestBatchId);
-                null === t && (t = __PRIVATE_newOverlayMap(), i = i.insert(e.largestBatchId, t)), 
+                null === t && (t = __PRIVATE_newOverlayMap(), i = i.insert(e.largestBatchId, t)),
                 t.set(e.getKey(), e);
             }
         }
@@ -12581,7 +12581,7 @@ class OverlayedDocument {
  */ class __PRIVATE_ReferenceSet {
     constructor() {
         // A set of outstanding references to a document sorted by key.
-        this.kr = new SortedSet(__PRIVATE_DocReference.Kr), 
+        this.kr = new SortedSet(__PRIVATE_DocReference.Kr),
         // A set of outstanding references to a document sorted by target id.
         this.qr = new SortedSet(__PRIVATE_DocReference.Ur);
     }
@@ -12661,14 +12661,14 @@ class __PRIVATE_DocReference {
  * limitations under the License.
  */ class __PRIVATE_MemoryMutationQueue {
     constructor(e, t) {
-        this.indexManager = e, this.referenceDelegate = t, 
+        this.indexManager = e, this.referenceDelegate = t,
         /**
          * The set of all mutations that have been sent but not yet been applied to
          * the backend.
          */
-        this.mutationQueue = [], 
+        this.mutationQueue = [],
         /** Next value to use when assigning sequential IDs to each mutation batch. */
-        this.Yn = 1, 
+        this.Yn = 1,
         /** An ordered mapping between documents and the mutations batch IDs. */
         this.Jr = new SortedSet(__PRIVATE_DocReference.Kr);
     }
@@ -12681,7 +12681,7 @@ class __PRIVATE_DocReference {
         const s = new MutationBatch(i, t, n, r);
         this.mutationQueue.push(s);
         // Track references by document key and index collection parents.
-        for (const t of r) this.Jr = this.Jr.add(new __PRIVATE_DocReference(t.key, i)), 
+        for (const t of r) this.Jr = this.Jr.add(new __PRIVATE_DocReference(t.key, i)),
         this.indexManager.addToCollectionParentIndex(e, t.key.path.popLast());
         return PersistencePromise.resolve(s);
     }
@@ -12789,7 +12789,7 @@ class __PRIVATE_DocReference {
      * batchId has already been removed from the queue or past the end of the
      * queue if the batchId is larger than the last added batch.
      */    Xr(e) {
-        if (0 === this.mutationQueue.length) 
+        if (0 === this.mutationQueue.length)
         // As an index this is past the end of the queue
         return 0;
         // Examine the front of the queue to figure out the difference between the
@@ -12838,11 +12838,11 @@ class __PRIVATE_MemoryRemoteDocumentCacheImpl {
      * calculating the size.
      */
     constructor(e) {
-        this.ti = e, 
+        this.ti = e,
         /** Underlying cache of documents and their read times. */
         this.docs = function __PRIVATE_documentEntryMap() {
             return new SortedMap(DocumentKey.comparator);
-        }(), 
+        }(),
         /** Size of all cached documents. */
         this.size = 0;
     }
@@ -12959,17 +12959,17 @@ class __PRIVATE_MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuf
  * limitations under the License.
  */ class __PRIVATE_MemoryTargetCache {
     constructor(e) {
-        this.persistence = e, 
+        this.persistence = e,
         /**
          * Maps a target to the data about that target
          */
-        this.ri = new ObjectMap((e => __PRIVATE_canonifyTarget(e)), __PRIVATE_targetEquals), 
+        this.ri = new ObjectMap((e => __PRIVATE_canonifyTarget(e)), __PRIVATE_targetEquals),
         /** The last received snapshot version. */
-        this.lastRemoteSnapshotVersion = SnapshotVersion.min(), 
+        this.lastRemoteSnapshotVersion = SnapshotVersion.min(),
         /** The highest numbered target ID encountered. */
-        this.highestTargetId = 0, 
+        this.highestTargetId = 0,
         /** The highest sequence number encountered. */
-        this.ii = 0, 
+        this.ii = 0,
         /**
          * A ordered bidirectional mapping between documents and the remote target
          * IDs.
@@ -12989,13 +12989,13 @@ class __PRIVATE_MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuf
         return this.highestTargetId = this.oi.next(), PersistencePromise.resolve(this.highestTargetId);
     }
     setTargetsMetadata(e, t, n) {
-        return n && (this.lastRemoteSnapshotVersion = n), t > this.ii && (this.ii = t), 
+        return n && (this.lastRemoteSnapshotVersion = n), t > this.ii && (this.ii = t),
         PersistencePromise.resolve();
     }
     lr(e) {
         this.ri.set(e.target, e);
         const t = e.targetId;
-        t > this.highestTargetId && (this.oi = new __PRIVATE_TargetIdGenerator(t), this.highestTargetId = t), 
+        t > this.highestTargetId && (this.oi = new __PRIVATE_TargetIdGenerator(t), this.highestTargetId = t),
         e.sequenceNumber > this.ii && (this.ii = e.sequenceNumber);
     }
     addTargetData(e, t) {
@@ -13005,14 +13005,14 @@ class __PRIVATE_MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuf
         return this.lr(t), PersistencePromise.resolve();
     }
     removeTargetData(e, t) {
-        return this.ri.delete(t.target), this.si.Gr(t.targetId), this.targetCount -= 1, 
+        return this.ri.delete(t.target), this.si.Gr(t.targetId), this.targetCount -= 1,
         PersistencePromise.resolve();
     }
     removeTargets(e, t, n) {
         let r = 0;
         const i = [];
         return this.ri.forEach(((s, o) => {
-            o.sequenceNumber <= t && null === n.get(o.targetId) && (this.ri.delete(s), i.push(this.removeMatchingKeysForTargetId(e, o.targetId)), 
+            o.sequenceNumber <= t && null === n.get(o.targetId) && (this.ri.delete(s), i.push(this.removeMatchingKeysForTargetId(e, o.targetId)),
             r++);
         })), PersistencePromise.waitFor(i).next((() => r));
     }
@@ -13073,12 +13073,12 @@ class __PRIVATE_MemoryPersistence {
      * checked or asserted on every access.
      */
     constructor(e, t) {
-        this._i = {}, this.overlays = {}, this.ai = new __PRIVATE_ListenSequence(0), this.ui = !1, 
-        this.ui = !0, this.ci = new __PRIVATE_MemoryGlobalsCache, this.referenceDelegate = e(this), 
+        this._i = {}, this.overlays = {}, this.ai = new __PRIVATE_ListenSequence(0), this.ui = !1,
+        this.ui = !0, this.ci = new __PRIVATE_MemoryGlobalsCache, this.referenceDelegate = e(this),
         this.li = new __PRIVATE_MemoryTargetCache(this);
         this.indexManager = new __PRIVATE_MemoryIndexManager, this.remoteDocumentCache = function __PRIVATE_newMemoryRemoteDocumentCache(e) {
             return new __PRIVATE_MemoryRemoteDocumentCacheImpl(e);
-        }((e => this.referenceDelegate.hi(e))), this.serializer = new __PRIVATE_LocalSerializer(t), 
+        }((e => this.referenceDelegate.hi(e))), this.serializer = new __PRIVATE_LocalSerializer(t),
         this.Pi = new __PRIVATE_MemoryBundleCache(this.serializer);
     }
     start() {
@@ -13104,12 +13104,12 @@ class __PRIVATE_MemoryPersistence {
     }
     getDocumentOverlayCache(e) {
         let t = this.overlays[e.toKey()];
-        return t || (t = new __PRIVATE_MemoryDocumentOverlayCache, this.overlays[e.toKey()] = t), 
+        return t || (t = new __PRIVATE_MemoryDocumentOverlayCache, this.overlays[e.toKey()] = t),
         t;
     }
     getMutationQueue(e, t) {
         let n = this._i[e.toKey()];
-        return n || (n = new __PRIVATE_MemoryMutationQueue(t, this.referenceDelegate), this._i[e.toKey()] = n), 
+        return n || (n = new __PRIVATE_MemoryMutationQueue(t, this.referenceDelegate), this._i[e.toKey()] = n),
         n;
     }
     getGlobalsCache() {
@@ -13127,7 +13127,7 @@ class __PRIVATE_MemoryPersistence {
     runTransaction(e, t, n) {
         __PRIVATE_logDebug("MemoryPersistence", "Starting transaction:", e);
         const r = new __PRIVATE_MemoryTransaction(this.ai.next());
-        return this.referenceDelegate.Ti(), n(r).next((e => this.referenceDelegate.Ii(r).next((() => e)))).toPromise().then((e => (r.raiseOnCommittedEvent(), 
+        return this.referenceDelegate.Ti(), n(r).next((e => this.referenceDelegate.Ii(r).next((() => e)))).toPromise().then((e => (r.raiseOnCommittedEvent(),
         e)));
     }
     Ei(e, t) {
@@ -13146,9 +13146,9 @@ class __PRIVATE_MemoryPersistence {
 
 class __PRIVATE_MemoryEagerDelegate {
     constructor(e) {
-        this.persistence = e, 
+        this.persistence = e,
         /** Tracks all documents that are active in Query views. */
-        this.Ri = new __PRIVATE_ReferenceSet, 
+        this.Ri = new __PRIVATE_ReferenceSet,
         /** The list of documents that are potentially GCed after each transaction. */
         this.Ai = null;
     }
@@ -13204,7 +13204,7 @@ class __PRIVATE_MemoryEagerDelegate {
 
 class __PRIVATE_MemoryLruDelegate {
     constructor(e, t) {
-        this.persistence = e, this.fi = new ObjectMap((e => __PRIVATE_encodeResourcePath(e.path)), ((e, t) => e.isEqual(t))), 
+        this.persistence = e, this.fi = new ObjectMap((e => __PRIVATE_encodeResourcePath(e.path)), ((e, t) => e.isEqual(t))),
         this.garbageCollector = __PRIVATE_newLruGarbageCollector(this, t);
     }
     static Vi(e, t) {
@@ -13329,7 +13329,7 @@ class __PRIVATE_MemoryLruDelegate {
         // potentially have corrupt data.
         0 !== n && (!function __PRIVATE_dropQueryCache(e) {
             e.deleteObjectStore(he), e.deleteObjectStore(ue), e.deleteObjectStore(Re);
-        }(e), __PRIVATE_createQueryCache(e)), s = s.next((() => 
+        }(e), __PRIVATE_createQueryCache(e)), s = s.next((() =>
         /**
  * Creates the target global singleton row.
  *
@@ -13371,7 +13371,7 @@ class __PRIVATE_MemoryLruDelegate {
             }(e);
         }))), n < 5 && r >= 5 && (s = s.next((() => this.gi(i)))), n < 6 && r >= 6 && (s = s.next((() => (function __PRIVATE_createDocumentGlobalStore(e) {
             e.createObjectStore(_e);
-        }(e), this.pi(i))))), n < 7 && r >= 7 && (s = s.next((() => this.yi(i)))), n < 8 && r >= 8 && (s = s.next((() => this.wi(e, i)))), 
+        }(e), this.pi(i))))), n < 7 && r >= 7 && (s = s.next((() => this.yi(i)))), n < 8 && r >= 8 && (s = s.next((() => this.wi(e, i)))),
         n < 9 && r >= 9 && (s = s.next((() => {
             // Multi-Tab used to manage its own changelog, but this has been moved
             // to the DbRemoteDocument object store itself. Since the previous change
@@ -13407,7 +13407,7 @@ class __PRIVATE_MemoryLruDelegate {
                 keyPath: ne
             });
             t.createIndex(re, ie), t.createIndex(se, oe);
-        }(e))).next((() => this.Si(e, i))).next((() => e.deleteObjectStore(W)))), n < 14 && r >= 14 && (s = s.next((() => this.Di(e, i)))), 
+        }(e))).next((() => this.Si(e, i))).next((() => e.deleteObjectStore(W)))), n < 14 && r >= 14 && (s = s.next((() => this.Di(e, i)))),
         n < 15 && r >= 15 && (s = s.next((() => function __PRIVATE_createFieldIndex(e) {
             const t = e.createObjectStore(we, {
                 keyPath: be,
@@ -13564,7 +13564,7 @@ class __PRIVATE_MemoryLruDelegate {
             const n = new Map;
             return e.forEach((e => {
                 let t = n.get(e.userId) ?? __PRIVATE_documentKeySet();
-                __PRIVATE_fromDbMutationBatch(this.serializer, e).keys().forEach((e => t = t.add(e))), 
+                __PRIVATE_fromDbMutationBatch(this.serializer, e).keys().forEach((e => t = t.add(e))),
                 n.set(e.userId, t);
             })), PersistencePromise.forEach(n, ((e, n) => {
                 const s = new User(n), o = __PRIVATE_IndexedDbDocumentOverlayCache.wt(this.serializer, s), _ = i.getIndexManager(s), a = __PRIVATE_IndexedDbMutationQueue.wt(s, this.serializer, _, i.referenceDelegate);
@@ -13646,30 +13646,30 @@ class __PRIVATE_IndexedDbPersistence {
      * Whether to synchronize the in-memory state of multiple tabs and share
      * access to local persistence.
      */
-    e, t, n, r, i, s, o, _, a, 
+    e, t, n, r, i, s, o, _, a,
     /**
      * If set to true, forcefully obtains database access. Existing tabs will
      * no longer be able to access IndexedDB.
      */
     u, c = 18) {
-        if (this.allowTabSynchronization = e, this.persistenceKey = t, this.clientId = n, 
-        this.Ci = i, this.window = s, this.document = o, this.Fi = a, this.Mi = u, this.xi = c, 
-        this.ai = null, this.ui = !1, this.isPrimary = !1, this.networkEnabled = !0, 
+        if (this.allowTabSynchronization = e, this.persistenceKey = t, this.clientId = n,
+        this.Ci = i, this.window = s, this.document = o, this.Fi = a, this.Mi = u, this.xi = c,
+        this.ai = null, this.ui = !1, this.isPrimary = !1, this.networkEnabled = !0,
         /** Our window.unload handler, if registered. */
-        this.Oi = null, this.inForeground = !1, 
+        this.Oi = null, this.inForeground = !1,
         /** Our 'visibilitychange' listener if registered. */
-        this.Ni = null, 
+        this.Ni = null,
         /** The client metadata refresh task. */
-        this.Bi = null, 
+        this.Bi = null,
         /** The last time we garbage collected the client metadata object store. */
-        this.Li = Number.NEGATIVE_INFINITY, 
+        this.Li = Number.NEGATIVE_INFINITY,
         /** A listener to notify on primary state changes. */
         this.ki = e => Promise.resolve(), !__PRIVATE_IndexedDbPersistence.v()) throw new FirestoreError(C.UNIMPLEMENTED, "This platform is either missing IndexedDB or is known to have an incomplete implementation. Offline persistence has been disabled.");
-        this.referenceDelegate = new __PRIVATE_IndexedDbLruDelegateImpl(this, r), this.Ki = t + Nt, 
-        this.serializer = new __PRIVATE_LocalSerializer(_), this.qi = new __PRIVATE_SimpleDb(this.Ki, this.xi, new __PRIVATE_SchemaConverter(this.serializer)), 
-        this.ci = new __PRIVATE_IndexedDbGlobalsCache, this.li = new __PRIVATE_IndexedDbTargetCache(this.referenceDelegate, this.serializer), 
-        this.remoteDocumentCache = __PRIVATE_newIndexedDbRemoteDocumentCache(this.serializer), 
-        this.Pi = new __PRIVATE_IndexedDbBundleCache, this.window && this.window.localStorage ? this.Ui = this.window.localStorage : (this.Ui = null, 
+        this.referenceDelegate = new __PRIVATE_IndexedDbLruDelegateImpl(this, r), this.Ki = t + Nt,
+        this.serializer = new __PRIVATE_LocalSerializer(_), this.qi = new __PRIVATE_SimpleDb(this.Ki, this.xi, new __PRIVATE_SchemaConverter(this.serializer)),
+        this.ci = new __PRIVATE_IndexedDbGlobalsCache, this.li = new __PRIVATE_IndexedDbTargetCache(this.referenceDelegate, this.serializer),
+        this.remoteDocumentCache = __PRIVATE_newIndexedDbRemoteDocumentCache(this.serializer),
+        this.Pi = new __PRIVATE_IndexedDbBundleCache, this.window && this.window.localStorage ? this.Ui = this.window.localStorage : (this.Ui = null,
         !1 === u && __PRIVATE_logError(Ft, "LocalStorage is unavailable. As a result, persistence may not work reliably. In particular enablePersistence() could fail immediately after refreshing the page."));
     }
     /**
@@ -13681,7 +13681,7 @@ class __PRIVATE_IndexedDbPersistence {
         // already having the persistence lock), so it's the first thing we should
         // do.
         return this.$i().then((() => {
-            if (!this.isPrimary && !this.allowTabSynchronization) 
+            if (!this.isPrimary && !this.allowTabSynchronization)
             // Fail `start()` if `synchronizeTabs` is disabled and we cannot
             // obtain the primary lease.
             throw new FirestoreError(C.FAILED_PRECONDITION, Ot);
@@ -13720,7 +13720,7 @@ class __PRIVATE_IndexedDbPersistence {
      *
      * PORTING NOTE: This is only used for Web multi-tab.
      */    setNetworkEnabled(e) {
-        this.networkEnabled !== e && (this.networkEnabled = e, 
+        this.networkEnabled !== e && (this.networkEnabled = e,
         // Schedule a primary lease refresh for immediate execution. The eventual
         // lease update will be propagated via `primaryStateListener`.
         this.Ci.enqueueAndForget((async () => {
@@ -13743,12 +13743,12 @@ class __PRIVATE_IndexedDbPersistence {
                 e || (this.isPrimary = !1, this.Ci.enqueueRetryable((() => this.ki(!1))));
             }));
         })).next((() => this.Hi(e))).next((t => this.isPrimary && !t ? this.Ji(e).next((() => !1)) : !!t && this.Zi(e).next((() => !0)))))).catch((e => {
-            if (__PRIVATE_isIndexedDbTransactionError(e)) 
+            if (__PRIVATE_isIndexedDbTransactionError(e))
             // Proceed with the existing state. Any subsequent access to
             // IndexedDB will verify the lease.
             return __PRIVATE_logDebug(Ft, "Failed to extend owner lease: ", e), this.isPrimary;
             if (!this.allowTabSynchronization) throw e;
-            return __PRIVATE_logDebug(Ft, "Releasing owner lease after error during lease refresh", e), 
+            return __PRIVATE_logDebug(Ft, "Releasing owner lease after error during lease refresh", e),
             /* isPrimary= */ !1;
         })).then((e => {
             this.isPrimary !== e && this.Ci.enqueueRetryable((() => this.ki(e))), this.isPrimary = e;
@@ -13813,7 +13813,7 @@ class __PRIVATE_IndexedDbPersistence {
             if (null !== t && this.ts(t.leaseTimestampMs, xt) && !this.ss(t.ownerId)) {
                 if (this.Xi(t) && this.networkEnabled) return !0;
                 if (!this.Xi(t)) {
-                    if (!t.allowTabSynchronization) 
+                    if (!t.allowTabSynchronization)
                     // Fail the `canActAsPrimary` check if the current leaseholder has
                     // not opted into multi-tab synchronization. If this happens at
                     // client startup, we reject the Promise returned by
@@ -13836,20 +13836,20 @@ class __PRIVATE_IndexedDbPersistence {
                 }
                 return !1;
             }))));
-        })).next((e => (this.isPrimary !== e && __PRIVATE_logDebug(Ft, `Client ${e ? "is" : "is not"} eligible for a primary lease.`), 
+        })).next((e => (this.isPrimary !== e && __PRIVATE_logDebug(Ft, `Client ${e ? "is" : "is not"} eligible for a primary lease.`),
         e)));
     }
     async shutdown() {
         // The shutdown() operations are idempotent and can be called even when
         // start() aborted (e.g. because it couldn't acquire the persistence lease).
-        this.ui = !1, this._s(), this.Bi && (this.Bi.cancel(), this.Bi = null), this.us(), 
-        this.cs(), 
+        this.ui = !1, this._s(), this.Bi && (this.Bi.cancel(), this.Bi = null), this.us(),
+        this.cs(),
         // Use `SimpleDb.runTransaction` directly to avoid failing if another tab
         // has obtained the primary lease.
         await this.qi.runTransaction("shutdown", "readwrite", [ Q, de ], (e => {
             const t = new __PRIVATE_IndexedDbTransaction(e, __PRIVATE_ListenSequence.ce);
             return this.Ji(t).next((() => this.Yi(t)));
-        })), this.qi.close(), 
+        })), this.qi.close(),
         // Remove the entry marking the client as zombied from LocalStorage since
         // we successfully deleted its metadata from IndexedDb.
         this.ls();
@@ -13895,7 +13895,7 @@ class __PRIVATE_IndexedDbPersistence {
     }
     runTransaction(e, t, n) {
         __PRIVATE_logDebug(Ft, "Starting transaction:", e);
-        const r = "readonly" === t ? "readonly" : "readwrite", i = 
+        const r = "readonly" === t ? "readonly" : "readwrite", i =
         /** Returns the object stores for the provided schema. */
         function __PRIVATE_getObjectStores(e) {
             return 18 === e ? Ye : 17 === e ? Xe : 16 === e ? Ze : 15 === e ? Je : 14 === e ? He : 13 === e ? je : 12 === e ? ze : 11 === e ? Ge : void fail(60245);
@@ -13903,12 +13903,12 @@ class __PRIVATE_IndexedDbPersistence {
         let s;
         // Do all transactions as readwrite against all object stores, since we
         // are the only reader/writer.
-                return this.qi.runTransaction(e, r, i, (r => (s = new __PRIVATE_IndexedDbTransaction(r, this.ai ? this.ai.next() : __PRIVATE_ListenSequence.ce), 
+                return this.qi.runTransaction(e, r, i, (r => (s = new __PRIVATE_IndexedDbTransaction(r, this.ai ? this.ai.next() : __PRIVATE_ListenSequence.ce),
         "readwrite-primary" === t ? this.ji(s).next((e => !!e || this.Hi(s))).next((t => {
-            if (!t) throw __PRIVATE_logError(`Failed to obtain primary lease for action '${e}'.`), 
+            if (!t) throw __PRIVATE_logError(`Failed to obtain primary lease for action '${e}'.`),
             this.isPrimary = !1, this.Ci.enqueueRetryable((() => this.ki(!1))), new FirestoreError(C.FAILED_PRECONDITION, L);
             return n(s);
-        })).next((e => this.Zi(s).next((() => e)))) : this.Ps(s).next((() => n(s)))))).then((e => (s.raiseOnCommittedEvent(), 
+        })).next((e => this.Zi(s).next((() => e)))) : this.Ps(s).next((() => n(s)))))).then((e => (s.raiseOnCommittedEvent(),
         e)));
     }
     /**
@@ -13938,17 +13938,17 @@ class __PRIVATE_IndexedDbPersistence {
     }
     /** Checks the primary lease and removes it if we are the current primary. */    Ji(e) {
         const t = __PRIVATE_primaryClientStore(e);
-        return t.get(G).next((e => this.Xi(e) ? (__PRIVATE_logDebug(Ft, "Releasing primary lease."), 
+        return t.get(G).next((e => this.Xi(e) ? (__PRIVATE_logDebug(Ft, "Releasing primary lease."),
         t.delete(G)) : PersistencePromise.resolve()));
     }
     /** Verifies that `updateTimeMs` is within `maxAgeMs`. */    ts(e, t) {
         const n = Date.now();
-        return !(e < n - t) && (!(e > n) || (__PRIVATE_logError(`Detected an update time that is in the future: ${e} > ${n}`), 
+        return !(e < n - t) && (!(e > n) || (__PRIVATE_logError(`Detected an update time that is in the future: ${e} > ${n}`),
         !1));
     }
     Wi() {
         null !== this.document && "function" == typeof this.document.addEventListener && (this.Ni = () => {
-            this.Ci.enqueueAndForget((() => (this.inForeground = "visible" === this.document.visibilityState, 
+            this.Ci.enqueueAndForget((() => (this.inForeground = "visible" === this.document.visibilityState,
             this.$i())));
         }, this.document.addEventListener("visibilitychange", this.Ni), this.inForeground = "visible" === this.document.visibilityState);
     }
@@ -13971,7 +13971,7 @@ class __PRIVATE_IndexedDbPersistence {
             // to make sure it gets a chance to run.
             this._s();
             const e = /(?:Version|Mobile)\/1[456]/;
-            (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.isSafari)() && (navigator.appVersion.match(e) || navigator.userAgent.match(e)) && 
+            (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.isSafari)() && (navigator.appVersion.match(e) || navigator.userAgent.match(e)) &&
             // On Safari 14, 15, and 16, we do not run any cleanup actions as it might
             // trigger a bug that prevents Safari from re-opening IndexedDB during
             // the next page load.
@@ -13989,7 +13989,7 @@ class __PRIVATE_IndexedDbPersistence {
      */    ss(e) {
         try {
             const t = null !== this.Ui?.getItem(this.rs(e));
-            return __PRIVATE_logDebug(Ft, `Client '${e}' ${t ? "is" : "is not"} zombied in LocalStorage`), 
+            return __PRIVATE_logDebug(Ft, `Client '${e}' ${t ? "is" : "is not"} zombied in LocalStorage`),
             t;
         } catch (e) {
             // Gracefully handle if LocalStorage isn't working.
@@ -14174,12 +14174,12 @@ class __PRIVATE_LocalViewChanges {
  */
 class __PRIVATE_QueryEngine {
     constructor() {
-        this.Rs = !1, this.As = !1, 
+        this.Rs = !1, this.As = !1,
         /**
          * SDK only decides whether it should create index when collection size is
          * larger than this.
          */
-        this.Vs = 100, this.ds = 
+        this.Vs = 100, this.ds =
         /**
  * This cost represents the evaluation result of
  * (([index, docKey] + [docKey, docContent]) per document in the result set)
@@ -14218,16 +14218,16 @@ class __PRIVATE_QueryEngine {
         })).next((() => i.result));
     }
     ws(e, t, n, r) {
-        return n.documentReadCount < this.Vs ? (__PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "SDK will not create cache indexes for query:", __PRIVATE_stringifyQuery(t), "since it only creates cache indexes for collection contains", "more than or equal to", this.Vs, "documents"), 
-        PersistencePromise.resolve()) : (__PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "Query:", __PRIVATE_stringifyQuery(t), "scans", n.documentReadCount, "local documents and returns", r, "documents as results."), 
-        n.documentReadCount > this.ds * r ? (__PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "The SDK decides to create cache indexes for query:", __PRIVATE_stringifyQuery(t), "as using cache indexes may help improve performance."), 
+        return n.documentReadCount < this.Vs ? (__PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "SDK will not create cache indexes for query:", __PRIVATE_stringifyQuery(t), "since it only creates cache indexes for collection contains", "more than or equal to", this.Vs, "documents"),
+        PersistencePromise.resolve()) : (__PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "Query:", __PRIVATE_stringifyQuery(t), "scans", n.documentReadCount, "local documents and returns", r, "documents as results."),
+        n.documentReadCount > this.ds * r ? (__PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "The SDK decides to create cache indexes for query:", __PRIVATE_stringifyQuery(t), "as using cache indexes may help improve performance."),
         this.indexManager.createTargetIndexes(e, __PRIVATE_queryToTarget(t))) : PersistencePromise.resolve());
     }
     /**
      * Performs an indexed query that evaluates the query based on a collection's
      * persisted index values. Returns `null` if an index is not available.
      */    gs(e, t) {
-        if (__PRIVATE_queryMatchesAllDocuments(t)) 
+        if (__PRIVATE_queryMatchesAllDocuments(t))
         // Queries that match all documents don't benefit from using
         // key-based lookups. It is more efficient to scan all documents in a
         // collection, rather than to perform individual lookups.
@@ -14241,7 +14241,7 @@ class __PRIVATE_QueryEngine {
         // may return the correct set of documents in the wrong order (e.g. if
         // the index doesn't include a segment for one of the orderBys).
         // Therefore, a limit should not be applied in such cases.
-        t = __PRIVATE_queryWithLimit(t, null, "F" /* LimitType.First */), n = __PRIVATE_queryToTarget(t)), 
+        t = __PRIVATE_queryWithLimit(t, null, "F" /* LimitType.First */), n = __PRIVATE_queryToTarget(t)),
         this.indexManager.getDocumentsMatchingTarget(e, n).next((r => {
             const i = __PRIVATE_documentKeySet(...r);
             return this.fs.getDocuments(e, i).next((r => this.indexManager.getMinOffset(e, n).next((n => {
@@ -14256,7 +14256,7 @@ class __PRIVATE_QueryEngine {
      */    ps(e, t, n, r) {
         return __PRIVATE_queryMatchesAllDocuments(t) || r.isEqual(SnapshotVersion.min()) ? PersistencePromise.resolve(null) : this.fs.getDocuments(e, n).next((i => {
             const s = this.bs(t, i);
-            return this.Ss(t, s, n, r) ? PersistencePromise.resolve(null) : (__PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "Re-using previous result from %s to execute query: %s", r.toString(), __PRIVATE_stringifyQuery(t)), 
+            return this.Ss(t, s, n, r) ? PersistencePromise.resolve(null) : (__PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "Re-using previous result from %s to execute query: %s", r.toString(), __PRIVATE_stringifyQuery(t)),
             this.Ds(e, s, t, __PRIVATE_newIndexOffsetSuccessorFromReadTime(r, B)).next((e => e)));
         }));
         // Queries that have never seen a snapshot without limbo free documents
@@ -14282,10 +14282,10 @@ class __PRIVATE_QueryEngine {
      * @param limboFreeSnapshotVersion - The version of the snapshot when the
      * query was last synchronized.
      */    Ss(e, t, n, r) {
-        if (null === e.limit) 
+        if (null === e.limit)
         // Queries without limits do not need to be refilled.
         return !1;
-        if (n.size !== t.size) 
+        if (n.size !== t.size)
         // The query needs to be refilled if a previously matching document no
         // longer matches.
         return !0;
@@ -14301,7 +14301,7 @@ class __PRIVATE_QueryEngine {
         return !!i && (i.hasPendingWrites || i.version.compareTo(r) > 0);
     }
     ys(e, t, n) {
-        return __PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "Using full collection scan to execute query:", __PRIVATE_stringifyQuery(t)), 
+        return __PRIVATE_getLogLevel() <= _firebase_logger__WEBPACK_IMPORTED_MODULE_3__.LogLevel.DEBUG && __PRIVATE_logDebug("QueryEngine", "Using full collection scan to execute query:", __PRIVATE_stringifyQuery(t)),
         this.fs.getDocumentsMatchingQuery(e, t, IndexOffset.min(), n);
     }
     /**
@@ -14353,31 +14353,31 @@ class __PRIVATE_LocalStoreImpl {
     constructor(
     /** Manages our in-memory or durable persistence. */
     e, t, n, r) {
-        this.persistence = e, this.Cs = t, this.serializer = r, 
+        this.persistence = e, this.Cs = t, this.serializer = r,
         /**
          * Maps a targetID to data about its target.
          *
          * PORTING NOTE: We are using an immutable data structure on Web to make re-runs
          * of `applyRemoteEvent()` idempotent.
          */
-        this.vs = new SortedMap(__PRIVATE_primitiveComparator), 
+        this.vs = new SortedMap(__PRIVATE_primitiveComparator),
         /** Maps a target to its targetID. */
         // TODO(wuandy): Evaluate if TargetId can be part of Target.
-        this.Fs = new ObjectMap((e => __PRIVATE_canonifyTarget(e)), __PRIVATE_targetEquals), 
+        this.Fs = new ObjectMap((e => __PRIVATE_canonifyTarget(e)), __PRIVATE_targetEquals),
         /**
          * A per collection group index of the last read time processed by
          * `getNewDocumentChanges()`.
          *
          * PORTING NOTE: This is only used for multi-tab synchronization.
          */
-        this.Ms = new Map, this.xs = e.getRemoteDocumentCache(), this.li = e.getTargetCache(), 
+        this.Ms = new Map, this.xs = e.getRemoteDocumentCache(), this.li = e.getTargetCache(),
         this.Pi = e.getBundleCache(), this.Os(n);
     }
     Os(e) {
         // TODO(indexing): Add spec tests that test these components change after a
         // user change
-        this.documentOverlayCache = this.persistence.getDocumentOverlayCache(e), this.indexManager = this.persistence.getIndexManager(e), 
-        this.mutationQueue = this.persistence.getMutationQueue(e, this.indexManager), this.localDocuments = new LocalDocumentsView(this.xs, this.mutationQueue, this.documentOverlayCache, this.indexManager), 
+        this.documentOverlayCache = this.persistence.getDocumentOverlayCache(e), this.indexManager = this.persistence.getIndexManager(e),
+        this.mutationQueue = this.persistence.getMutationQueue(e, this.indexManager), this.localDocuments = new LocalDocumentsView(this.xs, this.mutationQueue, this.documentOverlayCache, this.indexManager),
         this.xs.setIndexManager(this.indexManager), this.Cs.initialize(this.localDocuments, this.indexManager);
     }
     collectGarbage(e) {
@@ -14455,7 +14455,7 @@ function __PRIVATE_localStoreAcknowledgeBatch(e, t) {
             return s.forEach((e => {
                 o = o.next((() => r.getEntry(t, e))).next((t => {
                     const s = n.docVersions.get(e);
-                    __PRIVATE_hardAssert(null !== s, 48541), t.version.compareTo(s) < 0 && (i.applyToRemoteDocument(t, n), 
+                    __PRIVATE_hardAssert(null !== s, 48541), t.version.compareTo(s) < 0 && (i.applyToRemoteDocument(t, n),
                     t.isValidDocument() && (
                     // We use the commitVersion as the readTime rather than the
                     // document's updateTime since the updateTime is not advanced
@@ -14516,8 +14516,8 @@ function __PRIVATE_localStoreGetLastRemoteSnapshotVersion(e) {
             // the updated assignment.
                         o.push(n.li.removeMatchingKeys(e, s.removedDocuments, _).next((() => n.li.addMatchingKeys(e, s.addedDocuments, _))));
             let u = a.withSequenceNumber(e.currentSequenceNumber);
-            null !== t.targetMismatches.get(_) ? u = u.withResumeToken(ByteString.EMPTY_BYTE_STRING, SnapshotVersion.min()).withLastLimboFreeSnapshotVersion(SnapshotVersion.min()) : s.resumeToken.approximateByteSize() > 0 && (u = u.withResumeToken(s.resumeToken, r)), 
-            i = i.insert(_, u), 
+            null !== t.targetMismatches.get(_) ? u = u.withResumeToken(ByteString.EMPTY_BYTE_STRING, SnapshotVersion.min()).withLastLimboFreeSnapshotVersion(SnapshotVersion.min()) : s.resumeToken.approximateByteSize() > 0 && (u = u.withResumeToken(s.resumeToken, r)),
+            i = i.insert(_, u),
             // Update the target data if there are target changes (or if
             // sufficient time has passed since the last update).
             /**
@@ -14560,7 +14560,7 @@ function __PRIVATE_localStoreGetLastRemoteSnapshotVersion(e) {
         // limbo.
         if (t.documentUpdates.forEach((r => {
             t.resolvedLimboDocuments.has(r) && o.push(n.persistence.referenceDelegate.updateLimboDocument(e, r));
-        })), 
+        })),
         // Each loop iteration only affects its "own" doc, so it's safe to get all
         // the remote documents in advance in a single call.
         o.push(__PRIVATE_populateDocumentChangeBuffer(e, s, t.documentUpdates).next((e => {
@@ -14589,7 +14589,7 @@ function __PRIVATE_localStoreGetLastRemoteSnapshotVersion(e) {
         return n.forEach(((n, s) => {
             const o = e.get(n);
             // Check if see if there is a existence state change for this document.
-                        s.isFoundDocument() !== o.isFoundDocument() && (i = i.add(n)), 
+                        s.isFoundDocument() !== o.isFoundDocument() && (i = i.add(n)),
             // Note: The order of the steps below is important, since we want
             // to ensure that rejected limbo resolutions (which fabricate
             // NoDocuments with SnapshotVersion.min()) never add documents to
@@ -14598,7 +14598,7 @@ function __PRIVATE_localStoreGetLastRemoteSnapshotVersion(e) {
             // NoDocuments with SnapshotVersion.min() are used in manufactured
             // events. We remove these documents from cache since we lost
             // access.
-            t.removeEntry(n, s.readTime), r = r.insert(n, s)) : !o.isValidDocument() || s.version.compareTo(o.version) > 0 || 0 === s.version.compareTo(o.version) && o.hasPendingWrites ? (t.addEntry(s), 
+            t.removeEntry(n, s.readTime), r = r.insert(n, s)) : !o.isValidDocument() || s.version.compareTo(o.version) > 0 || 0 === s.version.compareTo(o.version) && o.hasPendingWrites ? (t.addEntry(s),
             r = r.insert(n, s)) : __PRIVATE_logDebug(Bt, "Ignoring outdated watch update for ", n, ". Current version:", o.version, " Watch version:", s.version);
         })), {
             Bs: r,
@@ -14615,7 +14615,7 @@ function __PRIVATE_localStoreGetLastRemoteSnapshotVersion(e) {
  */
 function __PRIVATE_localStoreGetNextMutationBatch(e, t) {
     const n = __PRIVATE_debugCast(e);
-    return n.persistence.runTransaction("Get next mutation batch", "readonly", (e => (void 0 === t && (t = U), 
+    return n.persistence.runTransaction("Get next mutation batch", "readonly", (e => (void 0 === t && (t = U),
     n.mutationQueue.getNextMutationBatchAfterBatchId(e, t))));
 }
 
@@ -14639,13 +14639,13 @@ function __PRIVATE_localStoreAllocateTarget(e, t) {
         // This target has been listened to previously, so reuse the
         // previous targetID.
         // TODO(mcg): freshen last accessed date?
-        r = i, PersistencePromise.resolve(r)) : n.li.allocateTargetId(e).next((i => (r = new TargetData(t, i, "TargetPurposeListen" /* TargetPurpose.Listen */ , e.currentSequenceNumber), 
+        r = i, PersistencePromise.resolve(r)) : n.li.allocateTargetId(e).next((i => (r = new TargetData(t, i, "TargetPurposeListen" /* TargetPurpose.Listen */ , e.currentSequenceNumber),
         n.li.addTargetData(e, r).next((() => r)))))));
     })).then((e => {
         // If Multi-Tab is enabled, the existing target data may be newer than
         // the in-memory data
         const r = n.vs.get(e.targetId);
-        return (null === r || e.snapshotVersion.compareTo(r.snapshotVersion) > 0) && (n.vs = n.vs.insert(e.targetId, e), 
+        return (null === r || e.snapshotVersion.compareTo(r.snapshotVersion) > 0) && (n.vs = n.vs.insert(e.targetId, e),
         n.Fs.set(t, e.targetId)), e;
     }));
 }
@@ -14698,7 +14698,7 @@ async function __PRIVATE_localStoreReleaseTarget(e, t, n) {
         if (t) return i = t.lastLimboFreeSnapshotVersion, r.li.getMatchingKeysForTargetId(e, t.targetId).next((e => {
             s = e;
         }));
-    })).next((() => r.Cs.getDocumentsMatchingQuery(e, t, n ? i : SnapshotVersion.min(), n ? s : __PRIVATE_documentKeySet()))).next((e => (__PRIVATE_setMaxReadTime(r, __PRIVATE_queryCollectionGroup(t), e), 
+    })).next((() => r.Cs.getDocumentsMatchingQuery(e, t, n ? i : SnapshotVersion.min(), n ? s : __PRIVATE_documentKeySet()))).next((e => (__PRIVATE_setMaxReadTime(r, __PRIVATE_queryCollectionGroup(t), e),
     {
         documents: e,
         ks: s
@@ -14724,8 +14724,8 @@ function __PRIVATE_localStoreGetNewDocumentChanges(e, t) {
     // exist, but to reduce the chance for regressions we default to
     // SnapshotVersion.Min()
     // TODO(indexing): Consider removing the default value.
-        return n.persistence.runTransaction("Get new document changes", "readonly", (e => n.xs.getAllFromCollectionGroup(e, t, __PRIVATE_newIndexOffsetSuccessorFromReadTime(r, B), 
-    /* limit= */ Number.MAX_SAFE_INTEGER))).then((e => (__PRIVATE_setMaxReadTime(n, t, e), 
+        return n.persistence.runTransaction("Get new document changes", "readonly", (e => n.xs.getAllFromCollectionGroup(e, t, __PRIVATE_newIndexOffsetSuccessorFromReadTime(r, B),
+    /* limit= */ Number.MAX_SAFE_INTEGER))).then((e => (__PRIVATE_setMaxReadTime(n, t, e),
     e)));
 }
 
@@ -14769,7 +14769,7 @@ async function __PRIVATE_localStoreApplyBundledDocuments(e, t, n, r) {
     }(r));
     // Allocates a target to hold all document keys from the bundle, such that
     // they will not get garbage collected right away.
-        return i.persistence.runTransaction("Apply bundle documents", "readwrite", (e => __PRIVATE_populateDocumentChangeBuffer(e, _, o).next((t => (_.apply(e), 
+        return i.persistence.runTransaction("Apply bundle documents", "readwrite", (e => __PRIVATE_populateDocumentChangeBuffer(e, _, o).next((t => (_.apply(e),
     t))).next((t => i.li.removeMatchingKeysForTargetId(e, a.targetId).next((() => i.li.addMatchingKeys(e, s, a.targetId))).next((() => i.localDocuments.getLocalViewOfDocuments(e, t.Bs, t.Ls))).next((() => t.Bs))))));
 }
 
@@ -14880,8 +14880,8 @@ class __PRIVATE_MutationMetadata {
      */    static $s(e, t, n) {
         const r = JSON.parse(n);
         let i, s = "object" == typeof r && -1 !== [ "pending", "acknowledged", "rejected" ].indexOf(r.state) && (void 0 === r.error || "object" == typeof r.error);
-        return s && r.error && (s = "string" == typeof r.error.message && "string" == typeof r.error.code, 
-        s && (i = new FirestoreError(r.error.code, r.error.message))), s ? new __PRIVATE_MutationMetadata(e, t, r.state, i) : (__PRIVATE_logError(Ut, `Failed to parse mutation state for ID '${t}': ${n}`), 
+        return s && r.error && (s = "string" == typeof r.error.message && "string" == typeof r.error.code,
+        s && (i = new FirestoreError(r.error.code, r.error.message))), s ? new __PRIVATE_MutationMetadata(e, t, r.state, i) : (__PRIVATE_logError(Ut, `Failed to parse mutation state for ID '${t}': ${n}`),
         null);
     }
     Ws() {
@@ -14911,8 +14911,8 @@ class __PRIVATE_QueryTargetMetadata {
      */    static $s(e, t) {
         const n = JSON.parse(t);
         let r, i = "object" == typeof n && -1 !== [ "not-current", "current", "rejected" ].indexOf(n.state) && (void 0 === n.error || "object" == typeof n.error);
-        return i && n.error && (i = "string" == typeof n.error.message && "string" == typeof n.error.code, 
-        i && (r = new FirestoreError(n.error.code, n.error.message))), i ? new __PRIVATE_QueryTargetMetadata(e, n.state, r) : (__PRIVATE_logError(Ut, `Failed to parse target state for ID '${e}': ${t}`), 
+        return i && n.error && (i = "string" == typeof n.error.message && "string" == typeof n.error.code,
+        i && (r = new FirestoreError(n.error.code, n.error.message))), i ? new __PRIVATE_QueryTargetMetadata(e, n.state, r) : (__PRIVATE_logError(Ut, `Failed to parse target state for ID '${e}': ${t}`),
         null);
     }
     Ws() {
@@ -14940,9 +14940,9 @@ class __PRIVATE_QueryTargetMetadata {
      */    static $s(e, t) {
         const n = JSON.parse(t);
         let r = "object" == typeof n && n.activeTargetIds instanceof Array, i = __PRIVATE_targetIdSet();
-        for (let e = 0; r && e < n.activeTargetIds.length; ++e) r = isSafeInteger(n.activeTargetIds[e]), 
+        for (let e = 0; r && e < n.activeTargetIds.length; ++e) r = isSafeInteger(n.activeTargetIds[e]),
         i = i.add(n.activeTargetIds[e]);
-        return r ? new __PRIVATE_RemoteClientState(e, i) : (__PRIVATE_logError(Ut, `Failed to parse client data for instance '${e}': ${t}`), 
+        return r ? new __PRIVATE_RemoteClientState(e, i) : (__PRIVATE_logError(Ut, `Failed to parse client data for instance '${e}': ${t}`),
         null);
     }
 }
@@ -14960,7 +14960,7 @@ class __PRIVATE_QueryTargetMetadata {
      * Logs a warning and returns null if the format of the data is not valid.
      */    static $s(e) {
         const t = JSON.parse(e);
-        return "object" == typeof t && -1 !== [ "Unknown", "Online", "Offline" ].indexOf(t.onlineState) && "string" == typeof t.clientId ? new __PRIVATE_SharedOnlineState(t.clientId, t.onlineState) : (__PRIVATE_logError(Ut, `Failed to parse online state: ${e}`), 
+        return "object" == typeof t && -1 !== [ "Unknown", "Online", "Offline" ].indexOf(t.onlineState) && "string" == typeof t.clientId ? new __PRIVATE_SharedOnlineState(t.clientId, t.onlineState) : (__PRIVATE_logError(Ut, `Failed to parse online state: ${e}`),
         null);
     }
 }
@@ -15004,9 +15004,9 @@ class __PRIVATE_LocalClientState {
  * clients and supports modifications of the local client's data.
  */ class __PRIVATE_WebStorageSharedClientState {
     constructor(e, t, n, r, i) {
-        this.window = e, this.Ci = t, this.persistenceKey = n, this.zs = r, this.syncEngine = null, 
-        this.onlineStateHandler = null, this.sequenceNumberHandler = null, this.js = this.Hs.bind(this), 
-        this.Js = new SortedMap(__PRIVATE_primitiveComparator), this.started = !1, 
+        this.window = e, this.Ci = t, this.persistenceKey = n, this.zs = r, this.syncEngine = null,
+        this.onlineStateHandler = null, this.sequenceNumberHandler = null, this.js = this.Hs.bind(this),
+        this.Js = new SortedMap(__PRIVATE_primitiveComparator), this.started = !1,
         /**
          * Captures WebStorage events that occur before `start()` is called. These
          * events are replayed once `WebStorageSharedClientState` is started.
@@ -15015,14 +15015,14 @@ class __PRIVATE_LocalClientState {
         // Escape the special characters mentioned here:
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
         const s = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        this.storage = this.window.localStorage, this.currentUser = i, this.Xs = createWebStorageClientStateKey(this.persistenceKey, this.zs), 
-        this.Ys = 
+        this.storage = this.window.localStorage, this.currentUser = i, this.Xs = createWebStorageClientStateKey(this.persistenceKey, this.zs),
+        this.Ys =
         /** Assembles the key for the current sequence number. */
         function createWebStorageSequenceNumberKey(e) {
             return `firestore_sequence_number_${e}`;
-        }(this.persistenceKey), this.Js = this.Js.insert(this.zs, new __PRIVATE_LocalClientState), 
-        this.eo = new RegExp(`^${kt}_${s}_([^_]*)$`), this.no = new RegExp(`^${Kt}_${s}_(\\d+)(?:_(.*))?$`), 
-        this.ro = new RegExp(`^${qt}_${s}_(\\d+)$`), this.io = 
+        }(this.persistenceKey), this.Js = this.Js.insert(this.zs, new __PRIVATE_LocalClientState),
+        this.eo = new RegExp(`^${kt}_${s}_([^_]*)$`), this.no = new RegExp(`^${Kt}_${s}_(\\d+)(?:_(.*))?$`),
+        this.ro = new RegExp(`^${qt}_${s}_(\\d+)$`), this.io =
         /** Assembles the key for the online state of the primary tab. */
         function createWebStorageOnlineStateKey(e) {
             return `firestore_online_state_${e}`;
@@ -15037,7 +15037,7 @@ class __PRIVATE_LocalClientState {
         }
         // The WebStorage key prefix for the key that stores the last sequence number allocated. The key
         // looks like 'firestore_sequence_number_<persistence_prefix>'.
-        (this.persistenceKey), 
+        (this.persistenceKey),
         // Rather than adding the storage observer during start(), we add the
         // storage observer during initialization. This ensures that we collect
         // events before other components populate their initial state (during their
@@ -15070,7 +15070,7 @@ class __PRIVATE_LocalClientState {
             e && this.ao(e);
         }
         for (const e of this.Zs) this.Hs(e);
-        this.Zs = [], 
+        this.Zs = [],
         // Register a window unload hook to remove the client metadata entry from
         // WebStorage even if `shutdown()` was not called.
         this.window.addEventListener("pagehide", (() => this.shutdown())), this.started = !0;
@@ -15091,7 +15091,7 @@ class __PRIVATE_LocalClientState {
         this.co(e, "pending");
     }
     updateMutationState(e, t, n) {
-        this.co(e, t, n), 
+        this.co(e, t, n),
         // Once a final mutation result is observed by other clients, they no longer
         // access the mutation's metadata entry. Since WebStorage replays events
         // in order, it is safe to delete the entry right after updating it.
@@ -15138,7 +15138,7 @@ class __PRIVATE_LocalClientState {
         this.Io(e);
     }
     shutdown() {
-        this.started && (this.window.removeEventListener("storage", this.js), this.removeItem(this.Xs), 
+        this.started && (this.window.removeEventListener("storage", this.js), this.removeItem(this.Xs),
         this.started = !1);
     }
     getItem(e) {
@@ -15311,7 +15311,7 @@ class __PRIVATE_LocalClientState {
 
 class __PRIVATE_MemorySharedClientState {
     constructor() {
-        this.vo = new __PRIVATE_LocalClientState, this.Fo = {}, this.onlineStateHandler = null, 
+        this.vo = new __PRIVATE_LocalClientState, this.Fo = {}, this.onlineStateHandler = null,
         this.sequenceNumberHandler = null;
     }
     addPendingMutation(e) {
@@ -15532,9 +15532,9 @@ class __PRIVATE_RestConnection {
         };
         this.Go(_, r, i);
         const {host: a} = new URL(o), c = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.isCloudWorkstation)(a);
-        return this.zo(e, o, _, n, c).then((t => (__PRIVATE_logDebug(Qt, `Received RPC '${e}' ${s}: `, t), 
+        return this.zo(e, o, _, n, c).then((t => (__PRIVATE_logDebug(Qt, `Received RPC '${e}' ${s}: `, t),
         t)), (t => {
-            throw __PRIVATE_logWarn(Qt, `RPC '${e}' ${s} failed with error: `, t, "url: ", o, "request:", n), 
+            throw __PRIVATE_logWarn(Qt, `RPC '${e}' ${s} failed with error: `, t, "url: ", o, "request:", n),
             t;
         }));
     }
@@ -15547,23 +15547,23 @@ class __PRIVATE_RestConnection {
      * Modifies the headers for a request, adding any authorization token if
      * present and any additional headers for the request.
      */    Go(e, t, n) {
-        e["X-Goog-Api-Client"] = 
+        e["X-Goog-Api-Client"] =
         // SDK_VERSION is updated to different value at runtime depending on the entry point,
         // so we need to get its value when we need it in a function.
         function __PRIVATE_getGoogApiClientValue() {
             return "gl-js/ fire/" + S;
-        }(), 
+        }(),
         // Content-Type: text/plain will avoid preflight requests which might
         // mess with CORS and redirects by proxies. If we add custom headers
         // we will need to change this code to potentially use the $httpOverwrite
         // parameter supported by ESF to avoid triggering preflight requests.
-        e["Content-Type"] = "text/plain", this.databaseInfo.appId && (e["X-Firebase-GMPID"] = this.databaseInfo.appId), 
+        e["Content-Type"] = "text/plain", this.databaseInfo.appId && (e["X-Firebase-GMPID"] = this.databaseInfo.appId),
         t && t.headers.forEach(((t, n) => e[n] = t)), n && n.headers.forEach(((t, n) => e[n] = t));
     }
     Qo(e, t) {
         const n = Gt[e];
         let r = `${this.qo}/v1/${t}:${n}`;
-        return this.databaseInfo.apiKey && (r = `${r}?key=${encodeURIComponent(this.databaseInfo.apiKey)}`), 
+        return this.databaseInfo.apiKey && (r = `${r}?key=${encodeURIComponent(this.databaseInfo.apiKey)}`),
         r;
     }
     /**
@@ -15662,9 +15662,9 @@ class __PRIVATE_RestConnection {
 
 class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
     constructor(e) {
-        super(e), 
+        super(e),
         /** A collection of open WebChannel instances */
-        this.a_ = [], this.forceLongPolling = e.forceLongPolling, this.autoDetectLongPolling = e.autoDetectLongPolling, 
+        this.a_ = [], this.forceLongPolling = e.forceLongPolling, this.autoDetectLongPolling = e.autoDetectLongPolling,
         this.useFetchStreams = e.useFetchStreams, this.longPollingOptions = e.longPollingOptions;
     }
     /**
@@ -15687,7 +15687,7 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
                     switch (_.getLastErrorCode()) {
                       case _firebase_webchannel_wrapper_webchannel_blob__WEBPACK_IMPORTED_MODULE_4__.ErrorCode.NO_ERROR:
                         const t = _.getResponseJson();
-                        __PRIVATE_logDebug(zt, `XHR for RPC '${e}' ${s} received:`, JSON.stringify(t)), 
+                        __PRIVATE_logDebug(zt, `XHR for RPC '${e}' ${s} received:`, JSON.stringify(t)),
                         i(t);
                         break;
 
@@ -15697,7 +15697,7 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
 
                       case _firebase_webchannel_wrapper_webchannel_blob__WEBPACK_IMPORTED_MODULE_4__.ErrorCode.HTTP_ERROR:
                         const n = _.getStatus();
-                        if (__PRIVATE_logDebug(zt, `RPC '${e}' ${s} failed with status:`, n, "response text:", _.getResponseText()), 
+                        if (__PRIVATE_logDebug(zt, `RPC '${e}' ${s} failed with status:`, n, "response text:", _.getResponseText()),
                         n > 0) {
                             let e = _.getResponseJson();
                             Array.isArray(e) && (e = e[0]);
@@ -15709,7 +15709,7 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
                                 }(t.status);
                                 o(new FirestoreError(e, t.message));
                             } else o(new FirestoreError(C.UNKNOWN, "Server responded with status " + _.getStatus()));
-                        } else 
+                        } else
                         // If we received an HTTP_ERROR but there's no status code,
                         // it's most probably a connection issue
                         o(new FirestoreError(C.UNAVAILABLE, "Connection failed."));
@@ -15756,8 +15756,8 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
             forceLongPolling: this.forceLongPolling,
             detectBufferingProxy: this.autoDetectLongPolling
         }, _ = this.longPollingOptions.timeoutSeconds;
-        void 0 !== _ && (o.longPollingTimeout = Math.round(1e3 * _)), this.useFetchStreams && (o.useFetchStreams = !0), 
-        this.Go(o.initMessageHeaders, t, n), 
+        void 0 !== _ && (o.longPollingTimeout = Math.round(1e3 * _)), this.useFetchStreams && (o.useFetchStreams = !0),
+        this.Go(o.initMessageHeaders, t, n),
         // Sending the custom headers we just added to request.initMessageHeaders
         // (Authorization, etc.) will trigger the browser to make a CORS preflight
         // request because the XHR will no longer meet the criteria for a "simple"
@@ -15783,8 +15783,8 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
         // on a closed stream
                 const h = new __PRIVATE_StreamBridge({
             Ho: t => {
-                l ? __PRIVATE_logDebug(zt, `Not sending because RPC '${e}' stream ${r} is closed:`, t) : (c || (__PRIVATE_logDebug(zt, `Opening RPC '${e}' stream ${r} transport.`), 
-                u.open(), c = !0), __PRIVATE_logDebug(zt, `RPC '${e}' stream ${r} sending:`, t), 
+                l ? __PRIVATE_logDebug(zt, `Not sending because RPC '${e}' stream ${r} is closed:`, t) : (c || (__PRIVATE_logDebug(zt, `Opening RPC '${e}' stream ${r} transport.`),
+                u.open(), c = !0), __PRIVATE_logDebug(zt, `RPC '${e}' stream ${r} sending:`, t),
                 u.send(t));
             },
             Jo: () => u.close()
@@ -15792,10 +15792,10 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
         return __PRIVATE_unguardedEventListen(u, _firebase_webchannel_wrapper_webchannel_blob__WEBPACK_IMPORTED_MODULE_4__.WebChannel.EventType.OPEN, (() => {
             l || (__PRIVATE_logDebug(zt, `RPC '${e}' stream ${r} transport opened.`), h.i_());
         })), __PRIVATE_unguardedEventListen(u, _firebase_webchannel_wrapper_webchannel_blob__WEBPACK_IMPORTED_MODULE_4__.WebChannel.EventType.CLOSE, (() => {
-            l || (l = !0, __PRIVATE_logDebug(zt, `RPC '${e}' stream ${r} transport closed`), 
+            l || (l = !0, __PRIVATE_logDebug(zt, `RPC '${e}' stream ${r} transport closed`),
             h.o_(), this.E_(u));
         })), __PRIVATE_unguardedEventListen(u, _firebase_webchannel_wrapper_webchannel_blob__WEBPACK_IMPORTED_MODULE_4__.WebChannel.EventType.ERROR, (t => {
-            l || (l = !0, __PRIVATE_logWarn(zt, `RPC '${e}' stream ${r} transport errored. Name:`, t.name, "Message:", t.message), 
+            l || (l = !0, __PRIVATE_logWarn(zt, `RPC '${e}' stream ${r} transport errored. Name:`, t.name, "Message:", t.message),
             h.o_(new FirestoreError(C.UNAVAILABLE, "The operation could not be completed")));
         })), __PRIVATE_unguardedEventListen(u, _firebase_webchannel_wrapper_webchannel_blob__WEBPACK_IMPORTED_MODULE_4__.WebChannel.EventType.MESSAGE, (t => {
             if (!l) {
@@ -15811,7 +15811,7 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
                     __PRIVATE_logDebug(zt, `RPC '${e}' stream ${r} received error:`, s);
                     // error.status will be a string like 'OK' or 'NOT_FOUND'.
                     const t = s.status;
-                    let n = 
+                    let n =
                     /**
  * Maps an error Code from a GRPC status identifier like 'NOT_FOUND'.
  *
@@ -15824,13 +15824,13 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
                         const t = At[e];
                         if (void 0 !== t) return __PRIVATE_mapCodeFromRpcCode(t);
                     }(t), i = s.message;
-                    "NOT_FOUND" === t && i.includes("database") && i.includes("does not exist") && i.includes(this.databaseId.database) && __PRIVATE_logWarn(`Database '${this.databaseId.database}' not found. Please check your project configuration.`), 
-                    void 0 === n && (n = C.INTERNAL, i = "Unknown error status: " + t + " with message " + s.message), 
+                    "NOT_FOUND" === t && i.includes("database") && i.includes("does not exist") && i.includes(this.databaseId.database) && __PRIVATE_logWarn(`Database '${this.databaseId.database}' not found. Please check your project configuration.`),
+                    void 0 === n && (n = C.INTERNAL, i = "Unknown error status: " + t + " with message " + s.message),
                     // Mark closed so no further events are propagated
                     l = !0, h.o_(new FirestoreError(n, i)), u.close();
                 } else __PRIVATE_logDebug(zt, `RPC '${e}' stream ${r} received:`, n), h.__(n);
             }
-        })), 
+        })),
         // Ensure that event listeners are configured for STAT_EVENTs.
         __PRIVATE_WebChannelConnection.u_(), setTimeout((() => {
             // Technically we could/should wait for the WebChannel opened event,
@@ -15863,7 +15863,7 @@ class __PRIVATE_WebChannelConnection extends __PRIVATE_RestConnection {
      * Modifies the headers for a request, adding the api key if present,
      * and then calling super.modifyHeadersForRequest
      */    Go(e, t, n) {
-        super.Go(e, t, n), 
+        super.Go(e, t, n),
         // For web channel streams, we want to send the api key in the headers.
         this.databaseInfo.apiKey && (e["x-goog-api-key"] = this.databaseInfo.apiKey);
     }
@@ -15979,11 +15979,11 @@ class __PRIVATE_ExponentialBackoff {
     /**
      * The AsyncQueue to run backoff operations on.
      */
-    e, 
+    e,
     /**
      * The ID to use when scheduling backoff operations on the AsyncQueue.
      */
-    t, 
+    t,
     /**
      * The initial delay (used as the base delay on the first retry attempt).
      * Note that jitter will still be applied, so the actual delay could be as
@@ -15999,8 +15999,8 @@ class __PRIVATE_ExponentialBackoff {
      * Note that jitter will still be applied, so the actual delay could be as
      * much as 1.5*maxDelayMs.
      */ , i = 6e4) {
-        this.Ci = e, this.timerId = t, this.R_ = n, this.A_ = r, this.V_ = i, this.d_ = 0, 
-        this.m_ = null, 
+        this.Ci = e, this.timerId = t, this.R_ = n, this.A_ = r, this.V_ = i, this.d_ = 0,
+        this.m_ = null,
         /** The last backoff attempt, as epoch milliseconds. */
         this.f_ = Date.now(), this.reset();
     }
@@ -16030,9 +16030,9 @@ class __PRIVATE_ExponentialBackoff {
         // honored as such).
         const t = Math.floor(this.d_ + this.y_()), n = Math.max(0, Date.now() - this.f_), r = Math.max(0, t - n);
         // Guard against lastAttemptTime being in the future due to a clock change.
-                r > 0 && __PRIVATE_logDebug("ExponentialBackoff", `Backing off for ${r} ms (base delay: ${this.d_} ms, delay with jitter: ${t} ms, last attempt: ${n} ms ago)`), 
-        this.m_ = this.Ci.enqueueAfterDelay(this.timerId, r, (() => (this.f_ = Date.now(), 
-        e()))), 
+                r > 0 && __PRIVATE_logDebug("ExponentialBackoff", `Backing off for ${r} ms (base delay: ${this.d_} ms, delay with jitter: ${t} ms, last attempt: ${n} ms ago)`),
+        this.m_ = this.Ci.enqueueAfterDelay(this.timerId, r, (() => (this.f_ = Date.now(),
+        e()))),
         // Apply backoff factor to determine next delay and ensure it is within
         // bounds.
         this.d_ *= this.A_, this.d_ < this.R_ && (this.d_ = this.R_), this.d_ > this.V_ && (this.d_ = this.V_);
@@ -16100,14 +16100,14 @@ class __PRIVATE_ExponentialBackoff {
  */
 class __PRIVATE_PersistentStream {
     constructor(e, t, n, r, i, s, o, _) {
-        this.Ci = e, this.b_ = n, this.S_ = r, this.connection = i, this.authCredentialsProvider = s, 
-        this.appCheckCredentialsProvider = o, this.listener = _, this.state = 0 /* PersistentStreamState.Initial */ , 
+        this.Ci = e, this.b_ = n, this.S_ = r, this.connection = i, this.authCredentialsProvider = s,
+        this.appCheckCredentialsProvider = o, this.listener = _, this.state = 0 /* PersistentStreamState.Initial */ ,
         /**
          * A close count that's incremented every time the stream is closed; used by
          * getCloseGuardedDispatcher() to invalidate callbacks that happen after
          * close.
          */
-        this.D_ = 0, this.C_ = null, this.v_ = null, this.stream = null, 
+        this.D_ = 0, this.C_ = null, this.v_ = null, this.stream = null,
         /**
          * Count of response messages received.
          */
@@ -16173,7 +16173,7 @@ class __PRIVATE_PersistentStream {
         this.q_(), this.stream.send(e);
     }
     /** Called by the idle timer when the stream should close due to inactivity. */    async k_() {
-        if (this.O_()) 
+        if (this.O_())
         // When timing out an idle stream there's no reason to force the stream into backoff when
         // it restarts so set the stream state to Initial instead of Error.
         return this.close(0 /* PersistentStreamState.Initial */);
@@ -16198,14 +16198,14 @@ class __PRIVATE_PersistentStream {
      * @param error - the error the connection was closed with.
      */    async close(e, t) {
         // Cancel any outstanding timers (they're guaranteed not to execute).
-        this.q_(), this.U_(), this.M_.cancel(), 
+        this.q_(), this.U_(), this.M_.cancel(),
         // Invalidates any stream-related callbacks (e.g. from auth or the
         // underlying stream), guaranteeing they won't execute.
-        this.D_++, 4 /* PersistentStreamState.Error */ !== e ? 
+        this.D_++, 4 /* PersistentStreamState.Error */ !== e ?
         // If this is an intentional close ensure we don't delay our next connection attempt.
         this.M_.reset() : t && t.code === C.RESOURCE_EXHAUSTED ? (
         // Log the error. (Probably either 'quota exceeded' or 'max queue length reached'.)
-        __PRIVATE_logError(t.toString()), __PRIVATE_logError("Using maximum backoff delay to prevent overloading the backend."), 
+        __PRIVATE_logError(t.toString()), __PRIVATE_logError("Using maximum backoff delay to prevent overloading the backend."),
         this.M_.g_()) : t && t.code === C.UNAUTHENTICATED && 3 /* PersistentStreamState.Healthy */ !== this.state && (
         // "unauthenticated" error means the token was rejected. This should rarely
         // happen since both Auth and AppCheck ensure a sufficient TTL when we
@@ -16213,12 +16213,12 @@ class __PRIVATE_PersistentStream {
         // fail, however. In this case, we should get a Code.UNAUTHENTICATED error
         // before we received the first message and we need to invalidate the token
         // to ensure that we fetch a new token.
-        this.authCredentialsProvider.invalidateToken(), this.appCheckCredentialsProvider.invalidateToken()), 
+        this.authCredentialsProvider.invalidateToken(), this.appCheckCredentialsProvider.invalidateToken()),
         // Clean up the underlying stream because we are no longer interested in events.
-        null !== this.stream && (this.W_(), this.stream.close(), this.stream = null), 
+        null !== this.stream && (this.W_(), this.stream.close(), this.stream = null),
         // This state must be assigned before calling onClose() to allow the callback to
         // inhibit backoff or otherwise manipulate the state in its non-started state.
-        this.state = e, 
+        this.state = e,
         // Notify the listener that the stream closed.
         await this.listener.t_(t);
     }
@@ -16235,7 +16235,7 @@ class __PRIVATE_PersistentStream {
             // TODO(mikelehen): We really should just use dispatchIfNotClosed
             // and let this dispatch onto the queue, but that opened a spec test can
             // of worms that I don't want to deal with in this PR.
-            this.D_ === t && 
+            this.D_ === t &&
             // Normally we'd have to schedule the callback on the AsyncQueue.
             // However, the following calls are safe to be called outside the
             // AsyncQueue since they don't chain asynchronous calls
@@ -16252,7 +16252,7 @@ class __PRIVATE_PersistentStream {
         this.stream = this.j_(e, t), this.stream.Zo((() => {
             n((() => this.listener.Zo()));
         })), this.stream.Yo((() => {
-            n((() => (this.state = 2 /* PersistentStreamState.Open */ , this.v_ = this.Ci.enqueueAfterDelay(this.S_, 1e4, (() => (this.O_() && (this.state = 3 /* PersistentStreamState.Healthy */), 
+            n((() => (this.state = 2 /* PersistentStreamState.Open */ , this.v_ = this.Ci.enqueueAfterDelay(this.S_, 1e4, (() => (this.O_() && (this.state = 3 /* PersistentStreamState.Healthy */),
             Promise.resolve()))), this.listener.Yo())));
         })), this.stream.t_((e => {
             n((() => this.z_(e)));
@@ -16280,7 +16280,7 @@ class __PRIVATE_PersistentStream {
      * re-opened, etc.
      */    Q_(e) {
         return t => {
-            this.Ci.enqueueAndForget((() => this.D_ === e ? t() : (__PRIVATE_logDebug(jt, "stream callback skipped by getCloseGuardedDispatcher."), 
+            this.Ci.enqueueAndForget((() => this.D_ === e ? t() : (__PRIVATE_logDebug(jt, "stream callback skipped by getCloseGuardedDispatcher."),
             Promise.resolve())));
         };
     }
@@ -16294,7 +16294,7 @@ class __PRIVATE_PersistentStream {
  * sent from the server for ListenResponses.
  */ class __PRIVATE_PersistentListenStream extends __PRIVATE_PersistentStream {
     constructor(e, t, n, r, i, s) {
-        super(e, "listen_stream_connection_backoff" /* TimerId.ListenStreamConnectionBackoff */ , "listen_stream_idle" /* TimerId.ListenStreamIdle */ , "health_check_timeout" /* TimerId.HealthCheckTimeout */ , t, n, r, s), 
+        super(e, "listen_stream_connection_backoff" /* TimerId.ListenStreamConnectionBackoff */ , "listen_stream_idle" /* TimerId.ListenStreamIdle */ , "health_check_timeout" /* TimerId.HealthCheckTimeout */ , t, n, r, s),
         this.serializer = i;
     }
     j_(e, t) {
@@ -16352,7 +16352,7 @@ class __PRIVATE_PersistentStream {
      * given targetId.
      */    X_(e) {
         const t = {};
-        t.database = __PRIVATE_getEncodedDatabaseId(this.serializer), t.removeTarget = e, 
+        t.database = __PRIVATE_getEncodedDatabaseId(this.serializer), t.removeTarget = e,
         this.K_(t);
     }
 }
@@ -16375,7 +16375,7 @@ class __PRIVATE_PersistentStream {
  * TODO(b/33271235): Use proto types
  */ class __PRIVATE_PersistentWriteStream extends __PRIVATE_PersistentStream {
     constructor(e, t, n, r, i, s) {
-        super(e, "write_stream_connection_backoff" /* TimerId.WriteStreamConnectionBackoff */ , "write_stream_idle" /* TimerId.WriteStreamIdle */ , "health_check_timeout" /* TimerId.HealthCheckTimeout */ , t, n, r, s), 
+        super(e, "write_stream_connection_backoff" /* TimerId.WriteStreamConnectionBackoff */ , "write_stream_idle" /* TimerId.WriteStreamIdle */ , "health_check_timeout" /* TimerId.HealthCheckTimeout */ , t, n, r, s),
         this.serializer = i;
     }
     /**
@@ -16396,13 +16396,13 @@ class __PRIVATE_PersistentStream {
     }
     H_(e) {
         // Always capture the last stream token.
-        return __PRIVATE_hardAssert(!!e.streamToken, 31322), this.lastStreamToken = e.streamToken, 
+        return __PRIVATE_hardAssert(!!e.streamToken, 31322), this.lastStreamToken = e.streamToken,
         // The first response is always the handshake response
         __PRIVATE_hardAssert(!e.writeResults || 0 === e.writeResults.length, 55816), this.listener.ta();
     }
     onNext(e) {
         // Always capture the last stream token.
-        __PRIVATE_hardAssert(!!e.streamToken, 12678), this.lastStreamToken = e.streamToken, 
+        __PRIVATE_hardAssert(!!e.streamToken, 12678), this.lastStreamToken = e.streamToken,
         // A successful first write response means the stream is healthy,
         // Note, that we could consider a successful handshake healthy, however,
         // the write itself might be causing an error we want to back off from.
@@ -16456,7 +16456,7 @@ class __PRIVATE_PersistentStream {
  * consumption.
  */ class __PRIVATE_DatastoreImpl extends Datastore {
     constructor(e, t, n, r) {
-        super(), this.authCredentials = e, this.appCheckCredentials = t, this.connection = n, 
+        super(), this.authCredentials = e, this.appCheckCredentials = t, this.connection = n,
         this.serializer = r, this.ia = !1;
     }
     sa() {
@@ -16464,13 +16464,13 @@ class __PRIVATE_PersistentStream {
     }
     /** Invokes the provided RPC with auth and AppCheck tokens. */    Wo(e, t, n, r) {
         return this.sa(), Promise.all([ this.authCredentials.getToken(), this.appCheckCredentials.getToken() ]).then((([i, s]) => this.connection.Wo(e, __PRIVATE_toResourcePath(t, n), r, i, s))).catch((e => {
-            throw "FirebaseError" === e.name ? (e.code === C.UNAUTHENTICATED && (this.authCredentials.invalidateToken(), 
+            throw "FirebaseError" === e.name ? (e.code === C.UNAUTHENTICATED && (this.authCredentials.invalidateToken(),
             this.appCheckCredentials.invalidateToken()), e) : new FirestoreError(C.UNKNOWN, e.toString());
         }));
     }
     /** Invokes the provided RPC with streamed results with auth and AppCheck tokens. */    jo(e, t, n, r, i) {
         return this.sa(), Promise.all([ this.authCredentials.getToken(), this.appCheckCredentials.getToken() ]).then((([s, o]) => this.connection.jo(e, __PRIVATE_toResourcePath(t, n), r, s, o, i))).catch((e => {
-            throw "FirebaseError" === e.name ? (e.code === C.UNAUTHENTICATED && (this.authCredentials.invalidateToken(), 
+            throw "FirebaseError" === e.name ? (e.code === C.UNAUTHENTICATED && (this.authCredentials.invalidateToken(),
             this.appCheckCredentials.invalidateToken()), e) : new FirestoreError(C.UNKNOWN, e.toString());
         }));
     }
@@ -16498,21 +16498,21 @@ function __PRIVATE_newDatastore(e, t, n, r) {
  */
 class __PRIVATE_OnlineStateTracker {
     constructor(e, t) {
-        this.asyncQueue = e, this.onlineStateHandler = t, 
+        this.asyncQueue = e, this.onlineStateHandler = t,
         /** The current OnlineState. */
-        this.state = "Unknown" /* OnlineState.Unknown */ , 
+        this.state = "Unknown" /* OnlineState.Unknown */ ,
         /**
          * A count of consecutive failures to open the stream. If it reaches the
          * maximum defined by MAX_WATCH_STREAM_FAILURES, we'll set the OnlineState to
          * Offline.
          */
-        this.oa = 0, 
+        this.oa = 0,
         /**
          * A timer that elapses after ONLINE_STATE_TIMEOUT_MS, at which point we
          * transition from OnlineState.Unknown to OnlineState.Offline without waiting
          * for the stream to actually fail (MAX_WATCH_STREAM_FAILURES times).
          */
-        this._a = null, 
+        this._a = null,
         /**
          * Whether the client should log a warning message if it fails to connect to
          * the backend (initially true, cleared after a successful stream, or if we've
@@ -16527,8 +16527,8 @@ class __PRIVATE_OnlineStateTracker {
      * If this is the first attempt, it sets the OnlineState to Unknown and starts
      * the onlineStateTimer.
      */    ua() {
-        0 === this.oa && (this.ca("Unknown" /* OnlineState.Unknown */), this._a = this.asyncQueue.enqueueAfterDelay("online_state_timeout" /* TimerId.OnlineStateTimeout */ , 1e4, (() => (this._a = null, 
-        this.la("Backend didn't respond within 10 seconds."), this.ca("Offline" /* OnlineState.Offline */), 
+        0 === this.oa && (this.ca("Unknown" /* OnlineState.Unknown */), this._a = this.asyncQueue.enqueueAfterDelay("online_state_timeout" /* TimerId.OnlineStateTimeout */ , 1e4, (() => (this._a = null,
+        this.la("Backend didn't respond within 10 seconds."), this.ca("Offline" /* OnlineState.Offline */),
         Promise.resolve()))));
     }
     /**
@@ -16537,8 +16537,8 @@ class __PRIVATE_OnlineStateTracker {
      * allow multiple failures (based on MAX_WATCH_STREAM_FAILURES) before we
      * actually transition to the 'Offline' state.
      */    ha(e) {
-        "Online" /* OnlineState.Online */ === this.state ? this.ca("Unknown" /* OnlineState.Unknown */) : (this.oa++, 
-        this.oa >= 1 && (this.Pa(), this.la(`Connection failed 1 times. Most recent error: ${e.toString()}`), 
+        "Online" /* OnlineState.Online */ === this.state ? this.ca("Unknown" /* OnlineState.Unknown */) : (this.oa++,
+        this.oa >= 1 && (this.Pa(), this.la(`Connection failed 1 times. Most recent error: ${e.toString()}`),
         this.ca("Offline" /* OnlineState.Offline */)));
     }
     /**
@@ -16588,10 +16588,10 @@ class __PRIVATE_RemoteStoreImpl {
     /**
      * The local store, used to fill the write pipeline with outbound mutations.
      */
-    e, 
+    e,
     /** The client-side proxy for interacting with the backend. */
     t, n, r, i) {
-        this.localStore = e, this.datastore = t, this.asyncQueue = n, this.remoteSyncer = {}, 
+        this.localStore = e, this.datastore = t, this.asyncQueue = n, this.remoteSyncer = {},
         /**
          * A list of up to MAX_PENDING_WRITES writes that we have fetched from the
          * LocalStore via fillWritePipeline() and have or will send to the write
@@ -16609,7 +16609,7 @@ class __PRIVATE_RemoteStoreImpl {
          * purely based on order, and so we can just shift() writes from the front of
          * the writePipeline as we receive responses.
          */
-        this.Ta = [], 
+        this.Ta = [],
         /**
          * A mapping of watched targets that the client cares about tracking and the
          * user has explicitly called a 'listen' for this target.
@@ -16619,12 +16619,12 @@ class __PRIVATE_RemoteStoreImpl {
          * to the server. The targets removed with unlistens are removed eagerly
          * without waiting for confirmation from the listen stream.
          */
-        this.Ia = new Map, 
+        this.Ia = new Map,
         /**
          * A set of reasons for why the RemoteStore may be offline. If empty, the
          * RemoteStore may start its network connections.
          */
-        this.Ea = new Set, 
+        this.Ea = new Set,
         /**
          * Event handlers that get called when the network is disabled or enabled.
          *
@@ -16637,11 +16637,11 @@ class __PRIVATE_RemoteStoreImpl {
                 // Porting Note: Unlike iOS, `restartNetwork()` is called even when the
                 // network becomes unreachable as we don't have any other way to tear
                 // down our streams.
-                __PRIVATE_canUseNetwork(this) && (__PRIVATE_logDebug(Ht, "Restarting streams for network reachability change."), 
+                __PRIVATE_canUseNetwork(this) && (__PRIVATE_logDebug(Ht, "Restarting streams for network reachability change."),
                 await async function __PRIVATE_restartNetwork(e) {
                     const t = __PRIVATE_debugCast(e);
-                    t.Ea.add(4 /* OfflineCause.ConnectivityChange */), await __PRIVATE_disableNetworkInternal(t), 
-                    t.Va.set("Unknown" /* OnlineState.Unknown */), t.Ea.delete(4 /* OfflineCause.ConnectivityChange */), 
+                    t.Ea.add(4 /* OfflineCause.ConnectivityChange */), await __PRIVATE_disableNetworkInternal(t),
+                    t.Va.set("Unknown" /* OnlineState.Unknown */), t.Ea.delete(4 /* OfflineCause.ConnectivityChange */),
                     await __PRIVATE_enableNetworkInternal(t);
                 }(this));
             }));
@@ -16668,7 +16668,7 @@ function __PRIVATE_remoteStoreListen(e, t) {
     const n = __PRIVATE_debugCast(e);
     n.Ia.has(t.targetId) || (
     // Mark this as something the client is currently listening for.
-    n.Ia.set(t.targetId, t), __PRIVATE_shouldStartWatchStream(n) ? 
+    n.Ia.set(t.targetId, t), __PRIVATE_shouldStartWatchStream(n) ?
     // The listen will be sent in onWatchStreamOpen
     __PRIVATE_startWatchStream(n) : __PRIVATE_ensureWatchStream(n).O_() && __PRIVATE_sendWatchRequest(n, t));
 }
@@ -16678,7 +16678,7 @@ function __PRIVATE_remoteStoreListen(e, t) {
  * not being listened to.
  */ function __PRIVATE_remoteStoreUnlisten(e, t) {
     const n = __PRIVATE_debugCast(e), r = __PRIVATE_ensureWatchStream(n);
-    n.Ia.delete(t), r.O_() && __PRIVATE_sendUnwatchRequest(n, t), 0 === n.Ia.size && (r.O_() ? r.L_() : __PRIVATE_canUseNetwork(n) && 
+    n.Ia.delete(t), r.O_() && __PRIVATE_sendUnwatchRequest(n, t), 0 === n.Ia.size && (r.O_() ? r.L_() : __PRIVATE_canUseNetwork(n) &&
     // Revert to OnlineState.Unknown if the watch stream is not open and we
     // have no listeners, since without any listens to send we cannot
     // confirm if the stream is healthy and upgrade to OnlineState.Online.
@@ -16739,9 +16739,9 @@ async function __PRIVATE_onWatchStreamOpen(e) {
 }
 
 async function __PRIVATE_onWatchStreamClose(e, t) {
-    __PRIVATE_cleanUpWatchStreamState(e), 
+    __PRIVATE_cleanUpWatchStreamState(e),
     // If we still need the watch stream, retry the connection.
-    __PRIVATE_shouldStartWatchStream(e) ? (e.Va.ha(t), __PRIVATE_startWatchStream(e)) : 
+    __PRIVATE_shouldStartWatchStream(e) ? (e.Va.ha(t), __PRIVATE_startWatchStream(e)) :
     // No need to restart watch stream because there are no active targets.
     // The online state is set to unknown because there is no active attempt
     // at establishing a connection
@@ -16751,14 +16751,14 @@ async function __PRIVATE_onWatchStreamClose(e, t) {
 async function __PRIVATE_onWatchStreamChange(e, t, n) {
     if (
     // Mark the client as online since we got a message from the server
-    e.Va.set("Online" /* OnlineState.Online */), t instanceof __PRIVATE_WatchTargetChange && 2 /* WatchTargetChangeState.Removed */ === t.state && t.cause) 
+    e.Va.set("Online" /* OnlineState.Online */), t instanceof __PRIVATE_WatchTargetChange && 2 /* WatchTargetChangeState.Removed */ === t.state && t.cause)
     // There was an error on a target, don't wait for a consistent snapshot
     // to raise events
     try {
         /** Handles an error on a target */
         await async function __PRIVATE_handleTargetError(e, t) {
             const n = t.cause;
-            for (const r of t.targetIds) 
+            for (const r of t.targetIds)
             // A watched target might have been removed already.
             e.Ia.has(r) && (await e.remoteSyncer.rejectListen(r, n), e.Ia.delete(r), e.da.removeTarget(r));
         }
@@ -16771,12 +16771,12 @@ async function __PRIVATE_onWatchStreamChange(e, t, n) {
  * Starts the write stream if necessary.
  */ (e, t);
     } catch (n) {
-        __PRIVATE_logDebug(Ht, "Failed to remove targets %s: %s ", t.targetIds.join(","), n), 
+        __PRIVATE_logDebug(Ht, "Failed to remove targets %s: %s ", t.targetIds.join(","), n),
         await __PRIVATE_disableNetworkUntilRecovery(e, n);
-    } else if (t instanceof __PRIVATE_DocumentWatchChange ? e.da.Xe(t) : t instanceof __PRIVATE_ExistenceFilterChange ? e.da.st(t) : e.da.tt(t), 
+    } else if (t instanceof __PRIVATE_DocumentWatchChange ? e.da.Xe(t) : t instanceof __PRIVATE_ExistenceFilterChange ? e.da.st(t) : e.da.tt(t),
     !n.isEqual(SnapshotVersion.min())) try {
         const t = await __PRIVATE_localStoreGetLastRemoteSnapshotVersion(e.localStore);
-        n.compareTo(t) >= 0 && 
+        n.compareTo(t) >= 0 &&
         // We have received a target change with a global snapshot if the snapshot
         // version is not equal to SnapshotVersion.min().
         /**
@@ -16794,17 +16794,17 @@ async function __PRIVATE_onWatchStreamChange(e, t, n) {
                     // A watched target might have been removed already.
                                         i && e.Ia.set(r, i.withResumeToken(n.resumeToken, t));
                 }
-            })), 
+            })),
             // Re-establish listens for the targets that have been invalidated by
             // existence filter mismatches.
             n.targetMismatches.forEach(((t, n) => {
                 const r = e.Ia.get(t);
-                if (!r) 
+                if (!r)
                 // A watched target might have been removed already.
                 return;
                 // Clear the resume token for the target, since we're in a known mismatch
                 // state.
-                                e.Ia.set(t, r.withResumeToken(ByteString.EMPTY_BYTE_STRING, r.snapshotVersion)), 
+                                e.Ia.set(t, r.withResumeToken(ByteString.EMPTY_BYTE_STRING, r.snapshotVersion)),
                 // Cause a hard reset by unwatching and rewatching immediately, but
                 // deliberately don't send a resume token so that we get a full update.
                 __PRIVATE_sendUnwatchRequest(e, t);
@@ -16831,17 +16831,17 @@ async function __PRIVATE_onWatchStreamChange(e, t, n) {
  * any retry attempt.
  */ async function __PRIVATE_disableNetworkUntilRecovery(e, t, n) {
     if (!__PRIVATE_isIndexedDbTransactionError(t)) throw t;
-    e.Ea.add(1 /* OfflineCause.IndexedDbFailed */), 
+    e.Ea.add(1 /* OfflineCause.IndexedDbFailed */),
     // Disable network and raise offline snapshots
-    await __PRIVATE_disableNetworkInternal(e), e.Va.set("Offline" /* OnlineState.Offline */), 
+    await __PRIVATE_disableNetworkInternal(e), e.Va.set("Offline" /* OnlineState.Offline */),
     n || (
     // Use a simple read operation to determine if IndexedDB recovered.
     // Ideally, we would expose a health check directly on SimpleDb, but
     // RemoteStore only has access to persistence through LocalStore.
-    n = () => __PRIVATE_localStoreGetLastRemoteSnapshotVersion(e.localStore)), 
+    n = () => __PRIVATE_localStoreGetLastRemoteSnapshotVersion(e.localStore)),
     // Probe IndexedDB periodically and re-enable network
     e.asyncQueue.enqueueRetryable((async () => {
-        __PRIVATE_logDebug(Ht, "Retrying IndexedDB access"), await n(), e.Ea.delete(1 /* OfflineCause.IndexedDbFailed */), 
+        __PRIVATE_logDebug(Ht, "Retrying IndexedDB access"), await n(), e.Ea.delete(1 /* OfflineCause.IndexedDbFailed */),
         await __PRIVATE_enableNetworkInternal(e);
     }));
 }
@@ -16905,7 +16905,7 @@ async function __PRIVATE_onWriteHandshakeComplete(e) {
 
 async function __PRIVATE_onMutationResult(e, t, n) {
     const r = e.Ta.shift(), i = MutationBatchResult.from(r, t, n);
-    await __PRIVATE_executeWithRecovery(e, (() => e.remoteSyncer.applySuccessfulWrite(i))), 
+    await __PRIVATE_executeWithRecovery(e, (() => e.remoteSyncer.applySuccessfulWrite(i))),
     // It's possible that with the completion of this mutation another
     // slot has freed up.
     await __PRIVATE_fillWritePipeline(e);
@@ -16914,7 +16914,7 @@ async function __PRIVATE_onMutationResult(e, t, n) {
 async function __PRIVATE_onWriteStreamClose(e, t) {
     // If the write stream closed after the write handshake completes, a write
     // operation failed and we fail the pending operation.
-    t && __PRIVATE_ensureWriteStream(e).Y_ && 
+    t && __PRIVATE_ensureWriteStream(e).Y_ &&
     // This error affects the actual write.
     await async function __PRIVATE_handleWriteError(e, t) {
         // Only handle permanent errors here. If it's transient, just let the retry
@@ -16928,12 +16928,12 @@ async function __PRIVATE_onWriteStreamClose(e, t) {
             // In this case it's also unlikely that the server itself is melting
             // down -- this was just a bad request so inhibit backoff on the next
             // restart.
-                        __PRIVATE_ensureWriteStream(e).B_(), await __PRIVATE_executeWithRecovery(e, (() => e.remoteSyncer.rejectFailedWrite(n.batchId, t))), 
+                        __PRIVATE_ensureWriteStream(e).B_(), await __PRIVATE_executeWithRecovery(e, (() => e.remoteSyncer.rejectFailedWrite(n.batchId, t))),
             // It's possible that with the completion of this mutation
             // another slot has freed up.
             await __PRIVATE_fillWritePipeline(e);
         }
-    }(e, t), 
+    }(e, t),
     // The write stream might have been started by refilling the write
     // pipeline for failed writes
     __PRIVATE_shouldStartWriteStream(e) && __PRIVATE_startWriteStream(e);
@@ -16946,10 +16946,10 @@ async function __PRIVATE_remoteStoreHandleCredentialChange(e, t) {
     // Tear down and re-create our network streams. This will ensure we get a
     // fresh auth token for the new user and re-fill the write pipeline with
     // new mutations from the LocalStore (since mutations are per-user).
-        n.Ea.add(3 /* OfflineCause.CredentialChange */), await __PRIVATE_disableNetworkInternal(n), 
-    r && 
+        n.Ea.add(3 /* OfflineCause.CredentialChange */), await __PRIVATE_disableNetworkInternal(n),
+    r &&
     // Don't set the network status to Unknown if we are offline.
-    n.Va.set("Unknown" /* OnlineState.Unknown */), await n.remoteSyncer.handleCredentialChange(t), 
+    n.Va.set("Unknown" /* OnlineState.Unknown */), await n.remoteSyncer.handleCredentialChange(t),
     n.Ea.delete(3 /* OfflineCause.CredentialChange */), await __PRIVATE_enableNetworkInternal(n);
 }
 
@@ -16957,7 +16957,7 @@ async function __PRIVATE_remoteStoreHandleCredentialChange(e, t) {
  * Toggles the network state when the client gains or loses its primary lease.
  */ async function __PRIVATE_remoteStoreApplyPrimaryState(e, t) {
     const n = __PRIVATE_debugCast(e);
-    t ? (n.Ea.delete(2 /* OfflineCause.IsSecondary */), await __PRIVATE_enableNetworkInternal(n)) : t || (n.Ea.add(2 /* OfflineCause.IsSecondary */), 
+    t ? (n.Ea.delete(2 /* OfflineCause.IsSecondary */), await __PRIVATE_enableNetworkInternal(n)) : t || (n.Ea.add(2 /* OfflineCause.IsSecondary */),
     await __PRIVATE_disableNetworkInternal(n), n.Va.set("Unknown" /* OnlineState.Unknown */));
 }
 
@@ -16996,7 +16996,7 @@ async function __PRIVATE_remoteStoreHandleCredentialChange(e, t) {
         t_: __PRIVATE_onWatchStreamClose.bind(null, e),
         J_: __PRIVATE_onWatchStreamChange.bind(null, e)
     }), e.Ra.push((async t => {
-        t ? (e.ma.B_(), __PRIVATE_shouldStartWatchStream(e) ? __PRIVATE_startWatchStream(e) : e.Va.set("Unknown" /* OnlineState.Unknown */)) : (await e.ma.stop(), 
+        t ? (e.ma.B_(), __PRIVATE_shouldStartWatchStream(e) ? __PRIVATE_startWatchStream(e) : e.Va.set("Unknown" /* OnlineState.Unknown */)) : (await e.ma.stop(),
         __PRIVATE_cleanUpWatchStreamState(e));
     }))), e.ma;
 }
@@ -17021,9 +17021,9 @@ async function __PRIVATE_remoteStoreHandleCredentialChange(e, t) {
         ta: __PRIVATE_onWriteHandshakeComplete.bind(null, e),
         na: __PRIVATE_onMutationResult.bind(null, e)
     }), e.Ra.push((async t => {
-        t ? (e.fa.B_(), 
+        t ? (e.fa.B_(),
         // This will start the write stream if necessary.
-        await __PRIVATE_fillWritePipeline(e)) : (await e.fa.stop(), e.Ta.length > 0 && (__PRIVATE_logDebug(Ht, `Stopping write stream with ${e.Ta.length} pending writes`), 
+        await __PRIVATE_fillWritePipeline(e)) : (await e.fa.stop(), e.Ta.length > 0 && (__PRIVATE_logDebug(Ht, `Stopping write stream with ${e.Ta.length} pending writes`),
         e.Ta = []));
     }))), e.fa;
 }
@@ -17057,8 +17057,8 @@ async function __PRIVATE_remoteStoreHandleCredentialChange(e, t) {
  */
 class DelayedOperation {
     constructor(e, t, n, r, i) {
-        this.asyncQueue = e, this.timerId = t, this.targetTimeMs = n, this.op = r, this.removalCallback = i, 
-        this.deferred = new __PRIVATE_Deferred, this.then = this.deferred.promise.then.bind(this.deferred.promise), 
+        this.asyncQueue = e, this.timerId = t, this.targetTimeMs = n, this.op = r, this.removalCallback = i,
+        this.deferred = new __PRIVATE_Deferred, this.then = this.deferred.promise.then.bind(this.deferred.promise),
         // It's normal for the deferred promise to be canceled (due to cancellation)
         // and so we attach a dummy catch callback to avoid
         // 'UnhandledPromiseRejectionWarning' log spam.
@@ -17106,11 +17106,11 @@ class DelayedOperation {
         null !== this.timerHandle && (this.clearTimeout(), this.deferred.reject(new FirestoreError(C.CANCELLED, "Operation cancelled" + (e ? ": " + e : ""))));
     }
     handleDelayElapsed() {
-        this.asyncQueue.enqueueAndForget((() => null !== this.timerHandle ? (this.clearTimeout(), 
+        this.asyncQueue.enqueueAndForget((() => null !== this.timerHandle ? (this.clearTimeout(),
         this.op().then((e => this.deferred.resolve(e)))) : Promise.resolve()));
     }
     clearTimeout() {
-        null !== this.timerHandle && (this.removalCallback(this), clearTimeout(this.timerHandle), 
+        null !== this.timerHandle && (this.removalCallback(this), clearTimeout(this.timerHandle),
         this.timerHandle = null);
     }
 }
@@ -17155,7 +17155,7 @@ class DelayedOperation {
     /** The default ordering is by key if the comparator is omitted */    constructor(e) {
         // We are adding document key comparator to the end as it's the only
         // guaranteed unique property of a document.
-        this.comparator = e ? (t, n) => e(t, n) || DocumentKey.comparator(t.key, n.key) : (e, t) => DocumentKey.comparator(e.key, t.key), 
+        this.comparator = e ? (t, n) => e(t, n) || DocumentKey.comparator(t.key, n.key) : (e, t) => DocumentKey.comparator(e.key, t.key),
         this.keyedMap = documentMap(), this.sortedSet = new SortedMap(this.comparator);
     }
     has(e) {
@@ -17242,7 +17242,7 @@ class DelayedOperation {
     }
     track(e) {
         const t = e.doc.key, n = this.ga.get(t);
-        n ? 
+        n ?
         // Merge the new change with the existing change.
         0 /* ChangeType.Added */ !== e.type && 3 /* ChangeType.Metadata */ === n.type ? this.ga = this.ga.insert(t, e) : 3 /* ChangeType.Metadata */ === e.type && 1 /* ChangeType.Removed */ !== n.type ? this.ga = this.ga.insert(t, {
             type: n.type,
@@ -17259,7 +17259,7 @@ class DelayedOperation {
         }) : 0 /* ChangeType.Added */ === e.type && 1 /* ChangeType.Removed */ === n.type ? this.ga = this.ga.insert(t, {
             type: 2 /* ChangeType.Modified */ ,
             doc: e.doc
-        }) : 
+        }) :
         // This includes these cases, which don't make sense:
         // Added->Added
         // Removed->Removed
@@ -17282,8 +17282,8 @@ class DelayedOperation {
 
 class ViewSnapshot {
     constructor(e, t, n, r, i, s, o, _, a) {
-        this.query = e, this.docs = t, this.oldDocs = n, this.docChanges = r, this.mutatedKeys = i, 
-        this.fromCache = s, this.syncStateChanged = o, this.excludesMetadataChanges = _, 
+        this.query = e, this.docs = t, this.oldDocs = n, this.docChanges = r, this.mutatedKeys = i,
+        this.fromCache = s, this.syncStateChanged = o, this.excludesMetadataChanges = _,
         this.hasCachedResults = a;
     }
     /** Returns a view snapshot as if all documents in the snapshot were added. */    static fromInitialDocuments(e, t, n, r, i) {
@@ -17293,8 +17293,8 @@ class ViewSnapshot {
                 type: 0 /* ChangeType.Added */ ,
                 doc: e
             });
-        })), new ViewSnapshot(e, t, DocumentSet.emptySet(t), s, n, r, 
-        /* syncStateChanged= */ !0, 
+        })), new ViewSnapshot(e, t, DocumentSet.emptySet(t), s, n, r,
+        /* syncStateChanged= */ !0,
         /* excludesMetadataChanges= */ !1, i);
     }
     get hasPendingWrites() {
@@ -17340,7 +17340,7 @@ class ViewSnapshot {
 
 class __PRIVATE_EventManagerImpl {
     constructor() {
-        this.queries = __PRIVATE_newQueriesObjectMap(), this.onlineState = "Unknown" /* OnlineState.Unknown */ , 
+        this.queries = __PRIVATE_newQueriesObjectMap(), this.onlineState = "Unknown" /* OnlineState.Unknown */ ,
         this.Ca = new Set;
     }
     terminate() {
@@ -17367,17 +17367,17 @@ async function __PRIVATE_eventManagerListen(e, t) {
     let s = n.queries.get(i);
     s ? !s.Sa() && t.Da() && (
     // Query has been listening to local cache, and tries to add a new listener sourced from watch.
-    r = 2 /* ListenerSetupAction.RequireWatchConnectionOnly */) : (s = new __PRIVATE_QueryListenersInfo, 
+    r = 2 /* ListenerSetupAction.RequireWatchConnectionOnly */) : (s = new __PRIVATE_QueryListenersInfo,
     r = t.Da() ? 0 /* ListenerSetupAction.InitializeLocalListenAndRequireWatchConnection */ : 1 /* ListenerSetupAction.InitializeLocalListenOnly */);
     try {
         switch (r) {
           case 0 /* ListenerSetupAction.InitializeLocalListenAndRequireWatchConnection */ :
-            s.wa = await n.onListen(i, 
+            s.wa = await n.onListen(i,
             /** enableRemoteListen= */ !0);
             break;
 
           case 1 /* ListenerSetupAction.InitializeLocalListenOnly */ :
-            s.wa = await n.onListen(i, 
+            s.wa = await n.onListen(i,
             /** enableRemoteListen= */ !1);
             break;
 
@@ -17388,7 +17388,7 @@ async function __PRIVATE_eventManagerListen(e, t) {
         const n = __PRIVATE_wrapInUserErrorIfRecoverable(e, `Initialization of query '${__PRIVATE_stringifyQuery(t.query)}' failed`);
         return void t.onError(n);
     }
-    if (n.queries.set(i, s), s.ba.push(t), 
+    if (n.queries.set(i, s), s.ba.push(t),
     // Run global snapshot listeners if a consistent snapshot has been emitted.
     t.va(n.onlineState), s.wa) {
         t.Fa(s.wa) && __PRIVATE_raiseSnapshotsInSyncEvent(n);
@@ -17407,11 +17407,11 @@ async function __PRIVATE_eventManagerUnlisten(e, t) {
     }
     switch (i) {
       case 0 /* ListenerRemovalAction.TerminateLocalListenAndRequireWatchDisconnection */ :
-        return n.queries.delete(r), n.onUnlisten(r, 
+        return n.queries.delete(r), n.onUnlisten(r,
         /** disableRemoteListen= */ !0);
 
       case 1 /* ListenerRemovalAction.TerminateLocalListenOnly */ :
-        return n.queries.delete(r), n.onUnlisten(r, 
+        return n.queries.delete(r), n.onUnlisten(r,
         /** disableRemoteListen= */ !1);
 
       case 2 /* ListenerRemovalAction.RequireWatchDisconnectionOnly */ :
@@ -17452,7 +17452,7 @@ function __PRIVATE_raiseSnapshotsInSyncEvent(e) {
 var Jt, Zt;
 
 /** Listen to both cache and server changes */
-(Zt = Jt || (Jt = {})).Ma = "default", 
+(Zt = Jt || (Jt = {})).Ma = "default",
 /** Listen to changes in cache only */
 Zt.Cache = "cache";
 
@@ -17464,12 +17464,12 @@ Zt.Cache = "cache";
  */
 class __PRIVATE_QueryListener {
     constructor(e, t, n) {
-        this.query = e, this.xa = t, 
+        this.query = e, this.xa = t,
         /**
          * Initial snapshots (e.g. from cache) may not be propagated to the wrapped
          * observer. This flag is set to true once we've actually raised an event.
          */
-        this.Oa = !1, this.Na = null, this.onlineState = "Unknown" /* OnlineState.Unknown */ , 
+        this.Oa = !1, this.Na = null, this.onlineState = "Unknown" /* OnlineState.Unknown */ ,
         this.options = n || {};
     }
     /**
@@ -17482,11 +17482,11 @@ class __PRIVATE_QueryListener {
             // Remove the metadata only changes.
             const t = [];
             for (const n of e.docChanges) 3 /* ChangeType.Metadata */ !== n.type && t.push(n);
-            e = new ViewSnapshot(e.query, e.docs, e.oldDocs, t, e.mutatedKeys, e.fromCache, e.syncStateChanged, 
+            e = new ViewSnapshot(e.query, e.docs, e.oldDocs, t, e.mutatedKeys, e.fromCache, e.syncStateChanged,
             /* excludesMetadataChanges= */ !0, e.hasCachedResults);
         }
         let t = !1;
-        return this.Oa ? this.Ba(e) && (this.xa.next(e), t = !0) : this.La(e, this.onlineState) && (this.ka(e), 
+        return this.Oa ? this.Ba(e) && (this.xa.next(e), t = !0) : this.La(e, this.onlineState) && (this.ka(e),
         t = !0), this.Na = e, t;
     }
     onError(e) {
@@ -17495,7 +17495,7 @@ class __PRIVATE_QueryListener {
     /** Returns whether a snapshot was raised. */    va(e) {
         this.onlineState = e;
         let t = !1;
-        return this.Na && !this.Oa && this.La(this.Na, e) && (this.ka(this.Na), t = !0), 
+        return this.Na && !this.Oa && this.La(this.Na, e) && (this.ka(this.Na), t = !0),
         t;
     }
     La(e, t) {
@@ -17525,7 +17525,7 @@ class __PRIVATE_QueryListener {
         // stripped out.
         }
     ka(e) {
-        e = ViewSnapshot.fromInitialDocuments(e.query, e.docs, e.mutatedKeys, e.fromCache, e.hasCachedResults), 
+        e = ViewSnapshot.fromInitialDocuments(e.query, e.docs, e.mutatedKeys, e.fromCache, e.hasCachedResults),
         this.Oa = !0, this.xa.next(e);
     }
     Da() {
@@ -17553,7 +17553,7 @@ class __PRIVATE_QueryListener {
  * A complete element in the bundle stream, together with the byte length it
  * occupies in the stream.
  */ class __PRIVATE_SizedBundleElement {
-    constructor(e, 
+    constructor(e,
     // How many bytes this element takes to store in the bundle.
     t) {
         this.qa = e, this.byteLength = t;
@@ -17603,11 +17603,11 @@ class __PRIVATE_QueryListener {
  * storage and provide progress update while loading.
  */ class __PRIVATE_BundleLoader {
     constructor(e, t) {
-        this.$a = e, this.serializer = t, 
+        this.$a = e, this.serializer = t,
         /** Batched queries to be saved into storage */
-        this.Wa = [], 
+        this.Wa = [],
         /** Batched documents to be saved into storage */
-        this.Qa = [], 
+        this.Qa = [],
         /** The collection groups affected by this bundle. */
         this.collectionGroups = new Set, this.progress = __PRIVATE_bundleInitialProgress(e);
     }
@@ -17638,7 +17638,7 @@ class __PRIVATE_QueryListener {
             const n = ResourcePath.fromString(e.qa.documentMetadata.name);
             this.collectionGroups.add(n.get(n.length - 2));
         } else e.qa.document && (this.Qa[this.Qa.length - 1].document = e.qa.document, ++t);
-        return t !== this.progress.documentsLoaded ? (this.progress.documentsLoaded = t, 
+        return t !== this.progress.documentsLoaded ? (this.progress.documentsLoaded = t,
         {
             ...this.progress
         }) : null;
@@ -17717,21 +17717,21 @@ class __PRIVATE_RemovedLimboDocument {
  * a query. It gets notified of local and remote changes to docs, and applies
  * the query filters and limits to determine the most correct possible results.
  */ class __PRIVATE_View {
-    constructor(e, 
+    constructor(e,
     /** Documents included in the remote target */
     t) {
-        this.query = e, this.Za = t, this.Xa = null, this.hasCachedResults = !1, 
+        this.query = e, this.Za = t, this.Xa = null, this.hasCachedResults = !1,
         /**
          * A flag whether the view is current with the backend. A view is considered
          * current after it has seen the current flag from the backend and did not
          * lose consistency within the watch stream (e.g. because of an existence
          * filter mismatch).
          */
-        this.current = !1, 
+        this.current = !1,
         /** Documents in the view but not in the remote target */
-        this.Ya = __PRIVATE_documentKeySet(), 
+        this.Ya = __PRIVATE_documentKeySet(),
         /** Document Keys that have local changes */
-        this.mutatedKeys = __PRIVATE_documentKeySet(), this.eu = __PRIVATE_newQueryComparator(e), 
+        this.mutatedKeys = __PRIVATE_documentKeySet(), this.eu = __PRIVATE_newQueryComparator(e),
         this.tu = new DocumentSet(this.eu);
     }
     /**
@@ -17763,7 +17763,7 @@ class __PRIVATE_RemovedLimboDocument {
         const _ = "F" /* LimitType.First */ === this.query.limitType && r.size === this.query.limit ? r.last() : null, a = "L" /* LimitType.Last */ === this.query.limitType && r.size === this.query.limit ? r.first() : null;
         // Drop documents out to meet limit/limitToLast requirement.
         if (e.inorderTraversal(((e, t) => {
-            const u = r.get(e), c = __PRIVATE_queryMatches(this.query, t) ? t : null, l = !!u && this.mutatedKeys.has(u.key), h = !!c && (c.hasLocalMutations || 
+            const u = r.get(e), c = __PRIVATE_queryMatches(this.query, t) ? t : null, l = !!u && this.mutatedKeys.has(u.key), h = !!c && (c.hasLocalMutations ||
             // We only consider committed mutations for documents that were
             // mutated during the lifetime of the view.
             this.mutatedKeys.has(c.key) && c.hasCommittedMutations);
@@ -17881,7 +17881,7 @@ class __PRIVATE_RemovedLimboDocument {
         // with the backend, and the query is not pending to reset due to existence filter mismatch.
                 if (this.Xa = _, 0 !== s.length || a) {
             return {
-                snapshot: new ViewSnapshot(this.query, e.tu, i, s, e.mutatedKeys, 0 /* SyncState.Local */ === _, a, 
+                snapshot: new ViewSnapshot(this.query, e.tu, i, s, e.mutatedKeys, 0 /* SyncState.Local */ === _, a,
                 /* excludesMetadataChanges= */ !1, !!n && n.resumeToken.approximateByteSize() > 0),
                 au: o
             };
@@ -17905,7 +17905,7 @@ class __PRIVATE_RemovedLimboDocument {
             iu: new __PRIVATE_DocumentChangeSet,
             mutatedKeys: this.mutatedKeys,
             Ss: !1
-        }, 
+        },
         /* limboResolutionEnabled= */ !1)) : {
             au: []
         };
@@ -17922,7 +17922,7 @@ class __PRIVATE_RemovedLimboDocument {
      * Updates syncedDocuments, current, and limbo docs based on the given change.
      * Returns the list of changes to which docs are in limbo.
      */    ou(e) {
-        e && (e.addedDocuments.forEach((e => this.Za = this.Za.add(e))), e.modifiedDocuments.forEach((e => {})), 
+        e && (e.addedDocuments.forEach((e => this.Za = this.Za.add(e))), e.modifiedDocuments.forEach((e => {})),
         e.removedDocuments.forEach((e => this.Za = this.Za.delete(e))), this.current = e.current);
     }
     _u() {
@@ -17988,12 +17988,12 @@ const Xt = "SyncEngine";
     /**
      * The query itself.
      */
-    e, 
+    e,
     /**
      * The target number created by the client that is used in the watch
      * stream to identify this query.
      */
-    t, 
+    t,
     /**
      * The view is responsible for computing the final merged truth of what
      * docs are in the query. It gets notified of local and remote changes,
@@ -18007,7 +18007,7 @@ const Xt = "SyncEngine";
 
 /** Tracks a limbo resolution. */ class LimboResolution {
     constructor(e) {
-        this.key = e, 
+        this.key = e,
         /**
          * Set to true once we've received a document. This is used in
          * getRemoteKeysForTarget() and ultimately used by WatchChangeAggregator to
@@ -18031,12 +18031,12 @@ const Xt = "SyncEngine";
  * This is useful to implement optional features (like bundles) in free
  * functions, such that they are tree-shakeable.
  */ class __PRIVATE_SyncEngineImpl {
-    constructor(e, t, n, 
+    constructor(e, t, n,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     r, i, s) {
-        this.localStore = e, this.remoteStore = t, this.eventManager = n, this.sharedClientState = r, 
-        this.currentUser = i, this.maxConcurrentLimboResolutions = s, this.Pu = {}, this.Tu = new ObjectMap((e => __PRIVATE_canonifyQuery(e)), __PRIVATE_queryEquals), 
-        this.Iu = new Map, 
+        this.localStore = e, this.remoteStore = t, this.eventManager = n, this.sharedClientState = r,
+        this.currentUser = i, this.maxConcurrentLimboResolutions = s, this.Pu = {}, this.Tu = new ObjectMap((e => __PRIVATE_canonifyQuery(e)), __PRIVATE_queryEquals),
+        this.Iu = new Map,
         /**
          * The keys of documents that are in limbo for which we haven't yet started a
          * limbo resolution query. The strings in this set are the result of calling
@@ -18046,21 +18046,21 @@ const Xt = "SyncEngine";
          * of arbitrary elements and it also maintains insertion order, providing the
          * desired queue-like FIFO semantics.
          */
-        this.Eu = new Set, 
+        this.Eu = new Set,
         /**
          * Keeps track of the target ID for each document that is in limbo with an
          * active target.
          */
-        this.Ru = new SortedMap(DocumentKey.comparator), 
+        this.Ru = new SortedMap(DocumentKey.comparator),
         /**
          * Keeps track of the information about an active limbo resolution for each
          * active target ID that was started for the purpose of limbo resolution.
          */
-        this.Au = new Map, this.Vu = new __PRIVATE_ReferenceSet, 
+        this.Au = new Map, this.Vu = new __PRIVATE_ReferenceSet,
         /** Stores user completion handlers, indexed by User and BatchId. */
-        this.du = {}, 
+        this.du = {},
         /** Stores user callbacks waiting for all pending writes to be acknowledged. */
-        this.mu = new Map, this.fu = __PRIVATE_TargetIdGenerator.ar(), this.onlineState = "Unknown" /* OnlineState.Unknown */ , 
+        this.mu = new Map, this.fu = __PRIVATE_TargetIdGenerator.ar(), this.onlineState = "Unknown" /* OnlineState.Unknown */ ,
         // The primary state is set to `true` or `false` immediately after Firestore
         // startup. In the interim, a client should only be considered primary if
         // `isPrimary` is true.
@@ -18087,21 +18087,21 @@ async function __PRIVATE_syncEngineListen(e, t, n = !0) {
     // behalf of another tab and the user of the primary also starts listening
     // to the query. EventManager will not have an assigned target ID in this
     // case and calls `listen` to obtain this ID.
-    r.sharedClientState.addLocalQueryTarget(s.targetId), i = s.view.lu()) : i = await __PRIVATE_allocateTargetAndMaybeListen(r, t, n, 
+    r.sharedClientState.addLocalQueryTarget(s.targetId), i = s.view.lu()) : i = await __PRIVATE_allocateTargetAndMaybeListen(r, t, n,
     /** shouldInitializeView= */ !0), i;
 }
 
 /** Query has been listening to the cache, and tries to initiate the remote store listen */ async function __PRIVATE_triggerRemoteStoreListen(e, t) {
     const n = __PRIVATE_ensureWatchCallbacks(e);
-    await __PRIVATE_allocateTargetAndMaybeListen(n, t, 
-    /** shouldListenToRemote= */ !0, 
+    await __PRIVATE_allocateTargetAndMaybeListen(n, t,
+    /** shouldListenToRemote= */ !0,
     /** shouldInitializeView= */ !1);
 }
 
 async function __PRIVATE_allocateTargetAndMaybeListen(e, t, n, r) {
     const i = await __PRIVATE_localStoreAllocateTarget(e.localStore, __PRIVATE_queryToTarget(t)), s = i.targetId, o = e.sharedClientState.addLocalQueryTarget(s, n);
     let _;
-    return r && (_ = await __PRIVATE_initializeViewAndComputeSnapshot(e, t, s, "current" === o, i.resumeToken)), 
+    return r && (_ = await __PRIVATE_initializeViewAndComputeSnapshot(e, t, s, "current" === o, i.resumeToken)),
     e.isPrimaryClient && n && __PRIVATE_remoteStoreListen(e.remoteStore, i), _;
 }
 
@@ -18118,14 +18118,14 @@ async function __PRIVATE_allocateTargetAndMaybeListen(e, t, n, r) {
         // The query has a limit and some docs were removed, so we need
         // to re-run the query against the local store to make sure we
         // didn't lose any good docs that had been past the limit.
-        i = await __PRIVATE_localStoreExecuteQuery(e.localStore, t.query, 
+        i = await __PRIVATE_localStoreExecuteQuery(e.localStore, t.query,
         /* usePreviousResults= */ !1).then((({documents: e}) => t.view.ru(e, i))));
-        const s = r && r.targetChanges.get(t.targetId), o = r && null != r.targetMismatches.get(t.targetId), _ = t.view.applyChanges(i, 
+        const s = r && r.targetChanges.get(t.targetId), o = r && null != r.targetMismatches.get(t.targetId), _ = t.view.applyChanges(i,
         /* limboResolutionEnabled= */ e.isPrimaryClient, s, o);
         return __PRIVATE_updateTrackedLimbos(e, t.targetId, _.au), _.snapshot;
     }(e, t, n, r);
-    const s = await __PRIVATE_localStoreExecuteQuery(e.localStore, t, 
-    /* usePreviousResults= */ !0), o = new __PRIVATE_View(t, s.ks), _ = o.ru(s.documents), a = TargetChange.createSynthesizedTargetChangeForCurrentChange(n, r && "Offline" /* OnlineState.Offline */ !== e.onlineState, i), u = o.applyChanges(_, 
+    const s = await __PRIVATE_localStoreExecuteQuery(e.localStore, t,
+    /* usePreviousResults= */ !0), o = new __PRIVATE_View(t, s.ks), _ = o.ru(s.documents), a = TargetChange.createSynthesizedTargetChangeForCurrentChange(n, r && "Offline" /* OnlineState.Offline */ !== e.onlineState, i), u = o.applyChanges(_,
     /* limboResolutionEnabled= */ e.isPrimaryClient, a);
     __PRIVATE_updateTrackedLimbos(e, n, u.au);
     const c = new __PRIVATE_QueryView(t, n, o);
@@ -18134,19 +18134,19 @@ async function __PRIVATE_allocateTargetAndMaybeListen(e, t, n, r) {
 
 /** Stops listening to the query. */ async function __PRIVATE_syncEngineUnlisten(e, t, n) {
     const r = __PRIVATE_debugCast(e), i = r.Tu.get(t), s = r.Iu.get(i.targetId);
-    if (s.length > 1) return r.Iu.set(i.targetId, s.filter((e => !__PRIVATE_queryEquals(e, t)))), 
+    if (s.length > 1) return r.Iu.set(i.targetId, s.filter((e => !__PRIVATE_queryEquals(e, t)))),
     void r.Tu.delete(t);
     // No other queries are mapped to the target, clean up the query and the target.
         if (r.isPrimaryClient) {
         // We need to remove the local query target first to allow us to verify
         // whether any other client is still interested in this target.
         r.sharedClientState.removeLocalQueryTarget(i.targetId);
-        r.sharedClientState.isActiveQueryTarget(i.targetId) || await __PRIVATE_localStoreReleaseTarget(r.localStore, i.targetId, 
+        r.sharedClientState.isActiveQueryTarget(i.targetId) || await __PRIVATE_localStoreReleaseTarget(r.localStore, i.targetId,
         /*keepPersistedTargetData=*/ !1).then((() => {
-            r.sharedClientState.clearQueryState(i.targetId), n && __PRIVATE_remoteStoreUnlisten(r.remoteStore, i.targetId), 
+            r.sharedClientState.clearQueryState(i.targetId), n && __PRIVATE_remoteStoreUnlisten(r.remoteStore, i.targetId),
             __PRIVATE_removeAndCleanupTarget(r, i.targetId);
         })).catch(__PRIVATE_ignoreIfPrimaryLeaseLoss);
-    } else __PRIVATE_removeAndCleanupTarget(r, i.targetId), await __PRIVATE_localStoreReleaseTarget(r.localStore, i.targetId, 
+    } else __PRIVATE_removeAndCleanupTarget(r, i.targetId), await __PRIVATE_localStoreReleaseTarget(r.localStore, i.targetId,
     /*keepPersistedTargetData=*/ !0);
 }
 
@@ -18195,7 +18195,7 @@ async function __PRIVATE_allocateTargetAndMaybeListen(e, t, n, r) {
                     const o = [];
                     for (const e of t) {
                         const t = __PRIVATE_mutationExtractBaseValue(e, s.get(e.key).overlayedDocument);
-                        null != t && 
+                        null != t &&
                         // NOTE: The base state should only be applied if there's some
                         // existing document to override, so use a Precondition of
                         // exists=true
@@ -18220,7 +18220,7 @@ async function __PRIVATE_allocateTargetAndMaybeListen(e, t, n, r) {
         /**
  * Resolves or rejects the user callback for the given batch and then discards
  * it.
- */ (r, e.batchId, n), await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(r, e.changes), 
+ */ (r, e.batchId, n), await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(r, e.changes),
         await __PRIVATE_fillWritePipeline(r.remoteStore);
     } catch (e) {
         // If we can't persist the mutation, we reject the user callback and
@@ -18244,8 +18244,8 @@ async function __PRIVATE_allocateTargetAndMaybeListen(e, t, n, r) {
             r && (
             // Since this is a limbo resolution lookup, it's for a single document
             // and it could be added, modified, or removed, but not a combination.
-            __PRIVATE_hardAssert(e.addedDocuments.size + e.modifiedDocuments.size + e.removedDocuments.size <= 1, 22616), 
-            e.addedDocuments.size > 0 ? r.hu = !0 : e.modifiedDocuments.size > 0 ? __PRIVATE_hardAssert(r.hu, 14607) : e.removedDocuments.size > 0 && (__PRIVATE_hardAssert(r.hu, 42227), 
+            __PRIVATE_hardAssert(e.addedDocuments.size + e.modifiedDocuments.size + e.removedDocuments.size <= 1, 22616),
+            e.addedDocuments.size > 0 ? r.hu = !0 : e.modifiedDocuments.size > 0 ? __PRIVATE_hardAssert(r.hu, 14607) : e.removedDocuments.size > 0 && (__PRIVATE_hardAssert(r.hu, 42227),
             r.hu = !1));
         })), await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(n, e, t);
     } catch (e) {
@@ -18272,7 +18272,7 @@ async function __PRIVATE_allocateTargetAndMaybeListen(e, t, n, r) {
             n.onlineState = t;
             let r = !1;
             n.queries.forEach(((e, n) => {
-                for (const e of n.ba) 
+                for (const e of n.ba)
                 // Run global snapshot listeners if a consistent snapshot has been emitted.
                 e.va(t) && (r = !0);
             })), r && __PRIVATE_raiseSnapshotsInSyncEvent(n);
@@ -18307,17 +18307,17 @@ async function __PRIVATE_allocateTargetAndMaybeListen(e, t, n, r) {
         // so that it is picked up by any read-time based scans. The backend,
         // however, does not send a read time for target removals.
                 e = e.insert(s, MutableDocument.newNoDocument(s, SnapshotVersion.min()));
-        const n = __PRIVATE_documentKeySet().add(s), i = new RemoteEvent(SnapshotVersion.min(), 
-        /* targetChanges= */ new Map, 
+        const n = __PRIVATE_documentKeySet().add(s), i = new RemoteEvent(SnapshotVersion.min(),
+        /* targetChanges= */ new Map,
         /* targetMismatches= */ new SortedMap(__PRIVATE_primitiveComparator), e, n);
-        await __PRIVATE_syncEngineApplyRemoteEvent(r, i), 
+        await __PRIVATE_syncEngineApplyRemoteEvent(r, i),
         // Since this query failed, we won't want to manually unlisten to it.
         // We only remove it from bookkeeping after we successfully applied the
         // RemoteEvent. If `applyRemoteEvent()` throws, we want to re-listen to
         // this query when the RemoteStore restarts the Watch stream, which should
         // re-trigger the target failure.
         r.Ru = r.Ru.remove(s), r.Au.delete(t), __PRIVATE_pumpEnqueuedLimboResolutions(r);
-    } else await __PRIVATE_localStoreReleaseTarget(r.localStore, t, 
+    } else await __PRIVATE_localStoreReleaseTarget(r.localStore, t,
     /* keepPersistedTargetData */ !1).then((() => __PRIVATE_removeAndCleanupTarget(r, t, n))).catch(__PRIVATE_ignoreIfPrimaryLeaseLoss);
 }
 
@@ -18329,7 +18329,7 @@ async function __PRIVATE_syncEngineApplySuccessfulWrite(e, t) {
         // raise events immediately (depending on whether the watcher is caught
         // up), so we raise user callbacks first so that they consistently happen
         // before listen events.
-                __PRIVATE_processUserCallback(n, r, /*error=*/ null), __PRIVATE_triggerPendingWritesCallbacks(n, r), 
+                __PRIVATE_processUserCallback(n, r, /*error=*/ null), __PRIVATE_triggerPendingWritesCallbacks(n, r),
         n.sharedClientState.updateMutationState(r, "acknowledged"), await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(n, e);
     } catch (e) {
         await __PRIVATE_ignoreIfPrimaryLeaseLoss(e);
@@ -18343,7 +18343,7 @@ async function __PRIVATE_syncEngineRejectFailedWrite(e, t, n) {
             const n = __PRIVATE_debugCast(e);
             return n.persistence.runTransaction("Reject batch", "readwrite-primary", (e => {
                 let r;
-                return n.mutationQueue.lookupMutationBatch(e, t).next((t => (__PRIVATE_hardAssert(null !== t, 37113), 
+                return n.mutationQueue.lookupMutationBatch(e, t).next((t => (__PRIVATE_hardAssert(null !== t, 37113),
                 r = t.keys(), n.mutationQueue.removeMutationBatch(e, t)))).next((() => n.mutationQueue.performConsistencyCheck(e))).next((() => n.documentOverlayCache.removeOverlaysForBatchId(e, r, t))).next((() => n.localDocuments.recalculateAndSaveOverlaysForDocumentKeys(e, r))).next((() => n.localDocuments.getDocuments(e, r)));
             }));
         }
@@ -18357,7 +18357,7 @@ async function __PRIVATE_syncEngineRejectFailedWrite(e, t, n) {
         // raise events immediately (depending on whether the watcher is caught up),
         // so we raise user callbacks first so that they consistently happen before
         // listen events.
-                __PRIVATE_processUserCallback(r, t, n), __PRIVATE_triggerPendingWritesCallbacks(r, t), 
+                __PRIVATE_processUserCallback(r, t, n), __PRIVATE_triggerPendingWritesCallbacks(r, t),
         r.sharedClientState.updateMutationState(t, "rejected", n), await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(r, e);
     } catch (n) {
         await __PRIVATE_ignoreIfPrimaryLeaseLoss(n);
@@ -18375,7 +18375,7 @@ async function __PRIVATE_syncEngineRejectFailedWrite(e, t, n) {
             const t = __PRIVATE_debugCast(e);
             return t.persistence.runTransaction("Get highest unacknowledged batch id", "readonly", (e => t.mutationQueue.getHighestUnacknowledgedBatchId(e)));
         }(n.localStore);
-        if (e === U) 
+        if (e === U)
         // Trigger the callback right away if there is no pending writes at the moment.
         return void t.resolve();
         const r = n.mu.get(e) || [];
@@ -18411,7 +18411,7 @@ function __PRIVATE_removeAndCleanupTarget(e, t, n = null) {
     for (const r of e.Iu.get(t)) e.Tu.delete(r), n && e.Pu.yu(r, n);
     if (e.Iu.delete(t), e.isPrimaryClient) {
         e.Vu.Gr(t).forEach((t => {
-            e.Vu.containsKey(t) || 
+            e.Vu.containsKey(t) ||
             // We removed the last reference for this key
             __PRIVATE_removeLimboTarget(e, t);
         }));
@@ -18423,15 +18423,15 @@ function __PRIVATE_removeLimboTarget(e, t) {
     // It's possible that the target already got removed because the query failed. In that case,
     // the key won't exist in `limboTargetsByKey`. Only do the cleanup if we still have the target.
     const n = e.Ru.get(t);
-    null !== n && (__PRIVATE_remoteStoreUnlisten(e.remoteStore, n), e.Ru = e.Ru.remove(t), 
+    null !== n && (__PRIVATE_remoteStoreUnlisten(e.remoteStore, n), e.Ru = e.Ru.remove(t),
     e.Au.delete(n), __PRIVATE_pumpEnqueuedLimboResolutions(e));
 }
 
 function __PRIVATE_updateTrackedLimbos(e, t, n) {
-    for (const r of n) if (r instanceof __PRIVATE_AddedLimboDocument) e.Vu.addReference(r.key, t), 
+    for (const r of n) if (r instanceof __PRIVATE_AddedLimboDocument) e.Vu.addReference(r.key, t),
     __PRIVATE_trackLimboChange(e, r); else if (r instanceof __PRIVATE_RemovedLimboDocument) {
         __PRIVATE_logDebug(Xt, "Document no longer in limbo: " + r.key), e.Vu.removeReference(r.key, t);
-        e.Vu.containsKey(r.key) || 
+        e.Vu.containsKey(r.key) ||
         // We removed the last reference for this key
         __PRIVATE_removeLimboTarget(e, r.key);
     } else fail(19791, {
@@ -18441,7 +18441,7 @@ function __PRIVATE_updateTrackedLimbos(e, t, n) {
 
 function __PRIVATE_trackLimboChange(e, t) {
     const n = t.key, r = n.path.canonicalString();
-    e.Ru.get(n) || e.Eu.has(r) || (__PRIVATE_logDebug(Xt, "New document in limbo: " + n), 
+    e.Ru.get(n) || e.Eu.has(r) || (__PRIVATE_logDebug(Xt, "New document in limbo: " + n),
     e.Eu.add(r), __PRIVATE_pumpEnqueuedLimboResolutions(e));
 }
 
@@ -18509,7 +18509,7 @@ async function __PRIVATE_syncEngineHandleCredentialChange(e, t) {
     if (!n.currentUser.isEqual(t)) {
         __PRIVATE_logDebug(Xt, "User change. New user:", t.toKey());
         const e = await __PRIVATE_localStoreHandleUserChange(n.localStore, t);
-        n.currentUser = t, 
+        n.currentUser = t,
         // Fails tasks waiting for pending writes requested by previous user.
         function __PRIVATE_rejectOutstandingPendingWritesCallbacks(e, t) {
             e.mu.forEach((e => {
@@ -18517,7 +18517,7 @@ async function __PRIVATE_syncEngineHandleCredentialChange(e, t) {
                     e.reject(new FirestoreError(C.CANCELLED, t));
                 }));
             })), e.mu.clear();
-        }(n, "'waitForPendingWrites' promise is rejected due to a user change."), 
+        }(n, "'waitForPendingWrites' promise is rejected due to a user change."),
         // TODO(b/114226417): Consider calling this only in the primary tab.
         n.sharedClientState.handleUserChange(t, e.removedBatchIds, e.addedBatchIds), await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(n, e.Ns);
     }
@@ -18542,9 +18542,9 @@ function __PRIVATE_syncEngineGetRemoteKeysForTarget(e, t) {
  * Reconcile the list of synced documents in an existing view with those
  * from persistence.
  */ async function __PRIVATE_synchronizeViewAndComputeSnapshot(e, t) {
-    const n = __PRIVATE_debugCast(e), r = await __PRIVATE_localStoreExecuteQuery(n.localStore, t.query, 
+    const n = __PRIVATE_debugCast(e), r = await __PRIVATE_localStoreExecuteQuery(n.localStore, t.query,
     /* usePreviousResults= */ !0), i = t.view.cu(r);
-    return n.isPrimaryClient && __PRIVATE_updateTrackedLimbos(n, t.targetId, i.au), 
+    return n.isPrimaryClient && __PRIVATE_updateTrackedLimbos(n, t.targetId, i.au),
     i;
 }
 
@@ -18567,21 +18567,21 @@ async function __PRIVATE_syncEngineApplyBatchState(e, t, n, r) {
     }
     // PORTING NOTE: Multi-Tab only.
     (i.localStore, t);
-    null !== s ? ("pending" === n ? 
+    null !== s ? ("pending" === n ?
     // If we are the primary client, we need to send this write to the
     // backend. Secondary clients will ignore these writes since their remote
     // connection is disabled.
     await __PRIVATE_fillWritePipeline(i.remoteStore) : "acknowledged" === n || "rejected" === n ? (
     // NOTE: Both these methods are no-ops for batches that originated from
     // other clients.
-    __PRIVATE_processUserCallback(i, t, r || null), __PRIVATE_triggerPendingWritesCallbacks(i, t), 
+    __PRIVATE_processUserCallback(i, t, r || null), __PRIVATE_triggerPendingWritesCallbacks(i, t),
     function __PRIVATE_localStoreRemoveCachedMutationBatchMetadata(e, t) {
         __PRIVATE_debugCast(__PRIVATE_debugCast(e).mutationQueue).nr(t);
     }
     // PORTING NOTE: Multi-Tab only.
     (i.localStore, t)) : fail(6720, "Unknown batchState", {
         bu: n
-    }), await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(i, s)) : 
+    }), await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(i, s)) :
     // A throttled tab may not have seen the mutation before it was completed
     // and removed from the mutation queue, in which case we won't have cached
     // the affected documents. In this case we can safely ignore the update
@@ -18596,7 +18596,7 @@ async function __PRIVATE_syncEngineApplyBatchState(e, t, n, r) {
 // PORTING NOTE: Multi-Tab only.
 async function __PRIVATE_syncEngineApplyPrimaryState(e, t) {
     const n = __PRIVATE_debugCast(e);
-    if (__PRIVATE_ensureWatchCallbacks(n), __PRIVATE_syncEngineEnsureWriteCallbacks(n), 
+    if (__PRIVATE_ensureWatchCallbacks(n), __PRIVATE_syncEngineEnsureWriteCallbacks(n),
     !0 === t && !0 !== n.gu) {
         // Secondary tabs only maintain Views for their local listeners and the
         // Views internal state may not be 100% populated (in particular
@@ -18611,10 +18611,10 @@ async function __PRIVATE_syncEngineApplyPrimaryState(e, t) {
         const e = [];
         let t = Promise.resolve();
         n.Iu.forEach(((r, i) => {
-            n.sharedClientState.isLocalQueryTarget(i) ? e.push(i) : t = t.then((() => (__PRIVATE_removeAndCleanupTarget(n, i), 
-            __PRIVATE_localStoreReleaseTarget(n.localStore, i, 
+            n.sharedClientState.isLocalQueryTarget(i) ? e.push(i) : t = t.then((() => (__PRIVATE_removeAndCleanupTarget(n, i),
+            __PRIVATE_localStoreReleaseTarget(n.localStore, i,
             /*keepPersistedTargetData=*/ !0)))), __PRIVATE_remoteStoreUnlisten(n.remoteStore, i);
-        })), await t, await __PRIVATE_synchronizeQueryViewsAndRaiseSnapshots(n, e), 
+        })), await t, await __PRIVATE_synchronizeQueryViewsAndRaiseSnapshots(n, e),
         // PORTING NOTE: Multi-Tab only.
         function __PRIVATE_resetLimboDocuments(e) {
             const t = __PRIVATE_debugCast(e);
@@ -18656,7 +18656,7 @@ async function __PRIVATE_synchronizeQueryViewsAndRaiseSnapshots(e, t, n) {
             // For queries that never executed on this client, we need to
             // allocate the target in LocalStore and initialize a new View.
             const n = await __PRIVATE_localStoreGetCachedTarget(r.localStore, e);
-            t = await __PRIVATE_localStoreAllocateTarget(r.localStore, n), await __PRIVATE_initializeViewAndComputeSnapshot(r, __PRIVATE_synthesizeTargetToQuery(n), e, 
+            t = await __PRIVATE_localStoreAllocateTarget(r.localStore, n), await __PRIVATE_initializeViewAndComputeSnapshot(r, __PRIVATE_synthesizeTargetToQuery(n), e,
             /*current=*/ !1, t.resumeToken);
         }
         i.push(t);
@@ -18691,7 +18691,7 @@ function __PRIVATE_syncEngineGetActiveClients(e) {
 // PORTING NOTE: Multi-Tab only.
 async function __PRIVATE_syncEngineApplyTargetState(e, t, n, r) {
     const i = __PRIVATE_debugCast(e);
-    if (i.gu) 
+    if (i.gu)
     // If we receive a target state notification via WebStorage, we are
     // either already secondary or another tab has taken the primary lease.
     return void __PRIVATE_logDebug(Xt, "Ignoring unexpected query state notification.");
@@ -18706,7 +18706,7 @@ async function __PRIVATE_syncEngineApplyTargetState(e, t, n, r) {
         }
 
       case "rejected":
-        await __PRIVATE_localStoreReleaseTarget(i.localStore, t, 
+        await __PRIVATE_localStoreReleaseTarget(i.localStore, t,
         /* keepPersistedTargetData */ !0), __PRIVATE_removeAndCleanupTarget(i, t, r);
         break;
 
@@ -18724,15 +18724,15 @@ async function __PRIVATE_syncEngineApplyTargetState(e, t, n, r) {
                 continue;
             }
             const t = await __PRIVATE_localStoreGetCachedTarget(r.localStore, e), n = await __PRIVATE_localStoreAllocateTarget(r.localStore, t);
-            await __PRIVATE_initializeViewAndComputeSnapshot(r, __PRIVATE_synthesizeTargetToQuery(t), n.targetId, 
+            await __PRIVATE_initializeViewAndComputeSnapshot(r, __PRIVATE_synthesizeTargetToQuery(t), n.targetId,
             /*current=*/ !1, n.resumeToken), __PRIVATE_remoteStoreListen(r.remoteStore, n);
         }
-        for (const e of n) 
+        for (const e of n)
         // Check that the target is still active since the target might have been
         // removed if it has been rejected by the backend.
-        r.Iu.has(e) && 
+        r.Iu.has(e) &&
         // Release queries that are still active.
-        await __PRIVATE_localStoreReleaseTarget(r.localStore, e, 
+        await __PRIVATE_localStoreReleaseTarget(r.localStore, e,
         /* keepPersistedTargetData */ !1).then((() => {
             __PRIVATE_remoteStoreUnlisten(r.remoteStore, e), __PRIVATE_removeAndCleanupTarget(r, e);
         })).catch(__PRIVATE_ignoreIfPrimaryLeaseLoss);
@@ -18741,17 +18741,17 @@ async function __PRIVATE_syncEngineApplyTargetState(e, t, n, r) {
 
 function __PRIVATE_ensureWatchCallbacks(e) {
     const t = __PRIVATE_debugCast(e);
-    return t.remoteStore.remoteSyncer.applyRemoteEvent = __PRIVATE_syncEngineApplyRemoteEvent.bind(null, t), 
-    t.remoteStore.remoteSyncer.getRemoteKeysForTarget = __PRIVATE_syncEngineGetRemoteKeysForTarget.bind(null, t), 
-    t.remoteStore.remoteSyncer.rejectListen = __PRIVATE_syncEngineRejectListen.bind(null, t), 
-    t.Pu.J_ = __PRIVATE_eventManagerOnWatchChange.bind(null, t.eventManager), t.Pu.yu = __PRIVATE_eventManagerOnWatchError.bind(null, t.eventManager), 
+    return t.remoteStore.remoteSyncer.applyRemoteEvent = __PRIVATE_syncEngineApplyRemoteEvent.bind(null, t),
+    t.remoteStore.remoteSyncer.getRemoteKeysForTarget = __PRIVATE_syncEngineGetRemoteKeysForTarget.bind(null, t),
+    t.remoteStore.remoteSyncer.rejectListen = __PRIVATE_syncEngineRejectListen.bind(null, t),
+    t.Pu.J_ = __PRIVATE_eventManagerOnWatchChange.bind(null, t.eventManager), t.Pu.yu = __PRIVATE_eventManagerOnWatchError.bind(null, t.eventManager),
     t;
 }
 
 function __PRIVATE_syncEngineEnsureWriteCallbacks(e) {
     const t = __PRIVATE_debugCast(e);
-    return t.remoteStore.remoteSyncer.applySuccessfulWrite = __PRIVATE_syncEngineApplySuccessfulWrite.bind(null, t), 
-    t.remoteStore.remoteSyncer.rejectFailedWrite = __PRIVATE_syncEngineRejectFailedWrite.bind(null, t), 
+    return t.remoteStore.remoteSyncer.applySuccessfulWrite = __PRIVATE_syncEngineApplySuccessfulWrite.bind(null, t),
+    t.remoteStore.remoteSyncer.rejectFailedWrite = __PRIVATE_syncEngineRejectFailedWrite.bind(null, t),
     t;
 }
 
@@ -18793,8 +18793,8 @@ function __PRIVATE_syncEngineEnsureWriteCallbacks(e) {
                 e && n._updateProgress(e), s = await t.Su();
             }
             const o = await i.ja(e.localStore);
-            return await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(e, o.Ja, 
-            /* remoteEvent */ void 0), 
+            return await __PRIVATE_syncEngineEmitNewSnapsAndNotifyLocalStore(e, o.Ja,
+            /* remoteEvent */ void 0),
             // Save metadata, so loading the same bundle will skip.
             await function __PRIVATE_localStoreSaveBundle(e, t) {
                 const n = __PRIVATE_debugCast(e);
@@ -18805,7 +18805,7 @@ function __PRIVATE_syncEngineEnsureWriteCallbacks(e) {
  * resolves to undefined if no persisted data can be found.
  */ (e.localStore, r), n._completeWith(o.progress), Promise.resolve(o.Ha);
         } catch (e) {
-            return __PRIVATE_logWarn(Xt, `Loading bundle failed with ${e}`), n._failWith(e), 
+            return __PRIVATE_logWarn(Xt, `Loading bundle failed with ${e}`), n._failWith(e),
             Promise.resolve(new Set);
         }
     }
@@ -18838,8 +18838,8 @@ class __PRIVATE_MemoryOfflineComponentProvider {
         this.kind = "memory", this.synchronizeTabs = !1;
     }
     async initialize(e) {
-        this.serializer = __PRIVATE_newSerializer(e.databaseInfo.databaseId), this.sharedClientState = this.Du(e), 
-        this.persistence = this.Cu(e), await this.persistence.start(), this.localStore = this.vu(e), 
+        this.serializer = __PRIVATE_newSerializer(e.databaseInfo.databaseId), this.sharedClientState = this.Du(e),
+        this.persistence = this.Cu(e), await this.persistence.start(), this.localStore = this.vu(e),
         this.gcScheduler = this.Fu(e, this.localStore), this.indexBackfillerScheduler = this.Mu(e, this.localStore);
     }
     Fu(e, t) {
@@ -18858,7 +18858,7 @@ class __PRIVATE_MemoryOfflineComponentProvider {
         return new __PRIVATE_MemorySharedClientState;
     }
     async terminate() {
-        this.gcScheduler?.stop(), this.indexBackfillerScheduler?.stop(), this.sharedClientState.shutdown(), 
+        this.gcScheduler?.stop(), this.indexBackfillerScheduler?.stop(), this.sharedClientState.shutdown(),
         await this.persistence.shutdown();
     }
 }
@@ -18886,17 +18886,17 @@ class __PRIVATE_LruGcMemoryOfflineComponentProvider extends __PRIVATE_MemoryOffl
  * Provides all components needed for Firestore with IndexedDB persistence.
  */ class __PRIVATE_IndexedDbOfflineComponentProvider extends __PRIVATE_MemoryOfflineComponentProvider {
     constructor(e, t, n) {
-        super(), this.xu = e, this.cacheSizeBytes = t, this.forceOwnership = n, this.kind = "persistent", 
+        super(), this.xu = e, this.cacheSizeBytes = t, this.forceOwnership = n, this.kind = "persistent",
         this.synchronizeTabs = !1;
     }
     async initialize(e) {
-        await super.initialize(e), await this.xu.initialize(this, e), 
+        await super.initialize(e), await this.xu.initialize(this, e),
         // Enqueue writes from a previous session
-        await __PRIVATE_syncEngineEnsureWriteCallbacks(this.xu.syncEngine), await __PRIVATE_fillWritePipeline(this.xu.remoteStore), 
+        await __PRIVATE_syncEngineEnsureWriteCallbacks(this.xu.syncEngine), await __PRIVATE_fillWritePipeline(this.xu.remoteStore),
         // NOTE: This will immediately call the listener, so we make sure to
         // set it after localStore / remoteStore are started.
-        await this.persistence.zi((() => (this.gcScheduler && !this.gcScheduler.started && this.gcScheduler.start(), 
-        this.indexBackfillerScheduler && !this.indexBackfillerScheduler.started && this.indexBackfillerScheduler.start(), 
+        await this.persistence.zi((() => (this.gcScheduler && !this.gcScheduler.started && this.gcScheduler.start(),
+        this.indexBackfillerScheduler && !this.indexBackfillerScheduler.started && this.indexBackfillerScheduler.start(),
         Promise.resolve())));
     }
     vu(e) {
@@ -18939,11 +18939,11 @@ class __PRIVATE_LruGcMemoryOfflineComponentProvider extends __PRIVATE_MemoryOffl
             Co: __PRIVATE_syncEngineApplyActiveTargetsChange.bind(null, t),
             hs: __PRIVATE_syncEngineGetActiveClients.bind(null, t),
             bo: __PRIVATE_syncEngineSynchronizeWithChangedDocuments.bind(null, t)
-        }, await this.sharedClientState.start()), 
+        }, await this.sharedClientState.start()),
         // NOTE: This will immediately call the listener, so we make sure to
         // set it after localStore / remoteStore are started.
         await this.persistence.zi((async e => {
-            await __PRIVATE_syncEngineApplyPrimaryState(this.xu.syncEngine, e), this.gcScheduler && (e && !this.gcScheduler.started ? this.gcScheduler.start() : e || this.gcScheduler.stop()), 
+            await __PRIVATE_syncEngineApplyPrimaryState(this.xu.syncEngine, e), this.gcScheduler && (e && !this.gcScheduler.started ? this.gcScheduler.start() : e || this.gcScheduler.stop()),
             this.indexBackfillerScheduler && (e && !this.indexBackfillerScheduler.started ? this.indexBackfillerScheduler.start() : e || this.indexBackfillerScheduler.stop());
         }));
     }
@@ -18960,11 +18960,11 @@ class __PRIVATE_LruGcMemoryOfflineComponentProvider extends __PRIVATE_MemoryOffl
  * network.
  */ class OnlineComponentProvider {
     async initialize(e, t) {
-        this.localStore || (this.localStore = e.localStore, this.sharedClientState = e.sharedClientState, 
-        this.datastore = this.createDatastore(t), this.remoteStore = this.createRemoteStore(t), 
-        this.eventManager = this.createEventManager(t), this.syncEngine = this.createSyncEngine(t, 
-        /* startAsPrimary=*/ !e.synchronizeTabs), this.sharedClientState.onlineStateHandler = e => __PRIVATE_syncEngineApplyOnlineStateChange(this.syncEngine, e, 1 /* OnlineStateSource.SharedClientState */), 
-        this.remoteStore.remoteSyncer.handleCredentialChange = __PRIVATE_syncEngineHandleCredentialChange.bind(null, this.syncEngine), 
+        this.localStore || (this.localStore = e.localStore, this.sharedClientState = e.sharedClientState,
+        this.datastore = this.createDatastore(t), this.remoteStore = this.createRemoteStore(t),
+        this.eventManager = this.createEventManager(t), this.syncEngine = this.createSyncEngine(t,
+        /* startAsPrimary=*/ !e.synchronizeTabs), this.sharedClientState.onlineStateHandler = e => __PRIVATE_syncEngineApplyOnlineStateChange(this.syncEngine, e, 1 /* OnlineStateSource.SharedClientState */),
+        this.remoteStore.remoteSyncer.handleCredentialChange = __PRIVATE_syncEngineHandleCredentialChange.bind(null, this.syncEngine),
         await __PRIVATE_remoteStoreApplyPrimaryState(this.remoteStore, this.syncEngine.isPrimaryClient));
     }
     createEventManager(e) {
@@ -18985,7 +18985,7 @@ class __PRIVATE_LruGcMemoryOfflineComponentProvider extends __PRIVATE_MemoryOffl
         }());
     }
     createSyncEngine(e, t) {
-        return function __PRIVATE_newSyncEngine(e, t, n, 
+        return function __PRIVATE_newSyncEngine(e, t, n,
         // PORTING NOTE: Manages state synchronization in multi-tab environments.
         r, i, s, o) {
             const _ = new __PRIVATE_SyncEngineImpl(e, t, n, r, i, s);
@@ -18995,8 +18995,8 @@ class __PRIVATE_LruGcMemoryOfflineComponentProvider extends __PRIVATE_MemoryOffl
     async terminate() {
         await async function __PRIVATE_remoteStoreShutdown(e) {
             const t = __PRIVATE_debugCast(e);
-            __PRIVATE_logDebug(Ht, "RemoteStore shutting down."), t.Ea.add(5 /* OfflineCause.Shutdown */), 
-            await __PRIVATE_disableNetworkInternal(t), t.Aa.shutdown(), 
+            __PRIVATE_logDebug(Ht, "RemoteStore shutting down."), t.Ea.add(5 /* OfflineCause.Shutdown */),
+            await __PRIVATE_disableNetworkInternal(t), t.Aa.shutdown(),
             // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
             // triggering spurious listener events with cached data, etc.
             t.Va.set("Unknown" /* OnlineState.Unknown */);
@@ -19082,7 +19082,7 @@ function __PRIVATE_toByteStreamReaderHelper(e, t = 10240) {
  */
 class __PRIVATE_AsyncObserver {
     constructor(e) {
-        this.observer = e, 
+        this.observer = e,
         /**
          * When set to true, will not raise future events. Necessary to deal with
          * async detachment of listener.
@@ -19130,16 +19130,16 @@ class __PRIVATE_AsyncObserver {
     constructor(
     /** The reader to read from underlying binary bundle data source. */
     e, t) {
-        this.Bu = e, this.serializer = t, 
+        this.Bu = e, this.serializer = t,
         /** Cached bundle metadata. */
-        this.metadata = new __PRIVATE_Deferred, 
+        this.metadata = new __PRIVATE_Deferred,
         /**
          * Internal buffer to hold bundle content, accumulating incomplete element
          * content.
          */
         this.buffer = new Uint8Array, this.Lu = function __PRIVATE_newTextDecoder() {
             return new TextDecoder("utf-8");
-        }(), 
+        }(),
         // Read the metadata (which is the first element).
         this.ku().then((e => {
             e && e.Ua() ? this.metadata.resolve(e.qa.metadata) : this.metadata.reject(new Error(`The first element of the bundle is not a metadata, it is\n             ${JSON.stringify(e?.qa)}`));
@@ -19325,14 +19325,14 @@ class __PRIVATE_BundleReaderSyncImpl {
  */
 class Transaction {
     constructor(e) {
-        this.datastore = e, 
+        this.datastore = e,
         // The version of each document that was read during this transaction.
-        this.readVersions = new Map, this.mutations = [], this.committed = !1, 
+        this.readVersions = new Map, this.mutations = [], this.committed = !1,
         /**
          * A deferred usage error that occurred previously in this transaction that
          * will cause the transaction to fail once it actually commits.
          */
-        this.lastTransactionError = null, 
+        this.lastTransactionError = null,
         /**
          * Set of documents that have been written in the transaction.
          *
@@ -19342,7 +19342,7 @@ class Transaction {
         this.writtenDocs = new Set;
     }
     async lookup(e) {
-        if (this.ensureCommitNotCalled(), this.mutations.length > 0) throw this.lastTransactionError = new FirestoreError(C.INVALID_ARGUMENT, "Firestore transactions require all reads to be executed before all writes."), 
+        if (this.ensureCommitNotCalled(), this.mutations.length > 0) throw this.lastTransactionError = new FirestoreError(C.INVALID_ARGUMENT, "Firestore transactions require all reads to be executed before all writes."),
         this.lastTransactionError;
         const t = await async function __PRIVATE_invokeBatchGetDocumentsRpc(e, t) {
             const n = __PRIVATE_debugCast(e), r = {
@@ -19382,7 +19382,7 @@ class Transaction {
         // For each mutation, note that the doc was written.
                 this.mutations.forEach((t => {
             e.delete(t.key.toString());
-        })), 
+        })),
         // For each document that was read but not written to, we want to perform
         // a `verify` operation.
         e.forEach(((e, t) => {
@@ -19406,7 +19406,7 @@ class Transaction {
         }
         const n = this.readVersions.get(e.key.toString());
         if (n) {
-            if (!t.isEqual(n)) 
+            if (!t.isEqual(n))
             // This transaction will fail no matter what.
             throw new FirestoreError(C.ABORTED, "Document version changed between two reads.");
         } else this.readVersions.set(e.key.toString(), t);
@@ -19425,7 +19425,7 @@ class Transaction {
         // The first time a document is written, we want to take into account the
         // read time and existence
                 if (!this.writtenDocs.has(e.toString()) && t) {
-            if (t.isEqual(SnapshotVersion.min())) 
+            if (t.isEqual(SnapshotVersion.min()))
             // The document doesn't exist, so fail the transaction.
             // This has to be validated locally because you can't send a
             // precondition that a document does not exist without changing the
@@ -19470,7 +19470,7 @@ class Transaction {
  * with backoff.
  */ class __PRIVATE_TransactionRunner {
     constructor(e, t, n, r, i) {
-        this.asyncQueue = e, this.datastore = t, this.options = n, this.updateFunction = r, 
+        this.asyncQueue = e, this.datastore = t, this.options = n, this.updateFunction = r,
         this.deferred = i, this.zu = n.maxAttempts, this.M_ = new __PRIVATE_ExponentialBackoff(this.asyncQueue, "transaction_retry" /* TimerId.TransactionRetry */);
     }
     /** Runs the transaction and sets the result on deferred. */    ju() {
@@ -19493,7 +19493,7 @@ class Transaction {
     Ju(e) {
         try {
             const t = this.updateFunction(e);
-            return !__PRIVATE_isNullOrUndefined(t) && t.catch && t.then ? t : (this.deferred.reject(Error("Transaction callback must return a Promise")), 
+            return !__PRIVATE_isNullOrUndefined(t) && t.catch && t.then ? t : (this.deferred.reject(Error("Transaction callback must return a Promise")),
             null);
         } catch (e) {
             // Do not retry errors thrown by user provided updateFunction.
@@ -19501,7 +19501,7 @@ class Transaction {
         }
     }
     Zu(e) {
-        this.zu > 0 && this.Xu(e) ? (this.zu -= 1, this.asyncQueue.enqueueAndForget((() => (this.Hu(), 
+        this.zu > 0 && this.Xu(e) ? (this.zu -= 1, this.asyncQueue.enqueueAndForget((() => (this.Hu(),
         Promise.resolve())))) : this.deferred.reject(e);
     }
     Xu(e) {
@@ -19538,7 +19538,7 @@ class Transaction {
  * async queue that is shared by all of the other components in the system. //
  */
 class FirestoreClient {
-    constructor(e, t, 
+    constructor(e, t,
     /**
      * Asynchronous queue responsible for all of our internal processing. When
      * we get incoming work from the user (via public API) or the network
@@ -19547,18 +19547,18 @@ class FirestoreClient {
      * start processing a new operation while the previous one is waiting for
      * an async I/O to complete).
      */
-    n, 
+    n,
     /**
      * Exposed for testing
      */
     r, i) {
-        this.authCredentials = e, this.appCheckCredentials = t, this.asyncQueue = n, this._databaseInfo = r, 
-        this.user = User.UNAUTHENTICATED, this.clientId = __PRIVATE_AutoId.newId(), this.authCredentialListener = () => Promise.resolve(), 
-        this.appCheckCredentialListener = () => Promise.resolve(), this._uninitializedComponentsProvider = i, 
+        this.authCredentials = e, this.appCheckCredentials = t, this.asyncQueue = n, this._databaseInfo = r,
+        this.user = User.UNAUTHENTICATED, this.clientId = __PRIVATE_AutoId.newId(), this.authCredentialListener = () => Promise.resolve(),
+        this.appCheckCredentialListener = () => Promise.resolve(), this._uninitializedComponentsProvider = i,
         this.authCredentials.start(n, (async e => {
-            __PRIVATE_logDebug(Yt, "Received user=", e.uid), await this.authCredentialListener(e), 
+            __PRIVATE_logDebug(Yt, "Received user=", e.uid), await this.authCredentialListener(e),
             this.user = e;
-        })), this.appCheckCredentials.start(n, (e => (__PRIVATE_logDebug(Yt, "Received new app check token=", e), 
+        })), this.appCheckCredentials.start(n, (e => (__PRIVATE_logDebug(Yt, "Received new app check token=", e),
         this.appCheckCredentialListener(e, this.user))));
     }
     get configuration() {
@@ -19583,7 +19583,7 @@ class FirestoreClient {
         const e = new __PRIVATE_Deferred;
         return this.asyncQueue.enqueueAndForgetEvenWhileRestricted((async () => {
             try {
-                this._onlineComponents && await this._onlineComponents.terminate(), this._offlineComponents && await this._offlineComponents.terminate(), 
+                this._onlineComponents && await this._onlineComponents.terminate(), this._offlineComponents && await this._offlineComponents.terminate(),
                 // The credentials provider must be terminated after shutting down the
                 // RemoteStore as it will prevent the RemoteStore from retrieving auth
                 // tokens.
@@ -19603,7 +19603,7 @@ async function __PRIVATE_setOfflineComponentProvider(e, t) {
     let r = n.initialUser;
     e.setCredentialChangeListener((async e => {
         r.isEqual(e) || (await __PRIVATE_localStoreHandleUserChange(t.localStore, e), r = e);
-    })), 
+    })),
     // When a user calls clearPersistence() in one client, all other clients
     // need to be terminated to allow the delete to succeed.
     t.persistence.setDatabaseDeletedListener((() => e.terminate())), e._offlineComponents = t;
@@ -19612,11 +19612,11 @@ async function __PRIVATE_setOfflineComponentProvider(e, t) {
 async function __PRIVATE_setOnlineComponentProvider(e, t) {
     e.asyncQueue.verifyOperationInProgress();
     const n = await __PRIVATE_ensureOfflineComponents(e);
-    __PRIVATE_logDebug(Yt, "Initializing OnlineComponentProvider"), await t.initialize(n, e.configuration), 
+    __PRIVATE_logDebug(Yt, "Initializing OnlineComponentProvider"), await t.initialize(n, e.configuration),
     // The CredentialChangeListener of the online component provider takes
     // precedence over the offline component provider.
-    e.setCredentialChangeListener((e => __PRIVATE_remoteStoreHandleCredentialChange(t.remoteStore, e))), 
-    e.setAppCheckTokenChangeListener(((e, n) => __PRIVATE_remoteStoreHandleCredentialChange(t.remoteStore, n))), 
+    e.setCredentialChangeListener((e => __PRIVATE_remoteStoreHandleCredentialChange(t.remoteStore, e))),
+    e.setAppCheckTokenChangeListener(((e, n) => __PRIVATE_remoteStoreHandleCredentialChange(t.remoteStore, n))),
     e._onlineComponents = t;
 }
 
@@ -19631,16 +19631,16 @@ async function __PRIVATE_setOnlineComponentProvider(e, t) {
         } catch (t) {
             const n = t;
             if (!function __PRIVATE_canFallbackFromIndexedDbError(e) {
-                return "FirebaseError" === e.name ? e.code === C.FAILED_PRECONDITION || e.code === C.UNIMPLEMENTED : !("undefined" != typeof DOMException && e instanceof DOMException) || 
+                return "FirebaseError" === e.name ? e.code === C.FAILED_PRECONDITION || e.code === C.UNIMPLEMENTED : !("undefined" != typeof DOMException && e instanceof DOMException) ||
                 // When the browser is out of quota we could get either quota exceeded
                 // or an aborted error depending on whether the error happened during
                 // schema migration.
-                22 === e.code || 20 === e.code || 
+                22 === e.code || 20 === e.code ||
                 // Firefox Private Browsing mode disables IndexedDb and returns
                 // INVALID_STATE for any usage.
                 11 === e.code;
             }(n)) throw n;
-            __PRIVATE_logWarn("Error using user provided cache. Falling back to memory cache: " + n), 
+            __PRIVATE_logWarn("Error using user provided cache. Falling back to memory cache: " + n),
             await __PRIVATE_setOfflineComponentProvider(e, new __PRIVATE_MemoryOfflineComponentProvider);
         }
     } else __PRIVATE_logDebug(Yt, "Using default OfflineComponentProvider"), await __PRIVATE_setOfflineComponentProvider(e, new __PRIVATE_LruGcMemoryOfflineComponentProvider(void 0));
@@ -19648,8 +19648,8 @@ async function __PRIVATE_setOnlineComponentProvider(e, t) {
 }
 
 async function __PRIVATE_ensureOnlineComponents(e) {
-    return e._onlineComponents || (e._uninitializedComponentsProvider ? (__PRIVATE_logDebug(Yt, "Using user provided OnlineComponentProvider"), 
-    await __PRIVATE_setOnlineComponentProvider(e, e._uninitializedComponentsProvider._online)) : (__PRIVATE_logDebug(Yt, "Using default OnlineComponentProvider"), 
+    return e._onlineComponents || (e._uninitializedComponentsProvider ? (__PRIVATE_logDebug(Yt, "Using user provided OnlineComponentProvider"),
+    await __PRIVATE_setOnlineComponentProvider(e, e._uninitializedComponentsProvider._online)) : (__PRIVATE_logDebug(Yt, "Using default OnlineComponentProvider"),
     await __PRIVATE_setOnlineComponentProvider(e, new OnlineComponentProvider))), e._onlineComponents;
 }
 
@@ -19675,9 +19675,9 @@ function __PRIVATE_getDatastore$1(e) {
 
 async function __PRIVATE_getEventManager(e) {
     const t = await __PRIVATE_ensureOnlineComponents(e), n = t.eventManager;
-    return n.onListen = __PRIVATE_syncEngineListen.bind(null, t.syncEngine), n.onUnlisten = __PRIVATE_syncEngineUnlisten.bind(null, t.syncEngine), 
-    n.onFirstRemoteStoreListen = __PRIVATE_triggerRemoteStoreListen.bind(null, t.syncEngine), 
-    n.onLastRemoteStoreUnlisten = __PRIVATE_triggerRemoteStoreUnlisten.bind(null, t.syncEngine), 
+    return n.onListen = __PRIVATE_syncEngineListen.bind(null, t.syncEngine), n.onUnlisten = __PRIVATE_syncEngineUnlisten.bind(null, t.syncEngine),
+    n.onFirstRemoteStoreListen = __PRIVATE_triggerRemoteStoreListen.bind(null, t.syncEngine),
+    n.onLastRemoteStoreUnlisten = __PRIVATE_triggerRemoteStoreUnlisten.bind(null, t.syncEngine),
     n;
 }
 
@@ -19696,7 +19696,7 @@ async function __PRIVATE_getEventManager(e) {
         const t = await __PRIVATE_getPersistence(e), n = await __PRIVATE_getRemoteStore(e);
         return t.setNetworkEnabled(!1), async function __PRIVATE_remoteStoreDisableNetwork(e) {
             const t = __PRIVATE_debugCast(e);
-            t.Ea.add(0 /* OfflineCause.UserDisabled */), await __PRIVATE_disableNetworkInternal(t), 
+            t.Ea.add(0 /* OfflineCause.UserDisabled */), await __PRIVATE_disableNetworkInternal(t),
             // Set the OnlineState to Offline so get()s return from cache, etc.
             t.Va.set("Offline" /* OnlineState.Offline */);
         }(n);
@@ -19709,7 +19709,7 @@ async function __PRIVATE_getEventManager(e) {
  * can be either acceptance or rejection.
  */ function __PRIVATE_firestoreClientListen(e, t, n, r) {
     const i = new __PRIVATE_AsyncObserver(r), s = new __PRIVATE_QueryListener(t, i, n);
-    return e.asyncQueue.enqueueAndForget((async () => __PRIVATE_eventManagerListen(await __PRIVATE_getEventManager(e), s))), 
+    return e.asyncQueue.enqueueAndForget((async () => __PRIVATE_eventManagerListen(await __PRIVATE_getEventManager(e), s))),
     () => {
         i.Nu(), e.asyncQueue.enqueueAndForget((async () => __PRIVATE_eventManagerUnlisten(await __PRIVATE_getEventManager(e), s)));
     };
@@ -19744,7 +19744,7 @@ function __PRIVATE_firestoreClientGetDocumentViaSnapshotListener(e, t, n = {}) {
                 // user actions affecting the now stale query.
                 s.Nu(), t.enqueueAndForget((() => __PRIVATE_eventManagerUnlisten(e, o)));
                 const a = _.docs.has(n);
-                !a && _.fromCache ? 
+                !a && _.fromCache ?
                 // TODO(dimond): If we're online and the document doesn't
                 // exist then we resolve with a doc.exists set to false. If
                 // we're offline however, we reject the Promise in this
@@ -19767,8 +19767,8 @@ function __PRIVATE_firestoreClientGetDocumentsFromLocalCache(e, t) {
     const n = new __PRIVATE_Deferred;
     return e.asyncQueue.enqueueAndForget((async () => async function __PRIVATE_executeQueryFromCache(e, t, n) {
         try {
-            const r = await __PRIVATE_localStoreExecuteQuery(e, t, 
-            /* usePreviousResults= */ !0), i = new __PRIVATE_View(t, r.ks), s = i.ru(r.documents), o = i.applyChanges(s, 
+            const r = await __PRIVATE_localStoreExecuteQuery(e, t,
+            /* usePreviousResults= */ !0), i = new __PRIVATE_View(t, r.ks), s = i.ru(r.documents), o = i.applyChanges(s,
             /* limboResolutionEnabled= */ !1);
             n.resolve(o.snapshot);
         } catch (e) {
@@ -19812,7 +19812,7 @@ function __PRIVATE_firestoreClientRunAggregateQuery(e, t, n) {
             r.resolve(async function __PRIVATE_invokeRunAggregationQueryRpc(e, t, n) {
                 const r = __PRIVATE_debugCast(e), {request: i, gt: s, parent: o} = __PRIVATE_toRunAggregationQueryRequest(r.serializer, __PRIVATE_queryToAggregateTarget(t), n);
                 r.connection.Ko || delete i.parent;
-                const _ = (await r.jo("RunAggregationQuery", r.serializer.databaseId, o, i, 
+                const _ = (await r.jo("RunAggregationQuery", r.serializer.databaseId, o, i,
                 /*expectedResponseCount=*/ 1)).filter((e => !!e.result));
                 // Omit RunAggregationQueryResponse that only contain readTimes.
                                 __PRIVATE_hardAssert(1 === _.length, 64727);
@@ -19851,14 +19851,14 @@ function __PRIVATE_firestoreClientExecutePipeline(e, t) {
 
 function __PRIVATE_firestoreClientWrite(e, t) {
     const n = new __PRIVATE_Deferred;
-    return e.asyncQueue.enqueueAndForget((async () => __PRIVATE_syncEngineWrite(await __PRIVATE_getSyncEngine(e), t, n))), 
+    return e.asyncQueue.enqueueAndForget((async () => __PRIVATE_syncEngineWrite(await __PRIVATE_getSyncEngine(e), t, n))),
     n.promise;
 }
 
 function __PRIVATE_firestoreClientAddSnapshotsInSyncListener(e, t) {
     const n = new __PRIVATE_AsyncObserver(t);
     return e.asyncQueue.enqueueAndForget((async () => function __PRIVATE_addSnapshotsInSyncListener(e, t) {
-        __PRIVATE_debugCast(e).Ca.add(t), 
+        __PRIVATE_debugCast(e).Ca.add(t),
         // Immediately fire an initial event, indicating all existing listeners
         // are in-sync.
         t.next();
@@ -19925,7 +19925,7 @@ function __PRIVATE_createBundleReaderSync(e, t) {
 function __PRIVATE_firestoreClientSetIndexConfiguration(e, t) {
     return e.asyncQueue.enqueue((async () => async function __PRIVATE_localStoreConfigureFieldIndexes(e, t) {
         const n = __PRIVATE_debugCast(e), r = n.indexManager, i = [];
-        return n.persistence.runTransaction("Configure indexes", "readwrite", (e => r.getFieldIndexes(e).next((n => 
+        return n.persistence.runTransaction("Configure indexes", "readwrite", (e => r.getFieldIndexes(e).next((n =>
         /**
  * @license
  * Copyright 2017 Google LLC
@@ -19965,10 +19965,10 @@ function __PRIVATE_firestoreClientSetIndexConfiguration(e, t) {
             let _ = 0, a = 0;
             for (;_ < o && a < s; ) {
                 const s = n(e[a], t[_]);
-                s < 0 ? 
+                s < 0 ?
                 // The element was removed if the next element in our ordered
                 // walkthrough is only in `before`.
-                i(e[a++]) : s > 0 ? 
+                i(e[a++]) : s > 0 ?
                 // The element was added if the next element in our ordered walkthrough
                 // is only in `after`.
                 r(t[_++]) : (_++, a++);
@@ -20087,19 +20087,19 @@ class FirestoreSettingsImpl {
             if (void 0 !== e.ssl) throw new FirestoreError(C.INVALID_ARGUMENT, "Can't provide ssl option if host option is not set");
             this.host = nn, this.ssl = rn;
         } else this.host = e.host, this.ssl = e.ssl ?? rn;
-        if (this.isUsingEmulator = void 0 !== e.emulatorOptions, this.credentials = e.credentials, 
-        this.ignoreUndefinedProperties = !!e.ignoreUndefinedProperties, this.localCache = e.localCache, 
+        if (this.isUsingEmulator = void 0 !== e.emulatorOptions, this.credentials = e.credentials,
+        this.ignoreUndefinedProperties = !!e.ignoreUndefinedProperties, this.localCache = e.localCache,
         void 0 === e.cacheSizeBytes) this.cacheSizeBytes = Dt; else {
             if (-1 !== e.cacheSizeBytes && e.cacheSizeBytes < vt) throw new FirestoreError(C.INVALID_ARGUMENT, "cacheSizeBytes must be at least 1048576");
             this.cacheSizeBytes = e.cacheSizeBytes;
         }
-        __PRIVATE_validateIsNotUsedTogether("experimentalForceLongPolling", e.experimentalForceLongPolling, "experimentalAutoDetectLongPolling", e.experimentalAutoDetectLongPolling), 
-        this.experimentalForceLongPolling = !!e.experimentalForceLongPolling, this.experimentalForceLongPolling ? this.experimentalAutoDetectLongPolling = !1 : void 0 === e.experimentalAutoDetectLongPolling ? this.experimentalAutoDetectLongPolling = true : 
+        __PRIVATE_validateIsNotUsedTogether("experimentalForceLongPolling", e.experimentalForceLongPolling, "experimentalAutoDetectLongPolling", e.experimentalAutoDetectLongPolling),
+        this.experimentalForceLongPolling = !!e.experimentalForceLongPolling, this.experimentalForceLongPolling ? this.experimentalAutoDetectLongPolling = !1 : void 0 === e.experimentalAutoDetectLongPolling ? this.experimentalAutoDetectLongPolling = true :
         // For backwards compatibility, coerce the value to boolean even though
         // the TypeScript compiler has narrowed the type to boolean already.
         // noinspection PointlessBooleanExpressionJS
-        this.experimentalAutoDetectLongPolling = !!e.experimentalAutoDetectLongPolling, 
-        this.experimentalLongPollingOptions = __PRIVATE_cloneLongPollingOptions(e.experimentalLongPollingOptions ?? {}), 
+        this.experimentalAutoDetectLongPolling = !!e.experimentalAutoDetectLongPolling,
+        this.experimentalLongPollingOptions = __PRIVATE_cloneLongPollingOptions(e.experimentalLongPollingOptions ?? {}),
         function __PRIVATE_validateLongPollingOptions(e) {
             if (void 0 !== e.timeoutSeconds) {
                 if (isNaN(e.timeoutSeconds)) throw new FirestoreError(C.INVALID_ARGUMENT, `invalid long polling timeout: ${e.timeoutSeconds} (must not be NaN)`);
@@ -20139,13 +20139,13 @@ class FirestoreSettingsImpl {
 class Firestore$1 {
     /** @hideconstructor */
     constructor(e, t, n, r) {
-        this._authCredentials = e, this._appCheckCredentials = t, this._databaseId = n, 
-        this._app = r, 
+        this._authCredentials = e, this._appCheckCredentials = t, this._databaseId = n,
+        this._app = r,
         /**
          * Whether it's a Firestore or Firestore Lite instance.
          */
-        this.type = "firestore-lite", this._persistenceKey = "(lite)", this._settings = new FirestoreSettingsImpl({}), 
-        this._settingsFrozen = !1, this._emulatorOptions = {}, 
+        this.type = "firestore-lite", this._persistenceKey = "(lite)", this._settings = new FirestoreSettingsImpl({}),
+        this._settingsFrozen = !1, this._emulatorOptions = {},
         // A task that is assigned when the terminate() is invoked and resolved when
         // all components have shut down. Otherwise, Firestore is not terminated,
         // which can mean either the FirestoreClient is in the process of starting,
@@ -20167,7 +20167,7 @@ class Firestore$1 {
     }
     _setSettings(e) {
         if (this._settingsFrozen) throw new FirestoreError(C.FAILED_PRECONDITION, "Firestore has already been started and its settings can no longer be changed. You can only modify settings before calling any other methods on a Firestore object.");
-        this._settings = new FirestoreSettingsImpl(e), this._emulatorOptions = e.emulatorOptions || {}, 
+        this._settings = new FirestoreSettingsImpl(e), this._emulatorOptions = e.emulatorOptions || {},
         void 0 !== e.credentials && (this._authCredentials = function __PRIVATE_makeAuthCredentialsProvider(e) {
             if (!e) return new __PRIVATE_EmptyAuthCredentialsProvider;
             switch (e.type) {
@@ -20195,7 +20195,7 @@ class Firestore$1 {
         // The `_terminateTask` must be assigned future that completes when
         // terminate is complete. The existence of this future puts SDK in state
         // that will not accept further API interaction.
-        return "notTerminated" === this._terminateTask && (this._terminateTask = this._terminate()), 
+        return "notTerminated" === this._terminateTask && (this._terminateTask = this._terminate()),
         this._terminateTask;
     }
     async _restart() {
@@ -20291,12 +20291,12 @@ class Firestore$1 {
  */ class Query {
     // This is the lite version of the Query class in the main SDK.
     /** @hideconstructor protected */
-    constructor(e, 
+    constructor(e,
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
     t, n) {
-        this.converter = t, this._query = n, 
+        this.converter = t, this._query = n,
         /** The type of this Firestore reference. */
         this.type = "query", this.firestore = e;
     }
@@ -20311,12 +20311,12 @@ class Firestore$1 {
  * the referenced location may or may not exist.
  */ class DocumentReference {
     /** @hideconstructor */
-    constructor(e, 
+    constructor(e,
     /**
      * If provided, the `FirestoreDataConverter` associated with this instance.
      */
     t, n) {
-        this.converter = t, this._key = n, 
+        this.converter = t, this._key = n,
         /** The type of this Firestore reference. */
         this.type = "document", this.firestore = e;
     }
@@ -20369,7 +20369,7 @@ DocumentReference._jsonSchemaVersion = "firestore/documentReference/1.0", Docume
 class CollectionReference extends Query {
     /** @hideconstructor */
     constructor(e, t, n) {
-        super(e, t, __PRIVATE_newQueryForPath(n)), this._path = n, 
+        super(e, t, __PRIVATE_newQueryForPath(n)), this._path = n,
         /** The type of this Firestore reference. */
         this.type = "collection";
     }
@@ -20387,7 +20387,7 @@ class CollectionReference extends Query {
      * subcollection. If this isn't a subcollection, the reference is null.
      */    get parent() {
         const e = this._path.popLast();
-        return e.isEmpty() ? null : new DocumentReference(this.firestore, 
+        return e.isEmpty() ? null : new DocumentReference(this.firestore,
         /* converter= */ null, new DocumentKey(e));
     }
     withConverter(e) {
@@ -20407,7 +20407,7 @@ function collection(e, t, ...n) {
     {
         if (!(e instanceof DocumentReference || e instanceof CollectionReference)) throw new FirestoreError(C.INVALID_ARGUMENT, "Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore");
         const r = e._path.child(ResourcePath.fromString(t, ...n));
-        return __PRIVATE_validateCollectionPath(r), new CollectionReference(e.firestore, 
+        return __PRIVATE_validateCollectionPath(r), new CollectionReference(e.firestore,
         /* converter= */ null, r);
     }
 }
@@ -20425,22 +20425,22 @@ function collection(e, t, ...n) {
  * will be included. Cannot contain a slash.
  * @returns The created `Query`.
  */ function collectionGroup(e, t) {
-    if (e = __PRIVATE_cast(e, Firestore$1), __PRIVATE_validateNonEmptyArgument("collectionGroup", "collection id", t), 
+    if (e = __PRIVATE_cast(e, Firestore$1), __PRIVATE_validateNonEmptyArgument("collectionGroup", "collection id", t),
     t.indexOf("/") >= 0) throw new FirestoreError(C.INVALID_ARGUMENT, `Invalid collection ID '${t}' passed to function collectionGroup(). Collection IDs must not contain '/'.`);
-    return new Query(e, 
+    return new Query(e,
     /* converter= */ null, function __PRIVATE_newQueryForCollectionGroup(e) {
         return new __PRIVATE_QueryImpl(ResourcePath.emptyPath(), e);
     }(t));
 }
 
 function doc(e, t, ...n) {
-    if (e = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.getModularInstance)(e), 
+    if (e = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.getModularInstance)(e),
     // We allow omission of 'pathString' but explicitly prohibit passing in both
     // 'undefined' and 'null'.
-    1 === arguments.length && (t = __PRIVATE_AutoId.newId()), __PRIVATE_validateNonEmptyArgument("doc", "path", t), 
+    1 === arguments.length && (t = __PRIVATE_AutoId.newId()), __PRIVATE_validateNonEmptyArgument("doc", "path", t),
     e instanceof Firestore$1) {
         const r = ResourcePath.fromString(t, ...n);
-        return __PRIVATE_validateDocumentPath(r), new DocumentReference(e, 
+        return __PRIVATE_validateDocumentPath(r), new DocumentReference(e,
         /* converter= */ null, new DocumentKey(r));
     }
     {
@@ -20494,30 +20494,30 @@ class __PRIVATE_AsyncQueueImpl {
     constructor(e = Promise.resolve()) {
         // A list of retryable operations. Retryable operations are run in order and
         // retried with backoff.
-        this.Yu = [], 
+        this.Yu = [],
         // Is this AsyncQueue being shut down? Once it is set to true, it will not
         // be changed again.
-        this.ec = !1, 
+        this.ec = !1,
         // Operations scheduled to be queued in the future. Operations are
         // automatically removed after they are run or canceled.
-        this.tc = [], 
+        this.tc = [],
         // visible for testing
-        this.nc = null, 
+        this.nc = null,
         // Flag set while there's an outstanding AsyncQueue operation, used for
         // assertion sanity-checks.
-        this.rc = !1, 
+        this.rc = !1,
         // Enabled during shutdown on Safari to prevent future access to IndexedDB.
-        this.sc = !1, 
+        this.sc = !1,
         // List of TimerIds to fast-forward delays for.
-        this.oc = [], 
+        this.oc = [],
         // Backoff timer used to schedule retries for retryable operations
-        this.M_ = new __PRIVATE_ExponentialBackoff(this, "async_queue_retry" /* TimerId.AsyncQueueRetry */), 
+        this.M_ = new __PRIVATE_ExponentialBackoff(this, "async_queue_retry" /* TimerId.AsyncQueueRetry */),
         // Visibility handler that triggers an immediate retry of all retryable
         // operations. Meant to speed up recovery when we regain file system access
         // after page comes into foreground.
         this._c = () => {
             const e = getDocument();
-            e && __PRIVATE_logDebug(sn, "Visibility state changed to " + e.visibilityState), 
+            e && __PRIVATE_logDebug(sn, "Visibility state changed to " + e.visibilityState),
             this.M_.w_();
         }, this.ac = e;
         const t = getDocument();
@@ -20534,7 +20534,7 @@ class __PRIVATE_AsyncQueueImpl {
         this.enqueue(e);
     }
     enqueueAndForgetEvenWhileRestricted(e) {
-        this.uc(), 
+        this.uc(),
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.cc(e);
     }
@@ -20546,14 +20546,14 @@ class __PRIVATE_AsyncQueueImpl {
         }
     }
     enqueue(e) {
-        if (this.uc(), this.ec) 
+        if (this.uc(), this.ec)
         // Return a Promise which never resolves.
         return new Promise((() => {}));
         // Create a deferred Promise that we can return to the callee. This
         // allows us to return a "hanging Promise" only to the callee and still
         // advance the queue even when the operation is not run.
                 const t = new __PRIVATE_Deferred;
-        return this.cc((() => this.ec && this.sc ? Promise.resolve() : (e().then(t.resolve, t.reject), 
+        return this.cc((() => this.ec && this.sc ? Promise.resolve() : (e().then(t.resolve, t.reject),
         t.promise))).then((() => t.promise));
     }
     enqueueRetryable(e) {
@@ -20571,7 +20571,7 @@ class __PRIVATE_AsyncQueueImpl {
  // Failure will be handled by AsyncQueue
                                 __PRIVATE_logDebug(sn, "Operation failed with retryable error: " + e);
             }
-            this.Yu.length > 0 && 
+            this.Yu.length > 0 &&
             // If there are additional operations, we re-schedule `retryNextOp()`.
             // This is necessary to run retryable operations that failed during
             // their initial attempt since we don't know whether they are already
@@ -20591,13 +20591,13 @@ class __PRIVATE_AsyncQueueImpl {
             // Re-throw the error so that this.tail becomes a rejected Promise and
             // all further attempts to chain (via .then) will just short-circuit
             // and return the rejected Promise.
-            throw __PRIVATE_logError("INTERNAL UNHANDLED ERROR: ", __PRIVATE_getMessageOrStack(e)), 
+            throw __PRIVATE_logError("INTERNAL UNHANDLED ERROR: ", __PRIVATE_getMessageOrStack(e)),
             e;
         })).then((e => (this.rc = !1, e))))));
         return this.ac = t, t;
     }
     enqueueAfterDelay(e, t, n) {
-        this.uc(), 
+        this.uc(),
         // Fast-forward delays for timerIds that have been overridden.
         this.oc.indexOf(e) > -1 && (t = 0);
         const r = DelayedOperation.createAndSchedule(this, e, t, n, (e => this.hc(e)));
@@ -20663,7 +20663,7 @@ class __PRIVATE_AsyncQueueImpl {
  * @param error - Error or FirestoreError
  */ function __PRIVATE_getMessageOrStack(e) {
     let t = e.message || "";
-    return e.stack && (t = e.stack.includes(e.message) ? e.stack : e.message + "\n" + e.stack), 
+    return e.stack && (t = e.stack.includes(e.message) ? e.stack : e.message + "\n" + e.stack),
     t;
 }
 
@@ -20690,7 +20690,7 @@ class __PRIVATE_AsyncQueueImpl {
  * The API is compatible with `Promise<LoadBundleTaskProgress>`.
  */ class LoadBundleTask {
     constructor() {
-        this._progressObserver = {}, this._taskCompletionResolver = new __PRIVATE_Deferred, 
+        this._progressObserver = {}, this._taskCompletionResolver = new __PRIVATE_Deferred,
         this._lastProgress = {
             taskState: "Running",
             totalBytes: 0,
@@ -20735,7 +20735,7 @@ class __PRIVATE_AsyncQueueImpl {
      *
      * @private
      */    _completeWith(e) {
-        this._updateProgress(e), this._progressObserver.complete && this._progressObserver.complete(), 
+        this._updateProgress(e), this._progressObserver.complete && this._progressObserver.complete(),
         this._taskCompletionResolver.resolve(e);
     }
     /**
@@ -20744,7 +20744,7 @@ class __PRIVATE_AsyncQueueImpl {
      *
      * @private
      */    _failWith(e) {
-        this._lastProgress.taskState = "Error", this._progressObserver.next && this._progressObserver.next(this._lastProgress), 
+        this._lastProgress.taskState = "Error", this._progressObserver.next && this._progressObserver.next(this._lastProgress),
         this._progressObserver.error && this._progressObserver.error(e), this._taskCompletionResolver.reject(e);
     }
     /**
@@ -20786,7 +20786,7 @@ class __PRIVATE_AsyncQueueImpl {
  */ class Firestore extends Firestore$1 {
     /** @hideconstructor */
     constructor(e, t, n, r) {
-        super(e, t, n, r), 
+        super(e, t, n, r),
         /**
          * Whether it's a {@link Firestore} or Firestore Lite instance.
          */
@@ -21001,7 +21001,7 @@ function enableIndexedDbPersistence(e, t) {
  */ function waitForPendingWrites(e) {
     return function __PRIVATE_firestoreClientWaitForPendingWrites(e) {
         const t = new __PRIVATE_Deferred;
-        return e.asyncQueue.enqueueAndForget((async () => __PRIVATE_syncEngineRegisterPendingWritesCallback(await __PRIVATE_getSyncEngine(e), t))), 
+        return e.asyncQueue.enqueueAndForget((async () => __PRIVATE_syncEngineRegisterPendingWritesCallback(await __PRIVATE_getSyncEngine(e), t))),
         t.promise;
     }(ensureFirestoreConfigured(e = __PRIVATE_cast(e, Firestore)));
 }
@@ -21445,7 +21445,7 @@ const _n = /^__.*__$/;
 }
 
 /** The result of parsing "update" data (i.e. for an updateData call). */ class ParsedUpdateData {
-    constructor(e, 
+    constructor(e,
     // The fieldMask does not include document transforms.
     t, n) {
         this.data = e, this.fieldMask = t, this.fieldTransforms = n;
@@ -21495,7 +21495,7 @@ function __PRIVATE_isWrite(e) {
      * compromised).
      */
     constructor(e, t, n, r, i, s) {
-        this.settings = e, this.databaseId = t, this.serializer = n, this.ignoreUndefinedProperties = r, 
+        this.settings = e, this.databaseId = t, this.serializer = n, this.ignoreUndefinedProperties = r,
         // Minor hack: If fieldTransforms is undefined, we assume this is an
         // external call and we need to validate the entire path.
         void 0 === i && this.validatePath(), this.fieldTransforms = i || [], this.fieldMask = s || [];
@@ -21642,7 +21642,7 @@ class __PRIVATE_ArrayUnionFieldValueImpl extends FieldValue {
         super(e), this.Ac = t;
     }
     _toFieldTransform(e) {
-        const t = __PRIVATE_createSentinelChildContext(this, e, 
+        const t = __PRIVATE_createSentinelChildContext(this, e,
         /*array=*/ !0), n = this.Ac.map((e => __PRIVATE_parseData(e, t))), r = new __PRIVATE_ArrayUnionTransformOperation(n);
         return new FieldTransform(e.path, r);
     }
@@ -21656,7 +21656,7 @@ class __PRIVATE_ArrayRemoveFieldValueImpl extends FieldValue {
         super(e), this.Ac = t;
     }
     _toFieldTransform(e) {
-        const t = __PRIVATE_createSentinelChildContext(this, e, 
+        const t = __PRIVATE_createSentinelChildContext(this, e,
         /*array=*/ !0), n = this.Ac.map((e => __PRIVATE_parseData(e, t))), r = new __PRIVATE_ArrayRemoveTransformOperation(n);
         return new FieldTransform(e.path, r);
     }
@@ -21688,7 +21688,7 @@ class __PRIVATE_NumericIncrementFieldValueImpl extends FieldValue {
         // performing validation.
                 r = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.getModularInstance)(r);
         const a = i.childContextForFieldPath(_);
-        if (r instanceof __PRIVATE_DeleteFieldValueImpl) 
+        if (r instanceof __PRIVATE_DeleteFieldValueImpl)
         // Add it to the field mask, but don't add anything to updateData.
         s.push(_); else {
             const e = __PRIVATE_parseData(r, a);
@@ -21702,7 +21702,7 @@ class __PRIVATE_NumericIncrementFieldValueImpl extends FieldValue {
 /** Parse update data from a list of field/value arguments. */ function __PRIVATE_parseUpdateVarargs(e, t, n, r, i, s) {
     const o = e.createContext(1 /* UserDataSource.Update */ , t, n), _ = [ __PRIVATE_fieldPathFromArgument(t, r, n) ], a = [ i ];
     if (s.length % 2 != 0) throw new FirestoreError(C.INVALID_ARGUMENT, `Function ${t}() needs to be called with an even number of arguments that alternate between field names and values.`);
-    for (let e = 0; e < s.length; e += 2) _.push(__PRIVATE_fieldPathFromArgument(t, s[e])), 
+    for (let e = 0; e < s.length; e += 2) _.push(__PRIVATE_fieldPathFromArgument(t, s[e])),
     a.push(s[e + 1]);
     const u = [], c = ObjectValue.empty();
     // We iterate in reverse order to pick the last value for a field if the
@@ -21714,7 +21714,7 @@ class __PRIVATE_NumericIncrementFieldValueImpl extends FieldValue {
         // performing validation.
                 n = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.getModularInstance)(n);
         const r = o.childContextForFieldPath(t);
-        if (n instanceof __PRIVATE_DeleteFieldValueImpl) 
+        if (n instanceof __PRIVATE_DeleteFieldValueImpl)
         // Add it to the field mask, but don't add anything to updateData.
         u.push(t); else {
             const e = __PRIVATE_parseData(n, r);
@@ -21747,9 +21747,9 @@ class __PRIVATE_NumericIncrementFieldValueImpl extends FieldValue {
     if (__PRIVATE_looksLikeJsonObject(
     // Unwrap the API type from the Compat SDK. This will return the API type
     // from firestore-exp.
-    e = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.getModularInstance)(e))) return __PRIVATE_validatePlainObject("Unsupported field value:", t, e), 
+    e = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.getModularInstance)(e))) return __PRIVATE_validatePlainObject("Unsupported field value:", t, e),
     __PRIVATE_parseObject(e, t);
-    if (e instanceof FieldValue) 
+    if (e instanceof FieldValue)
     // FieldValues usually parse into transforms (except deleteField())
     // in which case we do not want to include this field in our parsed data
     // (as doing so will overwrite the field directly prior to the transform
@@ -21771,7 +21771,7 @@ class __PRIVATE_NumericIncrementFieldValueImpl extends FieldValue {
  *
  * @returns The parsed value
  */ (e, t), null;
-    if (void 0 === e && t.ignoreUndefinedProperties) 
+    if (void 0 === e && t.ignoreUndefinedProperties)
     // If the input is undefined it can never participate in the fieldMask, so
     // don't handle this below. If `ignoreUndefinedProperties` is false,
     // `parseScalarValue` will reject an undefined value.
@@ -21848,7 +21848,7 @@ class __PRIVATE_NumericIncrementFieldValueImpl extends FieldValue {
                 referenceValue: __PRIVATE_toResourceName(e.firestore._databaseId || t.databaseId, e._key.path)
             };
         }
-        if (e instanceof VectorValue) 
+        if (e instanceof VectorValue)
         /**
  * Creates a new VectorValue proto value (using the internal format).
  */
@@ -21886,7 +21886,7 @@ class __PRIVATE_NumericIncrementFieldValueImpl extends FieldValue {
 
 function __PRIVATE_parseObject(e, t) {
     const n = {};
-    return isEmpty(e) ? 
+    return isEmpty(e) ?
     // If we encounter an empty object, we explicitly add it to the update
     // mask to ensure that the server creates a map entry.
     t.path && t.path.length > 0 && t.fieldMask.push(t.path) : forEach(e, ((e, r) => {
@@ -21918,8 +21918,8 @@ function __PRIVATE_validatePlainObject(e, t, n) {
     // FieldPath.
     t = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_1__.getModularInstance)(t)) instanceof FieldPath) return t._internalPath;
     if ("string" == typeof t) return __PRIVATE_fieldPathFromDotSeparatedString(e, t);
-    throw createError("Field path arguments must be of type string or ", e, 
-    /* hasConverter= */ !1, 
+    throw createError("Field path arguments must be of type string or ", e,
+    /* hasConverter= */ !1,
     /* path= */ void 0, n);
 }
 
@@ -21936,14 +21936,14 @@ function __PRIVATE_validatePlainObject(e, t, n) {
  * @param targetDoc - The document against which the field path will be
  * evaluated.
  */ function __PRIVATE_fieldPathFromDotSeparatedString(e, t, n) {
-    if (t.search(an) >= 0) throw createError(`Invalid field path (${t}). Paths must not contain '~', '*', '/', '[', or ']'`, e, 
-    /* hasConverter= */ !1, 
+    if (t.search(an) >= 0) throw createError(`Invalid field path (${t}). Paths must not contain '~', '*', '/', '[', or ']'`, e,
+    /* hasConverter= */ !1,
     /* path= */ void 0, n);
     try {
         return new FieldPath(...t.split("."))._internalPath;
     } catch (r) {
-        throw createError(`Invalid field path (${t}). Paths must not be empty, begin with '.', end with '.', or contain '..'`, e, 
-        /* hasConverter= */ !1, 
+        throw createError(`Invalid field path (${t}). Paths must not be empty, begin with '.', end with '.', or contain '..'`, e,
+        /* hasConverter= */ !1,
         /* path= */ void 0, n);
     }
 }
@@ -21953,7 +21953,7 @@ function createError(e, t, n, r, i) {
     let _ = `Function ${t}() called with invalid data`;
     n && (_ += " (via `toFirestore()`)"), _ += ". ";
     let a = "";
-    return (s || o) && (a += " (found", s && (a += ` in field ${r}`), o && (a += ` in document ${i}`), 
+    return (s || o) && (a += " (found", s && (a += ` in field ${r}`), o && (a += ` in document ${i}`),
     a += ")"), new FirestoreError(C.INVALID_ARGUMENT, _ + e + a);
 }
 
@@ -22077,9 +22077,9 @@ function __PRIVATE_isUserData(e) {
             name: e
         });
         const r = new DatabaseId(n.get(1), n.get(3)), i = new DocumentKey(n.popFirst(5));
-        return r.isEqual(t) || 
+        return r.isEqual(t) ||
         // TODO(b/64130202): Somehow support foreign references.
-        __PRIVATE_logError(`Document ${i} contains a document reference within a different database (${r.projectId}/${r.database}) which is not supported. It will be treated as a reference in the current database (${t.projectId}/${t.database}) instead.`), 
+        __PRIVATE_logError(`Document ${i} contains a document reference within a different database (${r.projectId}/${r.database}) which is not supported. It will be treated as a reference in the current database (${t.projectId}/${t.database}) instead.`),
         i;
     }
 }
@@ -22347,7 +22347,7 @@ function _internalQueryToProtoQueryTarget(e) {
  * @param aggregateSpec - The set of aggregations and their aliases.
  */ function _internalAggregationQueryToProtoRunAggregationQueryRequest(e, t) {
     const n = __PRIVATE_mapToArray(t, ((e, t) => new __PRIVATE_AggregateImpl(t, e.aggregateType, e._internalFieldPath))), r = ensureFirestoreConfigured(__PRIVATE_cast(e.firestore, Firestore)), i = r._onlineComponents?.datastore.serializer;
-    return void 0 === i ? null : __PRIVATE_toRunAggregationQueryRequest(i, __PRIVATE_queryToAggregateTarget(e._query), n, 
+    return void 0 === i ? null : __PRIVATE_toRunAggregationQueryRequest(i, __PRIVATE_queryToAggregateTarget(e._query), n,
     /* skipAliasing= */ !0).request;
 }
 
@@ -22363,7 +22363,7 @@ function _internalQueryToProtoQueryTarget(e) {
  *
  * @param pipeline - The Pipeline to convert to proto representation.
  */ function _internalPipelineToExecutePipelineRequestProto(e) {
-    const t = 
+    const t =
     /**
  * Returns an initialized and started Datastore for the given Firestore
  * instance. Callers must invoke removeComponents() when the Firestore
@@ -22612,7 +22612,7 @@ class AggregateField {
      * @internal
      */
     constructor(t = "count", e) {
-        this._internalFieldPath = e, 
+        this._internalFieldPath = e,
         /** A type string to uniquely identify instances of this class. */
         this.type = "AggregateField", this.aggregateType = t;
     }
@@ -22623,7 +22623,7 @@ class AggregateField {
  */ class AggregateQuerySnapshot {
     /** @hideconstructor */
     constructor(t, e, n) {
-        this._userDataWriter = e, this._data = n, 
+        this._userDataWriter = e, this._data = n,
         /** A type string to uniquely identify instances of this class. */
         this.type = "AggregateQuerySnapshot", this.query = t;
     }
@@ -22688,7 +22688,7 @@ class AggregateField {
     // - No support for SnapshotOptions.
     /** @hideconstructor protected */
     constructor(t, e, n, r, s) {
-        this._firestore = t, this._userDataWriter = e, this._key = n, this._document = r, 
+        this._firestore = t, this._userDataWriter = e, this._key = n, this._document = r,
         this._converter = s;
     }
     /** Property of the `DocumentSnapshot` that provides the document's ID. */    get id() {
@@ -22717,7 +22717,7 @@ class AggregateField {
             if (this._converter) {
                 // We only want to use the converter and create a new DocumentSnapshot
                 // if a converter has been provided.
-                const t = new QueryDocumentSnapshot$1(this._firestore, this._userDataWriter, this._key, this._document, 
+                const t = new QueryDocumentSnapshot$1(this._firestore, this._userDataWriter, this._key, this._document,
                 /* converter= */ null);
                 return this._converter.fromFirestore(t);
             }
@@ -22857,7 +22857,7 @@ function query(t, e, ...n) {
      * @internal
      */
     constructor(t, e, n) {
-        super(), this._field = t, this._op = e, this._value = n, 
+        super(), this._field = t, this._op = e, this._value = n,
         /** The type of this query constraint */
         this.type = "where";
     }
@@ -22883,8 +22883,8 @@ function query(t, e, ...n) {
                         }
                     };
                 } else i = __PRIVATE_parseDocumentIdValue(r, t, o);
-            } else "in" /* Operator.IN */ !== a && "not-in" /* Operator.NOT_IN */ !== a && "array-contains-any" /* Operator.ARRAY_CONTAINS_ANY */ !== a || __PRIVATE_validateDisjunctiveFilterElements(o, a), 
-            i = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.g)(n, e, o, 
+            } else "in" /* Operator.IN */ !== a && "not-in" /* Operator.NOT_IN */ !== a && "array-contains-any" /* Operator.ARRAY_CONTAINS_ANY */ !== a || __PRIVATE_validateDisjunctiveFilterElements(o, a),
+            i = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.g)(n, e, o,
             /* allowArrays= */ "in" /* Operator.IN */ === a || "not-in" /* Operator.NOT_IN */ === a);
             const u = _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.h.create(s, a, i);
             return u;
@@ -22991,7 +22991,7 @@ function query(t, e, ...n) {
      * @internal
      */
     constructor(t, e) {
-        super(), this._field = t, this._direction = e, 
+        super(), this._field = t, this._direction = e,
         /** The type of this query constraint */
         this.type = "orderBy";
     }
@@ -23107,12 +23107,12 @@ function query(t, e, ...n) {
 }
 
 function startAt(...t) {
-    return QueryStartAtConstraint._create("startAt", t, 
+    return QueryStartAtConstraint._create("startAt", t,
     /*inclusive=*/ !0);
 }
 
 function startAfter(...t) {
-    return QueryStartAtConstraint._create("startAfter", t, 
+    return QueryStartAtConstraint._create("startAfter", t,
     /*inclusive=*/ !1);
 }
 
@@ -23141,12 +23141,12 @@ function startAfter(...t) {
 }
 
 function endBefore(...t) {
-    return QueryEndAtConstraint._create("endBefore", t, 
+    return QueryEndAtConstraint._create("endBefore", t,
     /*inclusive=*/ !1);
 }
 
 function endAt(...t) {
-    return QueryEndAtConstraint._create("endAt", t, 
+    return QueryEndAtConstraint._create("endAt", t,
     /*inclusive=*/ !0);
 }
 
@@ -23254,7 +23254,7 @@ function __PRIVATE_parseDocumentIdValue(t, e, n) {
             return [];
         }
     }(e.op));
-    if (null !== n) 
+    if (null !== n)
     // Special case when it's a duplicate op to give a slightly clearer error message.
     throw n === e.op ? new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.d(_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.C.INVALID_ARGUMENT, `Invalid query. You cannot use more than one '${e.op.toString()}' filter.`) : new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.d(_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.C.INVALID_ARGUMENT, `Invalid query. You cannot use '${e.op.toString()}' filters with '${n.toString()}' filters.`);
 }
@@ -23268,7 +23268,7 @@ function __PRIVATE_applyFirestoreDataConverter(t, e, n) {
     // Cast to `any` in order to satisfy the union type constraint on
     // toFirestore().
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return r = t ? n && (n.merge || n.mergeFields) ? t.toFirestore(e, n) : t.toFirestore(e) : e, 
+    return r = t ? n && (n.merge || n.mergeFields) ? t.toFirestore(e, n) : t.toFirestore(e) : e,
     r;
 }
 
@@ -23425,7 +23425,7 @@ class __PRIVATE_LiteUserDataWriter extends _common_3cb50c20_esm_js__WEBPACK_IMPO
  */ function getAggregateFromServer(t, e) {
     const n = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.y)(t.firestore, _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.F), r = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.z)(n), s = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.E)(e, ((t, e) => new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.ao(e, t.aggregateType, t._internalFieldPath)));
     // Run the aggregation and convert the results
-    return (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.G)(r, t._query, s).then((e => 
+    return (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.G)(r, t._query, s).then((e =>
     /**
  * Converts the core aggregation result to an `AggregateQuerySnapshot`
  * that can be returned to the consumer.
@@ -23471,7 +23471,7 @@ class __PRIVATE_MemoryLocalCacheImpl {
 class __PRIVATE_PersistentLocalCacheImpl {
     constructor(t) {
         let e;
-        this.kind = "persistent", t?.tabManager ? (t.tabManager._initialize(t), e = t.tabManager) : (e = persistentSingleTabManager(void 0), 
+        this.kind = "persistent", t?.tabManager ? (t.tabManager._initialize(t), e = t.tabManager) : (e = persistentSingleTabManager(void 0),
         e._initialize(t)), this._onlineComponentProvider = e._onlineComponentProvider, this._offlineComponentProvider = e._offlineComponentProvider;
     }
     toJSON() {
@@ -23675,7 +23675,7 @@ const zt = "NOT SUPPORTED";
             if (this._converter) {
                 // We only want to use the converter and create a new DocumentSnapshot
                 // if a converter has been provided.
-                const e = new QueryDocumentSnapshot(this._firestore, this._userDataWriter, this._key, this._document, this.metadata, 
+                const e = new QueryDocumentSnapshot(this._firestore, this._userDataWriter, this._key, this._document, this.metadata,
                 /* converter= */ null);
                 return this._converter.fromFirestore(e, t);
             }
@@ -23715,7 +23715,7 @@ const zt = "NOT SUPPORTED";
         if (this.metadata.hasPendingWrites) throw new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.d(_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.C.FAILED_PRECONDITION, "DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. Await waitForPendingWrites() before invoking toJSON().");
         const t = this._document, e = {};
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if (e.type = DocumentSnapshot._jsonSchemaVersion, e.bundle = "", e.bundleSource = "DocumentSnapshot", 
+                if (e.type = DocumentSnapshot._jsonSchemaVersion, e.bundle = "", e.bundleSource = "DocumentSnapshot",
         e.bundleName = this._key.toString(), !t || !t.isValidDocument() || !t.isFoundDocument()) return e;
         this._userDataWriter.convertObjectMap(t.data.value.mapValue.fields, "previous");
         return e.bundle = (this._firestore, this.ref.path, "NOT SUPPORTED"), e;
@@ -23735,7 +23735,7 @@ function documentSnapshotFromJSON(t, e, n) {
                 const u = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.M)(r, i[0].document), c = new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.v(_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.R.fromString(e.bundleName));
         // Return the external facing DocumentSnapshot.
         return new DocumentSnapshot(t, new __PRIVATE_LiteUserDataWriter(t), c, u, new SnapshotMetadata(
-        /* hasPendingWrites= */ !1, 
+        /* hasPendingWrites= */ !1,
         /* fromCache= */ !1), n || null);
     }
 }
@@ -23785,7 +23785,7 @@ class QueryDocumentSnapshot extends DocumentSnapshot {
  */ class QuerySnapshot {
     /** @hideconstructor */
     constructor(t, e, n, r) {
-        this._firestore = t, this._userDataWriter = e, this._snapshot = r, this.metadata = new SnapshotMetadata(r.hasPendingWrites, r.fromCache), 
+        this._firestore = t, this._userDataWriter = e, this._snapshot = r, this.metadata = new SnapshotMetadata(r.hasPendingWrites, r.fromCache),
         this.query = n;
     }
     /** An array of all the documents in the `QuerySnapshot`. */    get docs() {
@@ -23820,7 +23820,7 @@ class QueryDocumentSnapshot extends DocumentSnapshot {
      */    docChanges(t = {}) {
         const e = !!t.includeMetadataChanges;
         if (e && this._snapshot.excludesMetadataChanges) throw new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.d(_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.C.INVALID_ARGUMENT, "To include metadata changes with your document changes, you must also pass { includeMetadataChanges:true } to onSnapshot().");
-        return this._cachedChanges && this._cachedChangesIncludeMetadataChanges === e || (this._cachedChanges = 
+        return this._cachedChanges && this._cachedChangesIncludeMetadataChanges === e || (this._cachedChanges =
         /** Calculates the array of `DocumentChange`s for a given `ViewSnapshot`. */
         function __PRIVATE_changesFromSnapshot(t, e) {
             if (t._snapshot.oldDocs.isEmpty()) {
@@ -23842,8 +23842,8 @@ class QueryDocumentSnapshot extends DocumentSnapshot {
                 return t._snapshot.docChanges.filter((t => e || 3 /* ChangeType.Metadata */ !== t.type)).map((e => {
                     const r = new QueryDocumentSnapshot(t._firestore, t._userDataWriter, e.doc.key, e.doc, new SnapshotMetadata(t._snapshot.mutatedKeys.has(e.doc.key), t._snapshot.fromCache), t.query.converter);
                     let s = -1, a = -1;
-                    return 0 /* ChangeType.Added */ !== e.type && (s = n.indexOf(e.doc.key), n = n.delete(e.doc.key)), 
-                    1 /* ChangeType.Removed */ !== e.type && (n = n.add(e.doc), a = n.indexOf(e.doc.key)), 
+                    return 0 /* ChangeType.Added */ !== e.type && (s = n.indexOf(e.doc.key), n = n.delete(e.doc.key)),
+                    1 /* ChangeType.Removed */ !== e.type && (n = n.add(e.doc), a = n.indexOf(e.doc.key)),
                     {
                         type: __PRIVATE_resultChangeType(e.type),
                         doc: r,
@@ -23863,13 +23863,13 @@ class QueryDocumentSnapshot extends DocumentSnapshot {
         if (this.metadata.hasPendingWrites) throw new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.d(_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.C.FAILED_PRECONDITION, "QuerySnapshot.toJSON() attempted to serialize a document with pending writes. Await waitForPendingWrites() before invoking toJSON().");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const t = {};
-        t.type = QuerySnapshot._jsonSchemaVersion, t.bundleSource = "QuerySnapshot", t.bundleName = _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.N.newId(), 
+        t.type = QuerySnapshot._jsonSchemaVersion, t.bundleSource = "QuerySnapshot", t.bundleName = _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.N.newId(),
         this._firestore._databaseId.database, this._firestore._databaseId.projectId;
         const e = [], n = [], r = [];
         return this.docs.forEach((t => {
-            null !== t._document && (e.push(t._document), n.push(this._userDataWriter.convertObjectMap(t._document.data.value.mapValue.fields, "previous")), 
+            null !== t._document && (e.push(t._document), n.push(this._userDataWriter.convertObjectMap(t._document.data.value.mapValue.fields, "previous")),
             r.push(t.ref.path));
-        })), t.bundle = (this._firestore, this.query._query, t.bundleName, "NOT SUPPORTED"), 
+        })), t.bundle = (this._firestore, this.query._query, t.bundleName, "NOT SUPPORTED"),
         t;
     }
 }
@@ -23890,8 +23890,8 @@ function querySnapshotFromJSON(t, e, n) {
             c = c.add(e);
         }));
         // Create a view snapshot of the query and documents.
-        const l = _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.V.fromInitialDocuments(i, c, (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.T)() /* Zero mutated keys signifies no pending writes. */ , 
-        /* fromCache= */ !1, 
+        const l = _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.V.fromInitialDocuments(i, c, (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.T)() /* Zero mutated keys signifies no pending writes. */ ,
+        /* fromCache= */ !1,
         /* hasCachedResults= */ !1), h = new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Q(t, n || null, i);
         // Create an external Query object, required to construct the QuerySnapshot.
                 // Return a new QuerySnapshot with all of the collected data.
@@ -23983,7 +23983,7 @@ const Yt = {
 class WriteBatch {
     /** @hideconstructor */
     constructor(t, e) {
-        this._firestore = t, this._commitHandler = e, this._mutations = [], this._committed = !1, 
+        this._firestore = t, this._commitHandler = e, this._mutations = [], this._committed = !1,
         this._dataReader = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.f)(t);
     }
     set(t, e, n) {
@@ -23997,7 +23997,7 @@ class WriteBatch {
         // For Compat types, we have to "extract" the underlying types before
         // performing validation.
                 let a;
-        return a = "string" == typeof (e = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_3__.getModularInstance)(e)) || e instanceof _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Y ? (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Z)(this._dataReader, "WriteBatch.update", s._key, e, n, r) : (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.$)(this._dataReader, "WriteBatch.update", s._key, e), 
+        return a = "string" == typeof (e = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_3__.getModularInstance)(e)) || e instanceof _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Y ? (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Z)(this._dataReader, "WriteBatch.update", s._key, e, n, r) : (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.$)(this._dataReader, "WriteBatch.update", s._key, e),
         this._mutations.push(a.toMutation(s._key, _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.X.exists(!0))), this;
     }
     /**
@@ -24089,7 +24089,7 @@ function __PRIVATE_validateReference(t, e) {
         // For Compat types, we have to "extract" the underlying types before
         // performing validation.
                 let a;
-        return a = "string" == typeof (e = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_3__.getModularInstance)(e)) || e instanceof _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Y ? (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Z)(this._dataReader, "Transaction.update", s._key, e, n, r) : (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.$)(this._dataReader, "Transaction.update", s._key, e), 
+        return a = "string" == typeof (e = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_3__.getModularInstance)(e)) || e instanceof _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Y ? (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.Z)(this._dataReader, "Transaction.update", s._key, e, n, r) : (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.$)(this._dataReader, "Transaction.update", s._key, e),
         this._transaction.update(s._key, a), this;
     }
     /**
@@ -24140,7 +24140,7 @@ function __PRIVATE_validateReference(t, e) {
      */    get(t) {
         const e = __PRIVATE_validateReference(t, this._firestore), n = new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.H(this._firestore);
         return super.get(t).then((t => new DocumentSnapshot(this._firestore, n, e._key, t._document, new SnapshotMetadata(
-        /* hasPendingWrites= */ !1, 
+        /* hasPendingWrites= */ !1,
         /* fromCache= */ !1), e.converter)));
     }
 }
@@ -24218,7 +24218,7 @@ function __PRIVATE_validateReference(t, e) {
  */ function getDocFromCache(t) {
     t = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.y)(t, _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.D);
     const e = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.y)(t.firestore, _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.F), n = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.z)(e), r = new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.H(e);
-    return (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.a3)(n, t._key).then((n => new DocumentSnapshot(e, r, t._key, n, new SnapshotMetadata(null !== n && n.hasLocalMutations, 
+    return (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.a3)(n, t._key).then((n => new DocumentSnapshot(e, r, t._key, n, new SnapshotMetadata(null !== n && n.hasLocalMutations,
     /* fromCache= */ !0), t.converter)));
 }
 
@@ -24357,7 +24357,7 @@ function onSnapshot(t, ...e) {
 }
 
 function onSnapshotResume(t, e, ...n) {
-    const r = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_3__.getModularInstance)(t), s = 
+    const r = (0,_firebase_util__WEBPACK_IMPORTED_MODULE_3__.getModularInstance)(t), s =
     /**
  * Ensures the data required to construct an {@link onSnapshot} listener exist in a `snapshotJson`
  * object that originates from {@link DocumentSnapshot.toJSON} or {@link Querysnapshot.toJSON}. The
@@ -24412,7 +24412,7 @@ function onSnapshotResume(t, e, ...n) {
  */ (e);
     if (s.error) throw new _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.d(_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.C.INVALID_ARGUMENT, s.error);
     let a, o = 0;
-    if ("object" != typeof n[o] || __PRIVATE_isPartialObserver(n[o]) || (a = n[o++]), 
+    if ("object" != typeof n[o] || __PRIVATE_isPartialObserver(n[o]) || (a = n[o++]),
     "QuerySnapshot" === s.bundleSource) {
         let t = null;
         if ("object" == typeof n[o] && __PRIVATE_isPartialObserver(n[o])) {
@@ -24557,7 +24557,7 @@ function writeBatch(t) {
  */ function setIndexConfiguration(t, e) {
     t = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.y)(t, _common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.F);
     const n = (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.z)(t);
-    if (!n._uninitializedComponentsProvider || "memory" === n._uninitializedComponentsProvider._offline.kind) 
+    if (!n._uninitializedComponentsProvider || "memory" === n._uninitializedComponentsProvider._offline.kind)
     // PORTING NOTE: We don't return an error if the user has not enabled
     // persistence since `enableIndexeddbPersistence()` can fail on the Web.
     return (0,_common_3cb50c20_esm_js__WEBPACK_IMPORTED_MODULE_2__.ad)("Cannot enable indexes when persistence is disabled"), Promise.resolve();
@@ -24611,7 +24611,7 @@ function __PRIVATE_tryGetString(t, e) {
  */ class PersistentCacheIndexManager {
     /** @hideconstructor */
     constructor(t) {
-        this._firestore = t, 
+        this._firestore = t,
         /** A type string to uniquely identify instances of this class. */
         this.type = "PersistentCacheIndexManager";
     }
@@ -24750,7 +24750,7 @@ let Xt = null;
             useFetchStreams: l,
             ...n
         }, s._setSettings(n), s;
-    }), "PUBLIC").setMultipleInstances(!0)), (0,_firebase_app__WEBPACK_IMPORTED_MODULE_0__.registerVersion)(Ut, Ht, u), 
+    }), "PUBLIC").setMultipleInstances(!0)), (0,_firebase_app__WEBPACK_IMPORTED_MODULE_0__.registerVersion)(Ut, Ht, u),
     // BUILD_TARGET will be replaced by values like esm, cjs, etc during the compilation
     (0,_firebase_app__WEBPACK_IMPORTED_MODULE_0__.registerVersion)(Ut, Ht, "esm2020");
 }();
@@ -26021,7 +26021,7 @@ const ERROR_NAME = 'FirebaseError';
 class FirebaseError extends Error {
     constructor(
     /** The error code for this error. */
-    code, message, 
+    code, message,
     /** Custom data for this error. */
     customData) {
         super(message);
@@ -26917,7 +26917,7 @@ function validateNamespace(fnName, namespace, optional) {
         throw new Error(errorPrefix(fnName, 'namespace') + 'must be a valid firebase namespace.');
     }
 }
-function validateCallback(fnName, argumentName, 
+function validateCallback(fnName, argumentName,
 // eslint-disable-next-line @typescript-eslint/ban-types
 callback, optional) {
     if (optional && !callback) {
@@ -32123,7 +32123,7 @@ function startsWithEndTagOpen(source, tag) {
 }
 
 function hoistStatic(root, context) {
-    walk(root, context, 
+    walk(root, context,
     // Root node is unfortunately non-hoistable due to potential parent
     // fallthrough attributes.
     isSingleElementRoot(root, root.children[0]));
@@ -33410,7 +33410,7 @@ const transformExpression = (node, context) => {
                 if (exp &&
                     exp.type === 4 /* SIMPLE_EXPRESSION */ &&
                     !(dir.name === 'on' && arg)) {
-                    dir.exp = processExpression(exp, context, 
+                    dir.exp = processExpression(exp, context,
                     // slot args must be processed as function params
                     dir.name === 'slot');
                 }
@@ -33424,10 +33424,10 @@ const transformExpression = (node, context) => {
 // Important: since this function uses Node.js only dependencies, it should
 // always be used with a leading !true check so that it can be
 // tree-shaken from the browser build.
-function processExpression(node, context, 
+function processExpression(node, context,
 // some expressions like v-slot props & v-for aliases should be parsed as
 // function params
-asParams = false, 
+asParams = false,
 // v-on handler values may contain multiple statements
 asRawStatements = false, localVars = Object.create(context.identifiers)) {
     {
@@ -33568,7 +33568,7 @@ function createIfBranch(node, dir) {
 }
 function createCodegenNodeForBranch(branch, keyIndex, context) {
     if (branch.condition) {
-        return createConditionalExpression(branch.condition, createChildrenCodegenNode(branch, keyIndex, context), 
+        return createConditionalExpression(branch.condition, createChildrenCodegenNode(branch, keyIndex, context),
         // make sure to pass in asBlock: true so that the comment node call
         // closes the current block.
         createCallExpression(context.helper(CREATE_COMMENT), [
@@ -34083,7 +34083,7 @@ function buildSlots(node, context, buildSlotFn = buildClientSlotFn) {
         : hasForwardedSlots(node.children)
             ? 3 /* FORWARDED */
             : 1 /* STABLE */;
-    let slots = createObjectExpression(slotsProperties.concat(createObjectProperty(`_`, 
+    let slots = createObjectExpression(slotsProperties.concat(createObjectProperty(`_`,
     // 2 = compiled but dynamic = can skip normalization, but must run diff
     // 1 = compiled and static = can skip normalization AND diff as optimized
     createSimpleExpression(slotFlag + (( true) ? ` /* ${_vue_shared__WEBPACK_IMPORTED_MODULE_0__.slotFlagsText[slotFlag]} */` : 0), false))), loc);
@@ -34164,7 +34164,7 @@ const transformElement = (node, context) => {
         let vnodeDynamicProps;
         let dynamicPropNames;
         let vnodeDirectives;
-        let shouldUseBlock = 
+        let shouldUseBlock =
         // dynamic component may resolve to plain elements
         isDynamicComponent ||
             vnodeTag === TELEPORT ||
@@ -35996,7 +35996,7 @@ function compile(template, options = {}) {
             ...(options.nodeTransforms || [])
         ],
         directiveTransforms: (0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.extend)({}, DOMDirectiveTransforms, options.directiveTransforms || {}),
-        transformHoist: null 
+        transformHoist: null
     }));
 }
 function parse(template, options = {}) {
@@ -38333,9 +38333,9 @@ function devtoolsUnmountApp(app) {
     emit("app:unmount" /* APP_UNMOUNT */, app);
 }
 const devtoolsComponentAdded = /*#__PURE__*/ createDevtoolsComponentHook("component:added" /* COMPONENT_ADDED */);
-const devtoolsComponentUpdated = 
+const devtoolsComponentUpdated =
 /*#__PURE__*/ createDevtoolsComponentHook("component:updated" /* COMPONENT_UPDATED */);
-const devtoolsComponentRemoved = 
+const devtoolsComponentRemoved =
 /*#__PURE__*/ createDevtoolsComponentHook("component:removed" /* COMPONENT_REMOVED */);
 function createDevtoolsComponentHook(hook) {
     return (component) => {
@@ -38873,7 +38873,7 @@ const SuspenseImpl = {
     // on a vnode's type and calls the `process` method, passing in renderer
     // internals.
     __isSuspense: true,
-    process(n1, n2, container, anchor, parentComponent, parentSuspense, isSVG, slotScopeIds, optimized, 
+    process(n1, n2, container, anchor, parentComponent, parentSuspense, isSVG, slotScopeIds, optimized,
     // platform-specific impl passed from renderer
     rendererInternals) {
         if (n1 == null) {
@@ -39178,11 +39178,11 @@ function createSuspenseBoundary(vnode, parent, parentComponent, container, hidde
                     vnode.el = hydratedEl;
                 }
                 const placeholder = !hydratedEl && instance.subTree.el;
-                setupRenderEffect(instance, vnode, 
+                setupRenderEffect(instance, vnode,
                 // component may have been moved before resolve.
                 // if this is not a hydration, instance.subTree will be the comment
                 // placeholder.
-                parentNode(hydratedEl || instance.subTree.el), 
+                parentNode(hydratedEl || instance.subTree.el),
                 // anchor will not be used if this is hydration, so only need to
                 // consider the comment placeholder case.
                 hydratedEl ? null : next(instance.subTree), suspense, isSVG, optimized);
@@ -40184,7 +40184,7 @@ const KeepAliveImpl = {
         watch(() => [props.include, props.exclude], ([include, exclude]) => {
             include && pruneCache(name => matches(include, name));
             exclude && pruneCache(name => !matches(exclude, name));
-        }, 
+        },
         // prune post-render after `current` has been updated
         { flush: 'post', deep: true });
         // cache sub tree after render
@@ -40405,7 +40405,7 @@ function injectHook(type, hook, target = currentInstance, prepend = false) {
                 ));
     }
 }
-const createHook = (lifecycle) => (hook, target = currentInstance) => 
+const createHook = (lifecycle) => (hook, target = currentInstance) =>
 // post-create lifecycle registrations are noops during SSR (except for serverPrefetch)
 (!isInSSRComponentSetup || lifecycle === "sp" /* SERVER_PREFETCH */) &&
     injectHook(lifecycle, hook, target);
@@ -40539,7 +40539,7 @@ function resolveAsset(type, name, warnMissing = true, maybeSelfReference = false
                 return Component;
             }
         }
-        const res = 
+        const res =
         // local registration
         // check instance[type] first which is resolved for options API
         resolve(instance[type] || Component[type], name) ||
@@ -40638,7 +40638,7 @@ function createSlots(slots, dynamicSlots) {
  * Compiler runtime helper for rendering `<slot/>`
  * @private
  */
-function renderSlot(slots, name, props = {}, 
+function renderSlot(slots, name, props = {},
 // this is not a user-facing function, so the fallback is always generated by
 // the compiler and guaranteed to be a function returning an array
 fallback, noSlotted) {
@@ -40718,7 +40718,7 @@ const getPublicInstance = (i) => {
         return getExposeProxy(i) || i.proxy;
     return getPublicInstance(i.parent);
 };
-const publicPropertiesMap = 
+const publicPropertiesMap =
 // Move PURE marker to new line to workaround compiler discarding it
 // due to type annotation
 /*#__PURE__*/ (0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.extend)(Object.create(null), {
@@ -41007,13 +41007,13 @@ function applyOptions(instance) {
     if (options.beforeCreate) {
         callHook(options.beforeCreate, instance, "bc" /* BEFORE_CREATE */);
     }
-    const { 
+    const {
     // state
-    data: dataOptions, computed: computedOptions, methods, watch: watchOptions, provide: provideOptions, inject: injectOptions, 
+    data: dataOptions, computed: computedOptions, methods, watch: watchOptions, provide: provideOptions, inject: injectOptions,
     // lifecycle
-    created, beforeMount, mounted, beforeUpdate, updated, activated, deactivated, beforeDestroy, beforeUnmount, destroyed, unmounted, render, renderTracked, renderTriggered, errorCaptured, serverPrefetch, 
+    created, beforeMount, mounted, beforeUpdate, updated, activated, deactivated, beforeDestroy, beforeUnmount, destroyed, unmounted, render, renderTracked, renderTriggered, errorCaptured, serverPrefetch,
     // public API
-    expose, inheritAttrs, 
+    expose, inheritAttrs,
     // assets
     components, directives, filters } = options;
     const checkDuplicateProperties = ( true) ? createDuplicateChecker() : 0;
@@ -43014,7 +43014,7 @@ function baseCreateRenderer(options, createHydrationFns) {
             const oldVNode = oldChildren[i];
             const newVNode = newChildren[i];
             // Determine the container (parent element) for the patch.
-            const container = 
+            const container =
             // oldVNode may be an errored async setup() component inside Suspense
             // which will not have a mounted element
             oldVNode.el &&
@@ -43335,9 +43335,9 @@ function baseCreateRenderer(options, createHydrationFns) {
                 if ((true)) {
                     startMeasure(instance, `patch`);
                 }
-                patch(prevTree, nextTree, 
+                patch(prevTree, nextTree,
                 // parent may have changed if it's in a teleport
-                hostParentNode(prevTree.el), 
+                hostParentNode(prevTree.el),
                 // anchor may have changed if it's in a fragment
                 getNextHostNode(prevTree), instance, parentSuspense, isSVG);
                 if ((true)) {
@@ -44551,7 +44551,7 @@ function createStaticVNode(content, numberOfNodes) {
 /**
  * @private
  */
-function createCommentVNode(text = '', 
+function createCommentVNode(text = '',
 // when used as the v-else branch, the comment node must be created as a
 // block to ensure correct updates.
 asBlock = false) {
@@ -44566,7 +44566,7 @@ function normalizeVNode(child) {
     }
     else if ((0,_vue_shared__WEBPACK_IMPORTED_MODULE_1__.isArray)(child)) {
         // fragment
-        return createVNode(Fragment, null, 
+        return createVNode(Fragment, null,
         // #3666, avoid reference pollution when reusing vnode
         child.slice());
     }
@@ -45899,7 +45899,7 @@ function patchAttr(el, key, value, isSVG, instance) {
 
 // __UNSAFE__
 // functions. The user is responsible for using them with only trusted content.
-function patchDOMProp(el, key, value, 
+function patchDOMProp(el, key, value,
 // the following args are passed only due to potential innerHTML/textContent
 // overriding existing VNodes, in which case the old tree must be properly
 // unmounted.
@@ -51782,7 +51782,7 @@ __webpack_require__.r(__webpack_exports__);
         return;
       }
       if (this.AddFoodData.saturated_fat > 999 || this.AddFoodData.trans_fat > 999 || this.AddFoodData.polyunsaturated_fat > 999 || this.AddFoodData.monounsaturated_fat > 999 || this.AddFoodData.cholestrol > 999 || this.AddFoodData.sodium > 999
-      // || this.AddFoodData.dietary_fiber > 999 
+      // || this.AddFoodData.dietary_fiber > 999
       || this.AddFoodData.total_sugars > 999 || this.AddFoodData.vitamin_a > 999 || this.AddFoodData.vitamin_c > 999 || this.AddFoodData.vitamin_d > 999 || this.AddFoodData.vitamin_e > 999 || this.AddFoodData.thiamin > 999 || this.AddFoodData.riboflavin > 999 || this.AddFoodData.niacin > 999 || this.AddFoodData.vitamin_b6 > 999 || this.AddFoodData.vitamin_b12 > 999 || this.AddFoodData.pantothenic_acid > 999 || this.AddFoodData.calcium > 999 || this.AddFoodData.iron > 999 || this.AddFoodData.potassium > 999 || this.AddFoodData.phosphorus > 999 || this.AddFoodData.magnesium > 999 || this.AddFoodData.zinc > 999 || this.AddFoodData.selenium > 999 || this.AddFoodData.copper > 999 || this.AddFoodData.menganese > 999 || this.AddFoodData.alchohal > 999 || this.AddFoodData.caffeine > 999) {
         this.modalTitle = 'Error';
         this.modalDetail = 'Nutrition Facts cannot be greater than 999';
@@ -55062,7 +55062,7 @@ __webpack_require__.r(__webpack_exports__);
         return;
       }
       if (this.AddFoodData.saturated_fat > 999 || this.AddFoodData.trans_fat > 999 || this.AddFoodData.polyunsaturated_fat > 999 || this.AddFoodData.monounsaturated_fat > 999 || this.AddFoodData.cholestrol > 999 || this.AddFoodData.sodium > 999
-      // || this.AddFoodData.dietary_fiber > 999 
+      // || this.AddFoodData.dietary_fiber > 999
       || this.AddFoodData.total_sugars > 999 || this.AddFoodData.vitamin_a > 999 || this.AddFoodData.vitamin_c > 999 || this.AddFoodData.vitamin_d > 999 || this.AddFoodData.vitamin_e > 999 || this.AddFoodData.thiamin > 999 || this.AddFoodData.riboflavin > 999 || this.AddFoodData.niacin > 999 || this.AddFoodData.vitamin_b6 > 999 || this.AddFoodData.vitamin_b12 > 999 || this.AddFoodData.pantothenic_acid > 999 || this.AddFoodData.calcium > 999 || this.AddFoodData.iron > 999 || this.AddFoodData.potassium > 999 || this.AddFoodData.phosphorus > 999 || this.AddFoodData.magnesium > 999 || this.AddFoodData.zinc > 999 || this.AddFoodData.selenium > 999 || this.AddFoodData.copper > 999 || this.AddFoodData.menganese > 999 || this.AddFoodData.alchohal > 999 || this.AddFoodData.caffeine > 999) {
         this.modalTitle = 'Error';
         this.modalDetail = 'Nutrition Facts cannot be greater than 999';
@@ -64769,6 +64769,185 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
+/***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=script&lang=js"
+/*!*****************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=script&lang=js ***!
+  \*****************************************************************************************************************************************************************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/lib/axios.js");
+/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../config */ "./resources/js/config.js");
+/* harmony import */ var _components_loader_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../components/loader.vue */ "./resources/js/components/loader.vue");
+/* harmony import */ var _components_inform_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../components/inform.vue */ "./resources/js/components/inform.vue");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+
+
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  components: {
+    Loader: _components_loader_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    Inform: _components_inform_vue__WEBPACK_IMPORTED_MODULE_3__["default"]
+  },
+  data: function data() {
+    return {
+      loading: false,
+      loadingText: 'Loading...',
+      informModal: false,
+      modalTitle: '',
+      modalDetail: '',
+      proposals: [],
+      summary: {},
+      filters: {
+        search: '',
+        language: '',
+        equipment_category: '',
+        scope: 'all',
+        status: 'proposed',
+        limit: 10,
+        model: ''
+      },
+      apiConfig: {
+        headers: {
+          Authorization: 'Bearer ' + _config__WEBPACK_IMPORTED_MODULE_1__["default"].storage.getItem('fwd_session_token')
+        }
+      }
+    };
+  },
+  mounted: function mounted() {
+    this.fetchProposals();
+  },
+  methods: {
+    fetchProposals: function fetchProposals() {
+      var _this = this;
+      this.loading = true;
+      axios__WEBPACK_IMPORTED_MODULE_0__["default"].get(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags', _objectSpread(_objectSpread({}, this.apiConfig), {}, {
+        params: {
+          search: this.filters.search || undefined,
+          language: this.filters.language || undefined,
+          status: this.filters.status || undefined,
+          per_page: 50
+        }
+      })).then(function (res) {
+        var _res$data$data;
+        _this.proposals = ((_res$data$data = res.data.data) === null || _res$data$data === void 0 ? void 0 : _res$data$data.data) || [];
+        _this.summary = res.data.summary || {};
+        if (!_this.filters.model) {
+          var _res$data$options;
+          _this.filters.model = ((_res$data$options = res.data.options) === null || _res$data$options === void 0 ? void 0 : _res$data$options.default_model) || 'qwen3:latest';
+        }
+      })["catch"](function (er) {
+        var _er$response, _er$response$data;
+        return _this.showError(((_er$response = er.response) === null || _er$response === void 0 ? void 0 : (_er$response$data = _er$response.data) === null || _er$response$data === void 0 ? void 0 : _er$response$data.message) || er.message);
+      })["finally"](function () {
+        _this.loading = false;
+      });
+    },
+    generateProposals: function generateProposals() {
+      var _this2 = this;
+      this.loading = true;
+      this.loadingText = 'Asking Ollama/Qwen to tag videos...';
+      axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/generate', {
+        search: this.filters.search || undefined,
+        language: this.filters.language || undefined,
+        equipment_category: this.filters.equipment_category || undefined,
+        scope: this.filters.scope,
+        limit: this.filters.limit,
+        model: this.filters.model || undefined
+      }, this.apiConfig).then(function (res) {
+        _this2.modalTitle = 'AI tagging complete';
+        _this2.modalDetail = res.data.message || 'AI proposals generated.';
+        _this2.informModal = true;
+        _this2.fetchProposals();
+      })["catch"](function (er) {
+        var _er$response2, _er$response2$data;
+        return _this2.showError(((_er$response2 = er.response) === null || _er$response2 === void 0 ? void 0 : (_er$response2$data = _er$response2.data) === null || _er$response2$data === void 0 ? void 0 : _er$response2$data.message) || er.message);
+      })["finally"](function () {
+        _this2.loading = false;
+        _this2.loadingText = 'Loading...';
+      });
+    },
+    applyProposal: function applyProposal(id, approve) {
+      var _this3 = this;
+      this.loading = true;
+      axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/' + id + '/apply', {
+        approve: approve
+      }, this.apiConfig).then(function (res) {
+        _this3.modalTitle = 'Applied';
+        _this3.modalDetail = res.data.message || 'AI proposal applied.';
+        _this3.informModal = true;
+        _this3.fetchProposals();
+      })["catch"](function (er) {
+        var _er$response3, _er$response3$data;
+        return _this3.showError(((_er$response3 = er.response) === null || _er$response3 === void 0 ? void 0 : (_er$response3$data = _er$response3.data) === null || _er$response3$data === void 0 ? void 0 : _er$response3$data.message) || er.message);
+      })["finally"](function () {
+        _this3.loading = false;
+      });
+    },
+    rejectProposal: function rejectProposal(id) {
+      var _this4 = this;
+      this.loading = true;
+      axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/' + id + '/reject', {}, this.apiConfig).then(function (res) {
+        _this4.modalTitle = 'Rejected';
+        _this4.modalDetail = res.data.message || 'AI proposal rejected.';
+        _this4.informModal = true;
+        _this4.fetchProposals();
+      })["catch"](function (er) {
+        var _er$response4, _er$response4$data;
+        return _this4.showError(((_er$response4 = er.response) === null || _er$response4 === void 0 ? void 0 : (_er$response4$data = _er$response4.data) === null || _er$response4$data === void 0 ? void 0 : _er$response4$data.message) || er.message);
+      })["finally"](function () {
+        _this4.loading = false;
+      });
+    },
+    enabledUsage: function enabledUsage(flags) {
+      if (!flags) {
+        return [];
+      }
+      return Object.keys(flags).filter(function (key) {
+        return flags[key];
+      }).map(this.readableStatus);
+    },
+    confidence: function confidence(value) {
+      if (value === null || value === undefined) {
+        return '-';
+      }
+      return Math.round(Number(value) * 100) + '%';
+    },
+    readableEquipment: function readableEquipment(value) {
+      return String(value || '-').replaceAll('_', ' ');
+    },
+    readableStatus: function readableStatus(value) {
+      return String(value || '-').replaceAll('_', ' ');
+    },
+    readableLanguage: function readableLanguage(value) {
+      var map = {
+        en: 'English',
+        ar: 'Arabic',
+        no_audio: 'No audio'
+      };
+      return map[value] || value || '-';
+    },
+    showError: function showError(message) {
+      this.modalTitle = 'Error';
+      this.modalDetail = message || 'Something went wrong';
+      this.informModal = true;
+      this.loading = false;
+    }
+  }
+});
+
+/***/ },
+
 /***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Exercises.vue?vue&type=script&lang=js"
 /*!***************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Exercises.vue?vue&type=script&lang=js ***!
@@ -67710,7 +67889,7 @@ __webpack_require__.r(__webpack_exports__);
       filters: false,
       tagsClose: false,
       finalVisibleWorkouts: [],
-      // to show filtered and searched 
+      // to show filtered and searched
       tagsFilteredWorkout: [],
       // to store tags filtered
       selectedTagsForFilter: [],
@@ -95450,6 +95629,32 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     _: 1 /* STABLE */
   }), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_router_link, {
     "class": "menu_item px-4 mx-0",
+    to: "/cms/ai-video-tags"
+  }, {
+    "default": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
+      return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+        "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["ms-4", {
+          widthalign: !$data.collapsedMenu
+        }])
+      }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("img", {
+        src: "/cms-assets/images/navbar-topbar/workout.png",
+        alt: "",
+        "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)([{
+          collapsedimg: $data.collapsedMenu
+        }, "img-fluid"]),
+        style: {
+          "height": "25px",
+          "width": "30px"
+        }
+      }, null, 2 /* CLASS */)], 2 /* CLASS */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+        "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)({
+          masterlibraries: $data.collapsedMenu
+        })
+      }, "AI Video Tags", 2 /* CLASS */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vShow, !$data.collapsedMenu]])])];
+    }),
+    _: 1 /* STABLE */
+  }), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_router_link, {
+    "class": "menu_item px-4 mx-0",
     to: "/cms/habit"
   }, {
     "default": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
@@ -102679,6 +102884,250 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     disabled: $data.loading
   }, [!$data.loading ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_22, "Log In")) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("i", _hoisted_23))], 8 /* PROPS */, _hoisted_21)])])])]);
+}
+
+/***/ },
+
+/***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/templateLoader.js??ruleSet[1].rules[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=template&id=11569a94&scoped=true"
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/templateLoader.js??ruleSet[1].rules[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=template&id=11569a94&scoped=true ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   render: () => (/* binding */ render)
+/* harmony export */ });
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.esm-bundler.js");
+
+var _withScopeId = function _withScopeId(n) {
+  return (0,vue__WEBPACK_IMPORTED_MODULE_0__.pushScopeId)("data-v-11569a94"), n = n(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.popScopeId)(), n;
+};
+var _hoisted_1 = {
+  "class": "ai-tags-page"
+};
+var _hoisted_2 = {
+  "class": "page-head"
+};
+var _hoisted_3 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h2", {
+    "class": "mb-1"
+  }, "AI Video Tags"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+    "class": "mb-0 muted"
+  }, "Review Ollama/Qwen tag proposals before applying them to the routine library.")], -1 /* HOISTED */);
+});
+var _hoisted_4 = {
+  "class": "filters panel"
+};
+var _hoisted_5 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+    value: ""
+  }, "All languages", -1 /* HOISTED */);
+});
+var _hoisted_6 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+    value: "en"
+  }, "English", -1 /* HOISTED */);
+});
+var _hoisted_7 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+    value: "ar"
+  }, "Arabic", -1 /* HOISTED */);
+});
+var _hoisted_8 = [_hoisted_5, _hoisted_6, _hoisted_7];
+var _hoisted_9 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createStaticVNode)("<option value=\"\" data-v-11569a94>All equipment</option><option value=\"bodyweight\" data-v-11569a94>Bodyweight</option><option value=\"home_dumbbell\" data-v-11569a94>Home Dumbbell</option><option value=\"gym\" data-v-11569a94>Gym</option><option value=\"full_gym\" data-v-11569a94>Full Gym</option>", 5);
+var _hoisted_14 = [_hoisted_9];
+var _hoisted_15 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+    value: "all"
+  }, "All videos", -1 /* HOISTED */);
+});
+var _hoisted_16 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+    value: "untagged"
+  }, "Untagged only", -1 /* HOISTED */);
+});
+var _hoisted_17 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+    value: "tagged"
+  }, "Tagged only", -1 /* HOISTED */);
+});
+var _hoisted_18 = [_hoisted_15, _hoisted_16, _hoisted_17];
+var _hoisted_19 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createStaticVNode)("<option value=\"\" data-v-11569a94>All proposals</option><option value=\"proposed\" data-v-11569a94>Proposed</option><option value=\"applied\" data-v-11569a94>Applied</option><option value=\"rejected\" data-v-11569a94>Rejected</option><option value=\"failed\" data-v-11569a94>Failed</option>", 5);
+var _hoisted_24 = [_hoisted_19];
+var _hoisted_25 = {
+  "class": "summary-row"
+};
+var _hoisted_26 = {
+  "class": "panel table-panel"
+};
+var _hoisted_27 = {
+  "class": "table align-middle"
+};
+var _hoisted_28 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("thead", null, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tr", null, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Video"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Current tag"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Qwen proposal"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Safety / usage"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Status"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", {
+    "class": "text-end"
+  }, "Actions")])], -1 /* HOISTED */);
+});
+var _hoisted_29 = {
+  key: 0
+};
+var _hoisted_30 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", {
+    colspan: "6",
+    "class": "text-center muted py-4"
+  }, "No AI tag proposals yet.", -1 /* HOISTED */);
+});
+var _hoisted_31 = [_hoisted_30];
+var _hoisted_32 = {
+  "class": "video-cell"
+};
+var _hoisted_33 = ["src"];
+var _hoisted_34 = {
+  "class": "muted small-text"
+};
+var _hoisted_35 = {
+  "class": "muted small-text"
+};
+var _hoisted_36 = {
+  key: 0
+};
+var _hoisted_37 = {
+  key: 1,
+  "class": "muted"
+};
+var _hoisted_38 = {
+  key: 0
+};
+var _hoisted_39 = {
+  "class": "muted small-text"
+};
+var _hoisted_40 = {
+  key: 1,
+  "class": "text-danger"
+};
+var _hoisted_41 = {
+  key: 0
+};
+var _hoisted_42 = {
+  "class": "usage-list"
+};
+var _hoisted_43 = {
+  key: 0,
+  "class": "muted small-text"
+};
+var _hoisted_44 = {
+  "class": "muted small-text"
+};
+var _hoisted_45 = {
+  "class": "text-end"
+};
+var _hoisted_46 = ["onClick"];
+var _hoisted_47 = ["onClick"];
+var _hoisted_48 = ["onClick"];
+function render(_ctx, _cache, $props, $setup, $data, $options) {
+  var _component_Loader = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("Loader");
+  var _component_Inform = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("Inform");
+  return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [$data.loading ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(_component_Loader, {
+    key: 0,
+    loadingText: $data.loadingText
+  }, null, 8 /* PROPS */, ["loadingText"])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), $data.informModal ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(_component_Inform, {
+    key: 1,
+    msgTitle: $data.modalTitle,
+    msgDetail: $data.modalDetail
+  }, null, 8 /* PROPS */, ["msgTitle", "msgDetail"])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [_hoisted_3, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "prim_btn px-4 py-2",
+    onClick: _cache[0] || (_cache[0] = function () {
+      return $options.generateProposals && $options.generateProposals.apply($options, arguments);
+    })
+  }, "Generate AI Tags")]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_4, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+    "onUpdate:modelValue": _cache[1] || (_cache[1] = function ($event) {
+      return $data.filters.search = $event;
+    }),
+    onKeyup: _cache[2] || (_cache[2] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withKeys)(function () {
+      return $options.fetchProposals && $options.fetchProposals.apply($options, arguments);
+    }, ["enter"])),
+    "class": "form-control control",
+    placeholder: "Search video title or code"
+  }, null, 544 /* HYDRATE_EVENTS, NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.filters.search]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
+    "onUpdate:modelValue": _cache[3] || (_cache[3] = function ($event) {
+      return $data.filters.language = $event;
+    }),
+    "class": "form-select control",
+    onChange: _cache[4] || (_cache[4] = function () {
+      return $options.fetchProposals && $options.fetchProposals.apply($options, arguments);
+    })
+  }, _hoisted_8, 544 /* HYDRATE_EVENTS, NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.filters.language]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
+    "onUpdate:modelValue": _cache[5] || (_cache[5] = function ($event) {
+      return $data.filters.equipment_category = $event;
+    }),
+    "class": "form-select control"
+  }, _hoisted_14, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.filters.equipment_category]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
+    "onUpdate:modelValue": _cache[6] || (_cache[6] = function ($event) {
+      return $data.filters.scope = $event;
+    }),
+    "class": "form-select control"
+  }, _hoisted_18, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.filters.scope]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
+    "onUpdate:modelValue": _cache[7] || (_cache[7] = function ($event) {
+      return $data.filters.status = $event;
+    }),
+    "class": "form-select control",
+    onChange: _cache[8] || (_cache[8] = function () {
+      return $options.fetchProposals && $options.fetchProposals.apply($options, arguments);
+    })
+  }, _hoisted_24, 544 /* HYDRATE_EVENTS, NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.filters.status]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+    "onUpdate:modelValue": _cache[9] || (_cache[9] = function ($event) {
+      return $data.filters.limit = $event;
+    }),
+    type: "number",
+    min: "1",
+    max: "50",
+    "class": "form-control small-control",
+    title: "Generate limit"
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.filters.limit, void 0, {
+    number: true
+  }]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+    "onUpdate:modelValue": _cache[10] || (_cache[10] = function ($event) {
+      return $data.filters.model = $event;
+    }),
+    "class": "form-control model-control",
+    placeholder: "Ollama model"
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.filters.model]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    "class": "scnd_btn px-3",
+    onClick: _cache[11] || (_cache[11] = function () {
+      return $options.fetchProposals && $options.fetchProposals.apply($options, arguments);
+    })
+  }, "Refresh")]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_25, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Total " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.summary.total || 0), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Proposed " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.summary.proposed || 0), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Applied " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.summary.applied || 0), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Rejected " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.summary.rejected || 0), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, "Failed " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.summary.failed || 0), 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_26, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("table", _hoisted_27, [_hoisted_28, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tbody", null, [$data.proposals.length === 0 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("tr", _hoisted_29, _hoisted_31)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.proposals, function (proposal) {
+    var _proposal$exercise, _proposal$exercise2, _proposal$exercise3, _proposal$exercise4;
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("tr", {
+      key: proposal.id
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_32, [proposal.exercise && proposal.exercise.image ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("img", {
+      key: 0,
+      src: proposal.exercise.image,
+      alt: ""
+    }, null, 8 /* PROPS */, _hoisted_33)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise = proposal.exercise) === null || _proposal$exercise === void 0 ? void 0 : _proposal$exercise.title) || 'Deleted exercise'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_34, "ID " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.exercise_id) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise2 = proposal.exercise) === null || _proposal$exercise2 === void 0 ? void 0 : _proposal$exercise2.content_code) || '-'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_35, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableLanguage((_proposal$exercise3 = proposal.exercise) === null || _proposal$exercise3 === void 0 ? void 0 : _proposal$exercise3.language)) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise4 = proposal.exercise) === null || _proposal$exercise4 === void 0 ? void 0 : _proposal$exercise4.video_type) || '-'), 1 /* TEXT */)])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.current_tag_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_36, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.current_tag_payload.exercise_type)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.current_tag_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.current_tag_payload.muscle_group || '-'), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_37, "No current tag"))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_38, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.exercise_type)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.proposed_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.muscle_group || '-') + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.difficulty), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_39, "Confidence " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.confidence(proposal.confidence)), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_40, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.error_message || 'No proposal'), 1 /* TEXT */))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_41, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.impact_level || '-') + " impact / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.intensity_level || '-') + " intensity", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_42, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.enabledUsage(proposal.proposed_payload.usage_flags).join(', ') || 'No usage flags'), 1 /* TEXT */), proposal.reasoning ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_43, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.reasoning), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+      "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["status-badge", 'status-' + proposal.status])
+    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.status)), 3 /* TEXT, CLASS */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_44, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.model), 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_45, [proposal.status === 'proposed' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
+      key: 0,
+      "class": "tiny-btn",
+      onClick: function onClick($event) {
+        return $options.applyProposal(proposal.id, true);
+      }
+    }, "Apply + approve", 8 /* PROPS */, _hoisted_46)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), proposal.status === 'proposed' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
+      key: 1,
+      "class": "tiny-btn",
+      onClick: function onClick($event) {
+        return $options.applyProposal(proposal.id, false);
+      }
+    }, "Apply pending", 8 /* PROPS */, _hoisted_47)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ['proposed', 'failed'].includes(proposal.status) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
+      key: 2,
+      "class": "tiny-btn reject",
+      onClick: function onClick($event) {
+        return $options.rejectProposal(proposal.id);
+      }
+    }, "Reject", 8 /* PROPS */, _hoisted_48)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])]);
+  }), 128 /* KEYED_FRAGMENT */))])])])]);
 }
 
 /***/ },
@@ -111931,24 +112380,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _pages_master_libraries_Food__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./pages/master-libraries/Food */ "./resources/js/pages/master-libraries/Food.vue");
 /* harmony import */ var _pages_master_libraries_RecipeImport_vue__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./pages/master-libraries/RecipeImport.vue */ "./resources/js/pages/master-libraries/RecipeImport.vue");
 /* harmony import */ var _pages_master_libraries_RoutineLibrary_vue__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./pages/master-libraries/RoutineLibrary.vue */ "./resources/js/pages/master-libraries/RoutineLibrary.vue");
-/* harmony import */ var _pages_payments_vue__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./pages/payments.vue */ "./resources/js/pages/payments.vue");
-/* harmony import */ var _pages_store_subscriptions_vue__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./pages/store_subscriptions.vue */ "./resources/js/pages/store_subscriptions.vue");
-/* harmony import */ var _pages_podcastCMS_vue__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./pages/podcastCMS.vue */ "./resources/js/pages/podcastCMS.vue");
-/* harmony import */ var _pages_settings_vue__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./pages/settings.vue */ "./resources/js/pages/settings.vue");
-/* harmony import */ var _pages_teams_vue__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./pages/teams.vue */ "./resources/js/pages/teams.vue");
-/* harmony import */ var _pages_profile_vue__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./pages/profile.vue */ "./resources/js/pages/profile.vue");
-/* harmony import */ var _Website_userLogin_vue__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./Website/userLogin.vue */ "./resources/js/Website/userLogin.vue");
-/* harmony import */ var _Website_podcast_vue__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./Website/podcast.vue */ "./resources/js/Website/podcast.vue");
-/* harmony import */ var _Website_contactUS_vue__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./Website/contactUS.vue */ "./resources/js/Website/contactUS.vue");
-/* harmony import */ var _Website_listOfFoods_vue__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./Website/listOfFoods.vue */ "./resources/js/Website/listOfFoods.vue");
-/* harmony import */ var _Website_calculateBMR_TDE_vue__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ./Website/calculateBMR&TDE.vue */ "./resources/js/Website/calculateBMR&TDE.vue");
-/* harmony import */ var _Website_aboutMe_vue__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! ./Website/aboutMe.vue */ "./resources/js/Website/aboutMe.vue");
-/* harmony import */ var _pages_tags_vue__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! ./pages/tags.vue */ "./resources/js/pages/tags.vue");
-/* harmony import */ var _pages_Poc_vue__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ./pages/Poc.vue */ "./resources/js/pages/Poc.vue");
-/* harmony import */ var _pages_master_libraries_MealPlan_vue__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ./pages/master-libraries/MealPlan.vue */ "./resources/js/pages/master-libraries/MealPlan.vue");
-/* harmony import */ var _pages_consultation_vue__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ./pages/consultation.vue */ "./resources/js/pages/consultation.vue");
-/* harmony import */ var _pages_localization_vue__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! ./pages/localization.vue */ "./resources/js/pages/localization.vue");
-/* harmony import */ var _pages_ui_strings_translation_vue__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! ./pages/ui_strings_translation.vue */ "./resources/js/pages/ui_strings_translation.vue");
+/* harmony import */ var _pages_master_libraries_AiVideoTags_vue__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./pages/master-libraries/AiVideoTags.vue */ "./resources/js/pages/master-libraries/AiVideoTags.vue");
+/* harmony import */ var _pages_payments_vue__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./pages/payments.vue */ "./resources/js/pages/payments.vue");
+/* harmony import */ var _pages_store_subscriptions_vue__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./pages/store_subscriptions.vue */ "./resources/js/pages/store_subscriptions.vue");
+/* harmony import */ var _pages_podcastCMS_vue__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./pages/podcastCMS.vue */ "./resources/js/pages/podcastCMS.vue");
+/* harmony import */ var _pages_settings_vue__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./pages/settings.vue */ "./resources/js/pages/settings.vue");
+/* harmony import */ var _pages_teams_vue__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./pages/teams.vue */ "./resources/js/pages/teams.vue");
+/* harmony import */ var _pages_profile_vue__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./pages/profile.vue */ "./resources/js/pages/profile.vue");
+/* harmony import */ var _Website_userLogin_vue__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./Website/userLogin.vue */ "./resources/js/Website/userLogin.vue");
+/* harmony import */ var _Website_podcast_vue__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./Website/podcast.vue */ "./resources/js/Website/podcast.vue");
+/* harmony import */ var _Website_contactUS_vue__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./Website/contactUS.vue */ "./resources/js/Website/contactUS.vue");
+/* harmony import */ var _Website_listOfFoods_vue__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ./Website/listOfFoods.vue */ "./resources/js/Website/listOfFoods.vue");
+/* harmony import */ var _Website_calculateBMR_TDE_vue__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! ./Website/calculateBMR&TDE.vue */ "./resources/js/Website/calculateBMR&TDE.vue");
+/* harmony import */ var _Website_aboutMe_vue__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! ./Website/aboutMe.vue */ "./resources/js/Website/aboutMe.vue");
+/* harmony import */ var _pages_tags_vue__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ./pages/tags.vue */ "./resources/js/pages/tags.vue");
+/* harmony import */ var _pages_Poc_vue__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ./pages/Poc.vue */ "./resources/js/pages/Poc.vue");
+/* harmony import */ var _pages_master_libraries_MealPlan_vue__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ./pages/master-libraries/MealPlan.vue */ "./resources/js/pages/master-libraries/MealPlan.vue");
+/* harmony import */ var _pages_consultation_vue__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! ./pages/consultation.vue */ "./resources/js/pages/consultation.vue");
+/* harmony import */ var _pages_localization_vue__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! ./pages/localization.vue */ "./resources/js/pages/localization.vue");
+/* harmony import */ var _pages_ui_strings_translation_vue__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! ./pages/ui_strings_translation.vue */ "./resources/js/pages/ui_strings_translation.vue");
+
 
 
 
@@ -112032,7 +112483,7 @@ var routes = [{
   name: 'Exercises'
 }, {
   path: '/cms/mealplan',
-  component: _pages_master_libraries_MealPlan_vue__WEBPACK_IMPORTED_MODULE_31__["default"],
+  component: _pages_master_libraries_MealPlan_vue__WEBPACK_IMPORTED_MODULE_32__["default"],
   name: 'MealPlan'
 }, {
   path: '/cms/meals',
@@ -112047,52 +112498,56 @@ var routes = [{
   component: _pages_master_libraries_RoutineLibrary_vue__WEBPACK_IMPORTED_MODULE_16__["default"],
   name: 'RoutineLibrary'
 }, {
+  path: '/cms/ai-video-tags',
+  component: _pages_master_libraries_AiVideoTags_vue__WEBPACK_IMPORTED_MODULE_17__["default"],
+  name: 'AiVideoTags'
+}, {
   path: '/cms/food',
   component: _pages_master_libraries_Food__WEBPACK_IMPORTED_MODULE_14__["default"],
   name: 'Food'
 }, {
   path: '/cms/payments',
-  component: _pages_payments_vue__WEBPACK_IMPORTED_MODULE_17__["default"],
+  component: _pages_payments_vue__WEBPACK_IMPORTED_MODULE_18__["default"],
   name: 'Payments'
 }, {
   path: '/cms/store-subscriptions',
-  component: _pages_store_subscriptions_vue__WEBPACK_IMPORTED_MODULE_18__["default"],
+  component: _pages_store_subscriptions_vue__WEBPACK_IMPORTED_MODULE_19__["default"],
   name: 'StoreSubscriptions'
 }, {
   path: '/cms/settings',
-  component: _pages_settings_vue__WEBPACK_IMPORTED_MODULE_20__["default"],
+  component: _pages_settings_vue__WEBPACK_IMPORTED_MODULE_21__["default"],
   name: 'Settings'
 }, {
   path: '/cms/teams',
-  component: _pages_teams_vue__WEBPACK_IMPORTED_MODULE_21__["default"],
+  component: _pages_teams_vue__WEBPACK_IMPORTED_MODULE_22__["default"],
   name: 'Teams'
 }, {
   path: '/cms/profile',
-  component: _pages_profile_vue__WEBPACK_IMPORTED_MODULE_22__["default"],
+  component: _pages_profile_vue__WEBPACK_IMPORTED_MODULE_23__["default"],
   name: 'Profile'
 }, {
   path: '/cms/tags',
-  component: _pages_tags_vue__WEBPACK_IMPORTED_MODULE_29__["default"],
+  component: _pages_tags_vue__WEBPACK_IMPORTED_MODULE_30__["default"],
   name: 'Tags'
 }, {
   path: '/cms/podcast',
-  component: _pages_podcastCMS_vue__WEBPACK_IMPORTED_MODULE_19__["default"],
+  component: _pages_podcastCMS_vue__WEBPACK_IMPORTED_MODULE_20__["default"],
   name: 'PodcastCMS'
 }, {
   path: '/cms/poc',
-  component: _pages_Poc_vue__WEBPACK_IMPORTED_MODULE_30__["default"],
+  component: _pages_Poc_vue__WEBPACK_IMPORTED_MODULE_31__["default"],
   name: 'Poc'
 }, {
   path: '/cms/consultation',
-  component: _pages_consultation_vue__WEBPACK_IMPORTED_MODULE_32__["default"],
+  component: _pages_consultation_vue__WEBPACK_IMPORTED_MODULE_33__["default"],
   name: 'Consultation'
 }, {
   path: '/cms/localization',
-  component: _pages_localization_vue__WEBPACK_IMPORTED_MODULE_33__["default"],
+  component: _pages_localization_vue__WEBPACK_IMPORTED_MODULE_34__["default"],
   name: 'Localization'
 }, {
   path: '/cms/ui-strings',
-  component: _pages_ui_strings_translation_vue__WEBPACK_IMPORTED_MODULE_34__["default"],
+  component: _pages_ui_strings_translation_vue__WEBPACK_IMPORTED_MODULE_35__["default"],
   name: 'UiStrings'
 }, {
   path: '/',
@@ -112100,27 +112555,27 @@ var routes = [{
   name: 'Homepage'
 }, {
   path: '/user/login',
-  component: _Website_userLogin_vue__WEBPACK_IMPORTED_MODULE_23__["default"],
+  component: _Website_userLogin_vue__WEBPACK_IMPORTED_MODULE_24__["default"],
   name: 'UserLogin'
 }, {
   path: '/AboutMe',
-  component: _Website_aboutMe_vue__WEBPACK_IMPORTED_MODULE_28__["default"],
+  component: _Website_aboutMe_vue__WEBPACK_IMPORTED_MODULE_29__["default"],
   name: 'AboutMe'
 }, {
   path: '/CalculateBMR&TDEE',
-  component: _Website_calculateBMR_TDE_vue__WEBPACK_IMPORTED_MODULE_27__["default"],
+  component: _Website_calculateBMR_TDE_vue__WEBPACK_IMPORTED_MODULE_28__["default"],
   name: 'CalculateBMR&TDE'
 }, {
   path: '/ListOfFoods',
-  component: _Website_listOfFoods_vue__WEBPACK_IMPORTED_MODULE_26__["default"],
+  component: _Website_listOfFoods_vue__WEBPACK_IMPORTED_MODULE_27__["default"],
   name: 'ListOfFoods'
 }, {
   path: '/ContactUS',
-  component: _Website_contactUS_vue__WEBPACK_IMPORTED_MODULE_25__["default"],
+  component: _Website_contactUS_vue__WEBPACK_IMPORTED_MODULE_26__["default"],
   name: 'ContactUS'
 }, {
   path: '/Podcast',
-  component: _Website_podcast_vue__WEBPACK_IMPORTED_MODULE_24__["default"],
+  component: _Website_podcast_vue__WEBPACK_IMPORTED_MODULE_25__["default"],
   name: 'Podcast'
 }];
 var router = (0,vue_router__WEBPACK_IMPORTED_MODULE_0__.createRouter)({
@@ -120931,6 +121386,30 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
 ___CSS_LOADER_EXPORT___.push([module.id, "\n.loaderOn[data-v-780e8960] {\r\n    display: flex !important;\r\n    background-color: #f2a18c;\n}\n.login_cont[data-v-780e8960] {\r\n    background-image: url('/cms-assets/images/login/bgrnd2.JPG');\r\n    background-size: cover;\r\n    width: 100%;\r\n    min-height: 100vh;\r\n    height: 100%;\r\n    position: relative;\n}\n.logo-img[data-v-780e8960] {\r\n    position: absolute;\r\n    top: 60px;\r\n    left: 80px;\r\n    width: 180px;\r\n    height: -moz-fit-content;\r\n    height: fit-content;\n}\n.lgn-form[data-v-780e8960] {\r\n    background-color: white;\r\n    border-radius: 1rem;\r\n    width: 400px;\r\n    position: absolute;\r\n    right: 100px;\r\n    top: 80px;\r\n    padding: 20px;\n}\n@media screen and (max-width:720px) {\n.lgn-form[data-v-780e8960] {\r\n        width: 90% !important;\r\n        top: 150px !important;\r\n        left: 5% !important;\n}\n.logo-img[data-v-780e8960] {\r\n        top: 40px !important;\r\n        left: 35% !important;\n}\n}\n.lgn-form input[data-v-780e8960] {\r\n    border: 0.5px solid rgb(194, 194, 194);\r\n    border-radius: 2rem;\r\n    padding: 15px;\r\n    padding-left: 75px;\r\n    width: 100%;\n}\n.lgn-form input[data-v-780e8960]:focus {\r\n    outline: none;\n}\n.lgn-form .position-relative p[data-v-780e8960] {\r\n    position: absolute;\r\n    color: gray;\r\n    top: 17px;\r\n    left: 65px;\r\n    pointer-events: none;\r\n    background-color: white;\r\n    padding-right: 10px;\r\n    padding-left: 10px;\n}\n.lgn-form button[data-v-780e8960] {\r\n    background-color: #f2a18c;\r\n    color: white;\r\n    font-weight: bold;\r\n    font-size: 25px;\r\n    border: none;\r\n    padding: 15px;\r\n    margin-top: 15px;\r\n    height: 75px;\r\n    width: 90%;\r\n    border-radius: 10px;\n}\n.lgn-form button[data-v-780e8960]:hover {\r\n    background-color: #f88c71;\n}\n.lgn-form input:focus+p[data-v-780e8960] {\r\n    top: -10px !important;\r\n    left: 30px !important\n}\n.lgn-form input[type=\"password\"]:valid+p[data-v-780e8960] {\r\n    top: -10px !important;\r\n    left: 30px !important\n}\n.lgn-form input[type=\"email\"]:not(:-moz-placeholder-shown)+p[data-v-780e8960] {\r\n    top: -10px !important;\r\n    left: 30px !important\n}\n.lgn-form input[type=\"email\"]:not(:placeholder-shown)+p[data-v-780e8960] {\r\n    top: -10px !important;\r\n    left: 30px !important\n}\r\n", ""]);
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
+
+
+/***/ },
+
+/***/ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css"
+/*!******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
+// Imports
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, "\n.ai-tags-page[data-v-11569a94] {\n    padding: 14px;\n}\n.page-head[data-v-11569a94],\n.filters[data-v-11569a94],\n.summary-row[data-v-11569a94] {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 10px;\n    flex-wrap: wrap;\n    margin-bottom: 14px;\n}\n.panel[data-v-11569a94] {\n    background: #fff;\n    border: 1px solid #e2e2e2;\n    border-radius: 8px;\n    padding: 14px;\n}\n.control[data-v-11569a94] {\n    width: 180px;\n}\n.small-control[data-v-11569a94] {\n    width: 90px;\n}\n.model-control[data-v-11569a94] {\n    width: 180px;\n}\n.muted[data-v-11569a94] {\n    color: #68717c;\n}\n.small-text[data-v-11569a94] {\n    font-size: 12px;\n}\n.summary-row[data-v-11569a94] {\n    justify-content: flex-start;\n}\n.summary-row span[data-v-11569a94] {\n    border: 1px solid #e2e2e2;\n    border-radius: 6px;\n    padding: 6px 10px;\n    background: #fff;\n}\n.table-panel[data-v-11569a94] {\n    overflow-x: auto;\n}\n.video-cell[data-v-11569a94] {\n    display: flex;\n    gap: 10px;\n    align-items: center;\n    min-width: 240px;\n}\n.video-cell img[data-v-11569a94] {\n    width: 76px;\n    height: 48px;\n    -o-object-fit: cover;\n       object-fit: cover;\n    border-radius: 4px;\n    background: #f4f4f4;\n}\n.usage-list[data-v-11569a94] {\n    max-width: 260px;\n}\n.status-badge[data-v-11569a94] {\n    display: inline-block;\n    padding: 4px 9px;\n    border-radius: 6px;\n    background: #f2f2f2;\n    font-weight: 700;\n}\n.status-proposed[data-v-11569a94] {\n    background: #fff0df;\n    color: #a85000;\n}\n.status-applied[data-v-11569a94] {\n    background: #dff6e8;\n    color: #08783a;\n}\n.status-rejected[data-v-11569a94],\n.status-failed[data-v-11569a94] {\n    background: #ffe5e5;\n    color: #b30000;\n}\n.tiny-btn[data-v-11569a94] {\n    border: 1px solid #d2d8df;\n    background: #fff;\n    border-radius: 5px;\n    padding: 5px 8px;\n    margin: 2px;\n    color: #007a2f;\n}\n.tiny-btn.reject[data-v-11569a94] {\n    color: #b30000;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -132383,7 +132862,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 }
 (function( $, window, document, undefined$1 ) {
 
-	
+
 	var DataTable = function ( selector, options )
 	{
 		// When creating with `new`, create a new DataTable, returning the API instance
@@ -132394,7 +132873,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// Argument switching
 			options = selector;
 		}
-	
+
 		/**
 		 * Perform a jQuery selector action on the table's TR elements (from the tbody) and
 		 * return the resulting jQuery object.
@@ -132435,8 +132914,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			return this.api(true).$( sSelector, oOpts );
 		};
-		
-		
+
+
 		/**
 		 * Almost identical to $ in operation, but in this case returns the data for the matched
 		 * rows - as such, the jQuery selector used should match TR row nodes or TD/TH cell nodes
@@ -132489,8 +132968,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			return this.api(true).rows( sSelector, oOpts ).data();
 		};
-		
-		
+
+
 		/**
 		 * Create a DataTables Api instance, with the currently selected tables for
 		 * the Api's context.
@@ -132508,8 +132987,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				) :
 				new _Api( this );
 		};
-		
-		
+
+
 		/**
 		 * Add a single new row or multiple rows of data to the table. Please note
 		 * that this is suitable for client-side processing only - if you are using
@@ -132551,20 +133030,20 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		this.fnAddData = function( data, redraw )
 		{
 			var api = this.api( true );
-		
+
 			/* Check if we want to add multiple rows or not */
 			var rows = Array.isArray(data) && ( Array.isArray(data[0]) || $.isPlainObject(data[0]) ) ?
 				api.rows.add( data ) :
 				api.row.add( data );
-		
+
 			if ( redraw === undefined$1 || redraw ) {
 				api.draw();
 			}
-		
+
 			return rows.flatten().toArray();
 		};
-		
-		
+
+
 		/**
 		 * This function will make DataTables recalculate the column sizes, based on the data
 		 * contained in the table and the sizes applied to the columns (in the DOM, CSS or
@@ -132591,7 +133070,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var api = this.api( true ).columns.adjust();
 			var settings = api.settings()[0];
 			var scroll = settings.oScroll;
-		
+
 			if ( bRedraw === undefined$1 || bRedraw ) {
 				api.draw( false );
 			}
@@ -132600,8 +133079,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				_fnScrollDraw( settings );
 			}
 		};
-		
-		
+
+
 		/**
 		 * Quickly and simply clear a table
 		 *  @param {bool} [bRedraw=true] redraw the table or not
@@ -132619,13 +133098,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		this.fnClearTable = function( bRedraw )
 		{
 			var api = this.api( true ).clear();
-		
+
 			if ( bRedraw === undefined$1 || bRedraw ) {
 				api.draw();
 			}
 		};
-		
-		
+
+
 		/**
 		 * The exact opposite of 'opening' a row, this function will close any rows which
 		 * are currently 'open'.
@@ -132654,8 +133133,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			this.api( true ).row( nTr ).child.hide();
 		};
-		
-		
+
+
 		/**
 		 * Remove a row for the table
 		 *  @param {mixed} target The index of the row from aoData to be deleted, or
@@ -132680,21 +133159,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var rows = api.rows( target );
 			var settings = rows.settings()[0];
 			var data = settings.aoData[ rows[0][0] ];
-		
+
 			rows.remove();
-		
+
 			if ( callback ) {
 				callback.call( this, settings, data );
 			}
-		
+
 			if ( redraw === undefined$1 || redraw ) {
 				api.draw();
 			}
-		
+
 			return data;
 		};
-		
-		
+
+
 		/**
 		 * Restore the table to it's original state in the DOM by removing all of DataTables
 		 * enhancements, alterations to the DOM structure of the table and event listeners.
@@ -132713,8 +133192,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			this.api( true ).destroy( remove );
 		};
-		
-		
+
+
 		/**
 		 * Redraw the table
 		 *  @param {bool} [complete=true] Re-filter and resort (if enabled) the table before the draw.
@@ -132735,8 +133214,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// into account the new data, but can hold position.
 			this.api( true ).draw( complete );
 		};
-		
-		
+
+
 		/**
 		 * Filter the input based on data
 		 *  @param {string} sInput String to filter the table on
@@ -132759,18 +133238,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		this.fnFilter = function( sInput, iColumn, bRegex, bSmart, bShowGlobal, bCaseInsensitive )
 		{
 			var api = this.api( true );
-		
+
 			if ( iColumn === null || iColumn === undefined$1 ) {
 				api.search( sInput, bRegex, bSmart, bCaseInsensitive );
 			}
 			else {
 				api.column( iColumn ).search( sInput, bRegex, bSmart, bCaseInsensitive );
 			}
-		
+
 			api.draw();
 		};
-		
-		
+
+
 		/**
 		 * Get the data for the whole table, an individual row or an individual cell based on the
 		 * provided parameters.
@@ -132811,19 +133290,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		this.fnGetData = function( src, col )
 		{
 			var api = this.api( true );
-		
+
 			if ( src !== undefined$1 ) {
 				var type = src.nodeName ? src.nodeName.toLowerCase() : '';
-		
+
 				return col !== undefined$1 || type == 'td' || type == 'th' ?
 					api.cell( src, col ).data() :
 					api.row( src ).data() || null;
 			}
-		
+
 			return api.data().toArray();
 		};
-		
-		
+
+
 		/**
 		 * Get an array of the TR nodes that are used in the table's body. Note that you will
 		 * typically want to use the '$' API method in preference to this as it is more
@@ -132845,13 +133324,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		this.fnGetNodes = function( iRow )
 		{
 			var api = this.api( true );
-		
+
 			return iRow !== undefined$1 ?
 				api.row( iRow ).node() :
 				api.rows().nodes().flatten().toArray();
 		};
-		
-		
+
+
 		/**
 		 * Get the array indexes of a particular cell from it's DOM element
 		 * and column index including hidden columns
@@ -132884,13 +133363,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			var api = this.api( true );
 			var nodeName = node.nodeName.toUpperCase();
-		
+
 			if ( nodeName == 'TR' ) {
 				return api.row( node ).index();
 			}
 			else if ( nodeName == 'TD' || nodeName == 'TH' ) {
 				var cell = api.cell( node ).index();
-		
+
 				return [
 					cell.row,
 					cell.columnVisible,
@@ -132899,8 +133378,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			return null;
 		};
-		
-		
+
+
 		/**
 		 * Check to see if a row is 'open' or not.
 		 *  @param {node} nTr the table row to check
@@ -132928,8 +133407,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			return this.api( true ).row( nTr ).child.isShown();
 		};
-		
-		
+
+
 		/**
 		 * This function will place a new row directly after a row which is currently
 		 * on display on the page, with the HTML contents that is passed into the
@@ -132968,8 +133447,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				.show()
 				.child()[0];
 		};
-		
-		
+
+
 		/**
 		 * Change the pagination - provides the internal logic for pagination in a simple API
 		 * function. With this function you can have a DataTables table go to the next,
@@ -132989,13 +133468,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		this.fnPageChange = function ( mAction, bRedraw )
 		{
 			var api = this.api( true ).page( mAction );
-		
+
 			if ( bRedraw === undefined$1 || bRedraw ) {
 				api.draw(false);
 			}
 		};
-		
-		
+
+
 		/**
 		 * Show a particular column
 		 *  @param {int} iCol The column whose display should be changed
@@ -133015,13 +133494,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		this.fnSetColumnVis = function ( iCol, bShow, bRedraw )
 		{
 			var api = this.api( true ).column( iCol ).visible( bShow );
-		
+
 			if ( bRedraw === undefined$1 || bRedraw ) {
 				api.columns.adjust().draw();
 			}
 		};
-		
-		
+
+
 		/**
 		 * Get the settings for a particular table for external manipulation
 		 *  @returns {object} DataTables settings object. See
@@ -133042,8 +133521,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			return _fnSettingsFromNode( this[_ext.iApiIndex] );
 		};
-		
-		
+
+
 		/**
 		 * Sort the table by a particular column
 		 *  @param {int} iCol the data index to sort on. Note that this will not match the
@@ -133063,8 +133542,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			this.api( true ).order( aaSort ).draw();
 		};
-		
-		
+
+
 		/**
 		 * Attach a sort listener to an element for a given column
 		 *  @param {node} nNode the element to attach the sort listener to
@@ -133085,8 +133564,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			this.api( true ).order.listener( nNode, iColumn, fnCallback );
 		};
-		
-		
+
+
 		/**
 		 * Update a table cell or row - this method will accept either a single value to
 		 * update the cell with, an array of values with one element for each column or
@@ -133112,25 +133591,25 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		this.fnUpdate = function( mData, mRow, iColumn, bRedraw, bAction )
 		{
 			var api = this.api( true );
-		
+
 			if ( iColumn === undefined$1 || iColumn === null ) {
 				api.row( mRow ).data( mData );
 			}
 			else {
 				api.cell( mRow, iColumn ).data( mData );
 			}
-		
+
 			if ( bAction === undefined$1 || bAction ) {
 				api.columns.adjust();
 			}
-		
+
 			if ( bRedraw === undefined$1 || bRedraw ) {
 				api.draw();
 			}
 			return 0;
 		};
-		
-		
+
+
 		/**
 		 * Provide a common method for plug-ins to check the version of DataTables being used, in order
 		 * to ensure compatibility.
@@ -133149,25 +133628,25 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		this.fnVersionCheck = _ext.fnVersionCheck;
-		
-	
+
+
 		var _that = this;
 		var emptyInit = options === undefined$1;
 		var len = this.length;
-	
+
 		if ( emptyInit ) {
 			options = {};
 		}
-	
+
 		this.oApi = this.internal = _ext.internal;
-	
+
 		// Extend with old style plug-in API methods
 		for ( var fn in DataTable.ext.internal ) {
 			if ( fn ) {
 				this[fn] = _fnExternApiFunc(fn);
 			}
 		}
-	
+
 		this.each(function() {
 			// For each initialisation we want to give it a clean initialisation
 			// object that can be bashed around
@@ -133175,41 +133654,41 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var oInit = len > 1 ? // optimisation for single table case
 				_fnExtend( o, options, true ) :
 				options;
-	
+
 			/*global oInit,_that,emptyInit*/
 			var i=0, iLen;
 			var sId = this.getAttribute( 'id' );
 			var bInitHandedOff = false;
 			var defaults = DataTable.defaults;
 			var $this = $(this);
-			
-			
+
+
 			/* Sanity check */
 			if ( this.nodeName.toLowerCase() != 'table' )
 			{
 				_fnLog( null, 0, 'Non-table node initialisation ('+this.nodeName+')', 2 );
 				return;
 			}
-			
+
 			/* Backwards compatibility for the defaults */
 			_fnCompatOpts( defaults );
 			_fnCompatCols( defaults.column );
-			
+
 			/* Convert the camel-case defaults to Hungarian */
 			_fnCamelToHungarian( defaults, defaults, true );
 			_fnCamelToHungarian( defaults.column, defaults.column, true );
-			
+
 			/* Setting up the initialisation object */
 			_fnCamelToHungarian( defaults, $.extend( oInit, $this.data() ), true );
-			
-			
-			
+
+
+
 			/* Check to see if we are re-initialising a table */
 			var allSettings = DataTable.settings;
 			for ( i=0, iLen=allSettings.length ; i<iLen ; i++ )
 			{
 				var s = allSettings[i];
-			
+
 				/* Base check on table node */
 				if (
 					s.nTable == this ||
@@ -133218,7 +133697,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				) {
 					var bRetrieve = oInit.bRetrieve !== undefined$1 ? oInit.bRetrieve : defaults.bRetrieve;
 					var bDestroy = oInit.bDestroy !== undefined$1 ? oInit.bDestroy : defaults.bDestroy;
-			
+
 					if ( emptyInit || bRetrieve )
 					{
 						return s.oInstance;
@@ -133234,7 +133713,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						return;
 					}
 				}
-			
+
 				/* If the element we are initialising has the same ID as a table which was previously
 				 * initialised, but the table nodes don't match (from before) then we destroy the old
 				 * instance by simply deleting it. This is under the assumption that the table has been
@@ -133246,14 +133725,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					break;
 				}
 			}
-			
+
 			/* Ensure the table has an ID - required for accessibility */
 			if ( sId === null || sId === "" )
 			{
 				sId = "DataTables_Table_"+(DataTable.ext._unique++);
 				this.id = sId;
 			}
-			
+
 			/* Create the settings object for this table and set some of the default parameters */
 			var oSettings = $.extend( true, {}, DataTable.models.oSettings, {
 				"sDestroyWidth": $this[0].style.width,
@@ -133263,29 +133742,29 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			oSettings.nTable = this;
 			oSettings.oApi   = _that.internal;
 			oSettings.oInit  = oInit;
-			
+
 			allSettings.push( oSettings );
-			
+
 			// Need to add the instance after the instance after the settings object has been added
 			// to the settings array, so we can self reference the table instance if more than one
 			oSettings.oInstance = (_that.length===1) ? _that : $this.dataTable();
-			
+
 			// Backwards compatibility, before we apply all the defaults
 			_fnCompatOpts( oInit );
 			_fnLanguageCompat( oInit.oLanguage );
-			
+
 			// If the length menu is given, but the init display length is not, use the length menu
 			if ( oInit.aLengthMenu && ! oInit.iDisplayLength )
 			{
 				oInit.iDisplayLength = Array.isArray( oInit.aLengthMenu[0] ) ?
 					oInit.aLengthMenu[0][0] : oInit.aLengthMenu[0];
 			}
-			
+
 			// Apply the defaults and init options to make a single init object will all
 			// options defined from defaults and instance options.
 			oInit = _fnExtend( $.extend( true, {}, defaults ), oInit );
-			
-			
+
+
 			// Map the initialisation options onto the settings object
 			_fnMap( oSettings.oFeatures, oInit, [
 				"bPaginate",
@@ -133333,7 +133812,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				[ "bScrollCollapse", "bCollapse" ]
 			] );
 			_fnMap( oSettings.oLanguage, oInit, "fnInfoCallback" );
-			
+
 			/* Callback functions which are array driven */
 			_fnCallbackReg( oSettings, 'aoDrawCallback',       oInit.fnDrawCallback,      'user' );
 			_fnCallbackReg( oSettings, 'aoServerParams',       oInit.fnServerParams,      'user' );
@@ -133346,25 +133825,25 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			_fnCallbackReg( oSettings, 'aoFooterCallback',     oInit.fnFooterCallback,    'user' );
 			_fnCallbackReg( oSettings, 'aoInitComplete',       oInit.fnInitComplete,      'user' );
 			_fnCallbackReg( oSettings, 'aoPreDrawCallback',    oInit.fnPreDrawCallback,   'user' );
-			
+
 			oSettings.rowIdFn = _fnGetObjectDataFn( oInit.rowId );
-			
+
 			/* Browser support detection */
 			_fnBrowserDetect( oSettings );
-			
+
 			var oClasses = oSettings.oClasses;
-			
+
 			$.extend( oClasses, DataTable.ext.classes, oInit.oClasses );
 			$this.addClass( oClasses.sTable );
-			
-			
+
+
 			if ( oSettings.iInitDisplayStart === undefined$1 )
 			{
 				/* Display start point, taking into account the save saving */
 				oSettings.iInitDisplayStart = oInit.iDisplayStart;
 				oSettings._iDisplayStart = oInit.iDisplayStart;
 			}
-			
+
 			if ( oInit.iDeferLoading !== null )
 			{
 				oSettings.bDeferLoading = true;
@@ -133372,11 +133851,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				oSettings._iRecordsDisplay = tmp ? oInit.iDeferLoading[0] : oInit.iDeferLoading;
 				oSettings._iRecordsTotal = tmp ? oInit.iDeferLoading[1] : oInit.iDeferLoading;
 			}
-			
+
 			/* Language definitions */
 			var oLanguage = oSettings.oLanguage;
 			$.extend( true, oLanguage, oInit.oLanguage );
-			
+
 			if ( oLanguage.sUrl )
 			{
 				/* Get the language definitions from a file - because this Ajax call makes the language
@@ -133390,7 +133869,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						_fnCamelToHungarian( defaults.oLanguage, json );
 						_fnLanguageCompat( json );
 						$.extend( true, oLanguage, json, oSettings.oInit.oLanguage );
-			
+
 						_fnCallbackFire( oSettings, null, 'i18n', [oSettings]);
 						_fnInitialise( oSettings );
 					},
@@ -133404,7 +133883,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			else {
 				_fnCallbackFire( oSettings, null, 'i18n', [oSettings]);
 			}
-			
+
 			/*
 			 * Stripes
 			 */
@@ -133415,7 +133894,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					oClasses.sStripeEven
 				];
 			}
-			
+
 			/* Remove row stripe classes if they are already on the table row */
 			var stripeClasses = oSettings.asStripeClasses;
 			var rowOne = $this.children('tbody').find('tr').eq(0);
@@ -133425,7 +133904,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				$('tbody tr', this).removeClass( stripeClasses.join(' ') );
 				oSettings.asDestroyStripes = stripeClasses.slice();
 			}
-			
+
 			/*
 			 * Columns
 			 * See if we should load columns automatically or use defined ones
@@ -133438,7 +133917,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				_fnDetectHeader( oSettings.aoHeader, nThead[0] );
 				anThs = _fnGetUniqueThs( oSettings );
 			}
-			
+
 			/* If not given a column array, generate one with nulls */
 			if ( oInit.aoColumns === null )
 			{
@@ -133452,18 +133931,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			{
 				aoColumnsInit = oInit.aoColumns;
 			}
-			
+
 			/* Add the columns */
 			for ( i=0, iLen=aoColumnsInit.length ; i<iLen ; i++ )
 			{
 				_fnAddColumn( oSettings, anThs ? anThs[i] : null );
 			}
-			
+
 			/* Apply the column definitions */
 			_fnApplyColumnDefs( oSettings, oInit.aoColumnDefs, aoColumnsInit, function (iCol, oDef) {
 				_fnColumnOptions( oSettings, iCol, oDef );
 			} );
-			
+
 			/* HTML5 attribute detection - build an mData object automatically if the
 			 * attributes are found
 			 */
@@ -133471,14 +133950,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				var a = function ( cell, name ) {
 					return cell.getAttribute( 'data-'+name ) !== null ? name : null;
 				};
-			
+
 				$( rowOne[0] ).children('th, td').each( function (i, cell) {
 					var col = oSettings.aoColumns[i];
-			
+
 					if ( col.mData === i ) {
 						var sort = a( cell, 'sort' ) || a( cell, 'order' );
 						var filter = a( cell, 'filter' ) || a( cell, 'search' );
-			
+
 						if ( sort !== null || filter !== null ) {
 							col.mData = {
 								_:      i+'.display',
@@ -133486,20 +133965,20 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 								type:   sort !== null   ? i+'.@data-'+sort   : undefined$1,
 								filter: filter !== null ? i+'.@data-'+filter : undefined$1
 							};
-			
+
 							_fnColumnOptions( oSettings, i );
 						}
 					}
 				} );
 			}
-			
+
 			var features = oSettings.oFeatures;
 			var loadedInit = function () {
 				/*
 				 * Sorting
 				 * @todo For modularisation (1.11) this needs to do into a sort start up handler
 				 */
-			
+
 				// If aaSorting is not defined, then we use the first indicator in asSorting
 				// in case that has been altered, so the default sort reflects that option
 				if ( oInit.aaSorting === undefined$1 ) {
@@ -133508,64 +133987,64 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						sorting[i][1] = oSettings.aoColumns[ i ].asSorting[0];
 					}
 				}
-			
+
 				/* Do a first pass on the sorting classes (allows any size changes to be taken into
 				 * account, and also will apply sorting disabled classes if disabled
 				 */
 				_fnSortingClasses( oSettings );
-			
+
 				if ( features.bSort ) {
 					_fnCallbackReg( oSettings, 'aoDrawCallback', function () {
 						if ( oSettings.bSorted ) {
 							var aSort = _fnSortFlatten( oSettings );
 							var sortedColumns = {};
-			
+
 							$.each( aSort, function (i, val) {
 								sortedColumns[ val.src ] = val.dir;
 							} );
-			
+
 							_fnCallbackFire( oSettings, null, 'order', [oSettings, aSort, sortedColumns] );
 							_fnSortAria( oSettings );
 						}
 					} );
 				}
-			
+
 				_fnCallbackReg( oSettings, 'aoDrawCallback', function () {
 					if ( oSettings.bSorted || _fnDataSource( oSettings ) === 'ssp' || features.bDeferRender ) {
 						_fnSortingClasses( oSettings );
 					}
 				}, 'sc' );
-			
-			
+
+
 				/*
 				 * Final init
 				 * Cache the header, body and footer as required, creating them if needed
 				 */
-			
+
 				// Work around for Webkit bug 83867 - store the caption-side before removing from doc
 				var captions = $this.children('caption').each( function () {
 					this._captionSide = $(this).css('caption-side');
 				} );
-			
+
 				var thead = $this.children('thead');
 				if ( thead.length === 0 ) {
 					thead = $('<thead/>').appendTo($this);
 				}
 				oSettings.nTHead = thead[0];
-			
+
 				var tbody = $this.children('tbody');
 				if ( tbody.length === 0 ) {
 					tbody = $('<tbody/>').insertAfter(thead);
 				}
 				oSettings.nTBody = tbody[0];
-			
+
 				var tfoot = $this.children('tfoot');
 				if ( tfoot.length === 0 && captions.length > 0 && (oSettings.oScroll.sX !== "" || oSettings.oScroll.sY !== "") ) {
 					// If we are a scrolling table, and no footer has been given, then we need to create
 					// a tfoot element for the caption element to be appended to
 					tfoot = $('<tfoot/>').appendTo($this);
 				}
-			
+
 				if ( tfoot.length === 0 || tfoot.children().length === 0 ) {
 					$this.addClass( oClasses.sNoFooter );
 				}
@@ -133573,7 +134052,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					oSettings.nTFoot = tfoot[0];
 					_fnDetectHeader( oSettings.aoFooter, oSettings.nTFoot );
 				}
-			
+
 				/* Check if there is data passing into the constructor */
 				if ( oInit.aaData ) {
 					for ( i=0 ; i<oInit.aaData.length ; i++ ) {
@@ -133587,13 +134066,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					 */
 					_fnAddTr( oSettings, $(oSettings.nTBody).children('tr') );
 				}
-			
+
 				/* Copy the data index array */
 				oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
-			
+
 				/* Initialisation complete - table can be drawn */
 				oSettings.bInitialised = true;
-			
+
 				/* Check if we need to initialise the table (it might not have been handed off to the
 				 * language processor)
 				 */
@@ -133601,10 +134080,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					_fnInitialise( oSettings );
 				}
 			};
-			
+
 			/* Must be done after everything which can be overridden by the state saving! */
 			_fnCallbackReg( oSettings, 'aoDrawCallback', _fnSaveState, 'state_save' );
-			
+
 			if ( oInit.bStateSave )
 			{
 				features.bStateSave = true;
@@ -133613,13 +134092,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			else {
 				loadedInit();
 			}
-			
+
 		} );
 		_that = null;
 		return this;
 	};
-	
-	
+
+
 	/*
 	 * It is useful to have variables which are scoped locally so only the
 	 * DataTables functions can access them and they don't leak into global space.
@@ -133628,30 +134107,30 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 * by DataTables as private variables here. This also ensures that there is no
 	 * clashing of variable names and that they can easily referenced for reuse.
 	 */
-	
-	
+
+
 	// Defined else where
 	//  _selector_run
 	//  _selector_opts
 	//  _selector_first
 	//  _selector_row_indexes
-	
+
 	var _ext; // DataTable.ext
 	var _Api; // DataTable.Api
 	var _api_register; // DataTable.Api.register
 	var _api_registerPlural; // DataTable.Api.registerPlural
-	
+
 	var _re_dic = {};
 	var _re_new_lines = /[\r\n\u2028]/g;
 	var _re_html = /<.*?>/g;
-	
+
 	// This is not strict ISO8601 - Date.parse() is quite lax, although
 	// implementations differ between browsers.
 	var _re_date = /^\d{2,4}[\.\/\-]\d{1,2}[\.\/\-]\d{1,2}([T ]{1}\d{1,2}[:\.]\d{2}([\.:]\d{2})?)?$/;
-	
+
 	// Escape regular expression special characters
 	var _re_escape_regex = new RegExp( '(\\' + [ '/', '.', '*', '+', '?', '|', '(', ')', '[', ']', '{', '}', '\\', '$', '^', '-' ].join('|\\') + ')', 'g' );
-	
+
 	// http://en.wikipedia.org/wiki/Foreign_exchange_market
 	// - \u20BD - Russian ruble.
 	// - \u20a9 - South Korean Won
@@ -133665,18 +134144,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	// - Ξ - Ethereum
 	//   standards as thousands separators.
 	var _re_formatted_numeric = /['\u00A0,$£€¥%\u2009\u202F\u20BD\u20a9\u20BArfkɃΞ]/gi;
-	
-	
+
+
 	var _empty = function ( d ) {
 		return !d || d === true || d === '-' ? true : false;
 	};
-	
-	
+
+
 	var _intVal = function ( s ) {
 		var integer = parseInt( s, 10 );
 		return !isNaN(integer) && isFinite(s) ? integer : null;
 	};
-	
+
 	// Convert from a formatted number with characters other than `.` as the
 	// decimal place, to a Javascript number
 	var _numToDecimal = function ( num, decimalPoint ) {
@@ -133688,41 +134167,41 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			num.replace( /\./g, '' ).replace( _re_dic[ decimalPoint ], '.' ) :
 			num;
 	};
-	
-	
+
+
 	var _isNumber = function ( d, decimalPoint, formatted ) {
 		var strType = typeof d === 'string';
-	
+
 		// If empty return immediately so there must be a number if it is a
 		// formatted string (this stops the string "k", or "kr", etc being detected
 		// as a formatted number for currency
 		if ( _empty( d ) ) {
 			return true;
 		}
-	
+
 		if ( decimalPoint && strType ) {
 			d = _numToDecimal( d, decimalPoint );
 		}
-	
+
 		if ( formatted && strType ) {
 			d = d.replace( _re_formatted_numeric, '' );
 		}
-	
+
 		return !isNaN( parseFloat(d) ) && isFinite( d );
 	};
-	
-	
+
+
 	// A string without HTML in it can be considered to be HTML still
 	var _isHtml = function ( d ) {
 		return _empty( d ) || typeof d === 'string';
 	};
-	
-	
+
+
 	var _htmlNumeric = function ( d, decimalPoint, formatted ) {
 		if ( _empty( d ) ) {
 			return true;
 		}
-	
+
 		var html = _isHtml( d );
 		return ! html ?
 			null :
@@ -133730,12 +134209,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				true :
 				null;
 	};
-	
-	
+
+
 	var _pluck = function ( a, prop, prop2 ) {
 		var out = [];
 		var i=0, ien=a.length;
-	
+
 		// Could have the test in the loop for slightly smaller code, but speed
 		// is essential here
 		if ( prop2 !== undefined$1 ) {
@@ -133752,18 +134231,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			}
 		}
-	
+
 		return out;
 	};
-	
-	
+
+
 	// Basically the same as _pluck, but rather than looping over `a` we use `order`
 	// as the indexes to pick from `a`
 	var _pluck_order = function ( a, order, prop, prop2 )
 	{
 		var out = [];
 		var i=0, ien=order.length;
-	
+
 		// Could have the test in the loop for slightly smaller code, but speed
 		// is essential here
 		if ( prop2 !== undefined$1 ) {
@@ -133778,16 +134257,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				out.push( a[ order[i] ][ prop ] );
 			}
 		}
-	
+
 		return out;
 	};
-	
-	
+
+
 	var _range = function ( len, start )
 	{
 		var out = [];
 		var end;
-	
+
 		if ( start === undefined$1 ) {
 			start = 0;
 			end = len;
@@ -133796,34 +134275,34 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			end = start;
 			start = len;
 		}
-	
+
 		for ( var i=start ; i<end ; i++ ) {
 			out.push( i );
 		}
-	
+
 		return out;
 	};
-	
-	
+
+
 	var _removeEmpty = function ( a )
 	{
 		var out = [];
-	
+
 		for ( var i=0, ien=a.length ; i<ien ; i++ ) {
 			if ( a[i] ) { // careful - will remove all falsy values!
 				out.push( a[i] );
 			}
 		}
-	
+
 		return out;
 	};
-	
-	
+
+
 	var _stripHtml = function ( d ) {
 		return d.replace( _re_html, '' );
 	};
-	
-	
+
+
 	/**
 	 * Determine if all values in the array are unique. This means we can short
 	 * cut the _unique method at the cost of a single loop. A sorted array is used
@@ -133837,22 +134316,22 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( src.length < 2 ) {
 			return true;
 		}
-	
+
 		var sorted = src.slice().sort();
 		var last = sorted[0];
-	
+
 		for ( var i=1, ien=sorted.length ; i<ien ; i++ ) {
 			if ( sorted[i] === last ) {
 				return false;
 			}
-	
+
 			last = sorted[i];
 		}
-	
+
 		return true;
 	};
-	
-	
+
+
 	/**
 	 * Find the unique elements in a source array.
 	 *
@@ -133865,7 +134344,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( _areAllUnique( src ) ) {
 			return src.slice();
 		}
-	
+
 		// A faster unique method is to use object keys to identify used values,
 		// but this doesn't work with arrays or objects, which we must also
 		// consider. See jsperf.com/compare-array-unique-versions/4 for more
@@ -133875,23 +134354,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			val,
 			i, ien=src.length,
 			j, k=0;
-	
+
 		again: for ( i=0 ; i<ien ; i++ ) {
 			val = src[i];
-	
+
 			for ( j=0 ; j<k ; j++ ) {
 				if ( out[j] === val ) {
 					continue again;
 				}
 			}
-	
+
 			out.push( val );
 			k++;
 		}
-	
+
 		return out;
 	};
-	
+
 	// Surprisingly this is faster than [].concat.apply
 	// https://jsperf.com/flatten-an-array-loop-vs-reduce/2
 	var _flatten = function (out, val) {
@@ -133903,18 +134382,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		else {
 			out.push(val);
 		}
-	  
+
 		return out;
 	};
-	
+
 	var _includes = function (search, start) {
 		if (start === undefined$1) {
 			start = 0;
 		}
-	
-		return this.indexOf(search, start) !== -1;	
+
+		return this.indexOf(search, start) !== -1;
 	};
-	
+
 	// Array.isArray polyfill.
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
 	if (! Array.isArray) {
@@ -133922,11 +134401,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	        return Object.prototype.toString.call(arg) === '[object Array]';
 	    };
 	}
-	
+
 	if (! Array.prototype.includes) {
 		Array.prototype.includes = _includes;
 	}
-	
+
 	// .trim() polyfill
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
 	if (!String.prototype.trim) {
@@ -133934,14 +134413,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	    return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
 	  };
 	}
-	
+
 	if (! String.prototype.includes) {
 		String.prototype.includes = _includes;
 	}
-	
+
 	/**
 	 * DataTables utility methods
-	 * 
+	 *
 	 * This namespace provides helper methods that DataTables uses internally to
 	 * create a DataTable, but which are not exclusively used only for DataTables.
 	 * These methods can be used by extension authors to save the duplication of
@@ -133963,16 +134442,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				frequency = freq !== undefined$1 ? freq : 200,
 				last,
 				timer;
-	
+
 			return function () {
 				var
 					that = this,
 					now  = +new Date(),
 					args = arguments;
-	
+
 				if ( last && now < last + frequency ) {
 					clearTimeout( timer );
-	
+
 					timer = setTimeout( function () {
 						last = undefined$1;
 						fn.apply( that, args );
@@ -133984,8 +134463,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			};
 		},
-	
-	
+
+
 		/**
 		 * Escape a string such that it can be used in a regular expression
 		 *
@@ -133995,7 +134474,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		escapeRegex: function ( val ) {
 			return val.replace( _re_escape_regex, '\\$1' );
 		},
-	
+
 		/**
 		 * Create a function that will write to a nested object or array
 		 * @param {*} source JSON notation string
@@ -134027,26 +134506,26 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					var a = _fnSplitObjNotation( src ), b;
 					var aLast = a[a.length-1];
 					var arrayNotation, funcNotation, o, innerSrc;
-		
+
 					for ( var i=0, iLen=a.length-1 ; i<iLen ; i++ ) {
 						// Protect against prototype pollution
 						if (a[i] === '__proto__' || a[i] === 'constructor') {
 							throw new Error('Cannot set prototype values');
 						}
-		
+
 						// Check if we are dealing with an array notation request
 						arrayNotation = a[i].match(__reArray);
 						funcNotation = a[i].match(__reFn);
-		
+
 						if ( arrayNotation ) {
 							a[i] = a[i].replace(__reArray, '');
 							data[ a[i] ] = [];
-		
+
 							// Get the remainder of the nested object to set so we can recurse
 							b = a.slice();
 							b.splice( 0, i+1 );
 							innerSrc = b.join('.');
-		
+
 							// Traverse each entry in the array setting the properties requested
 							if ( Array.isArray( val ) ) {
 								for ( var j=0, jLen=val.length ; j<jLen ; j++ ) {
@@ -134061,7 +134540,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 								// is to just save the value.
 								data[ a[i] ] = val;
 							}
-		
+
 							// The inner call to setData has already traversed through the remainder
 							// of the source and has set the data, thus we can exit here
 							return;
@@ -134071,7 +134550,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 							a[i] = a[i].replace(__reFn, '');
 							data = data[ a[i] ]( val );
 						}
-		
+
 						// If the nested object doesn't currently exist - since we are
 						// trying to set the value - create it
 						if ( data[ a[i] ] === null || data[ a[i] ] === undefined$1 ) {
@@ -134079,7 +134558,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						}
 						data = data[ a[i] ];
 					}
-		
+
 					// Last item in the input - i.e, the actual set
 					if ( aLast.match(__reFn ) ) {
 						// Function call
@@ -134091,7 +134570,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						data[ aLast.replace(__reArray, '') ] = val;
 					}
 				};
-		
+
 				return function (data, val) { // meta is also passed in, but not used
 					return setData( data, val, source );
 				};
@@ -134103,7 +134582,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				};
 			}
 		},
-	
+
 		/**
 		 * Create a function that will read nested objects from arrays, based on JSON notation
 		 * @param {*} source JSON notation string
@@ -134118,7 +134597,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						o[key] = DataTable.util.get( val );
 					}
 				} );
-		
+
 				return function (data, type, row, meta) {
 					var t = o[type] || o._;
 					return t !== undefined$1 ?
@@ -134148,41 +134627,41 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				 */
 				var fetchData = function (data, type, src) {
 					var arrayNotation, funcNotation, out, innerSrc;
-		
+
 					if ( src !== "" ) {
 						var a = _fnSplitObjNotation( src );
-		
+
 						for ( var i=0, iLen=a.length ; i<iLen ; i++ ) {
 							// Check if we are dealing with special notation
 							arrayNotation = a[i].match(__reArray);
 							funcNotation = a[i].match(__reFn);
-		
+
 							if ( arrayNotation ) {
 								// Array notation
 								a[i] = a[i].replace(__reArray, '');
-		
+
 								// Condition allows simply [] to be passed in
 								if ( a[i] !== "" ) {
 									data = data[ a[i] ];
 								}
 								out = [];
-		
+
 								// Get the remainder of the nested object to get
 								a.splice( 0, i+1 );
 								innerSrc = a.join('.');
-		
+
 								// Traverse each entry in the array getting the properties requested
 								if ( Array.isArray( data ) ) {
 									for ( var j=0, jLen=data.length ; j<jLen ; j++ ) {
 										out.push( fetchData( data[j], type, innerSrc ) );
 									}
 								}
-		
+
 								// If a string is given in between the array notation indicators, that
 								// is used to join the strings together, otherwise an array is returned
 								var join = arrayNotation[0].substring(1, arrayNotation[0].length-1);
 								data = (join==="") ? out : out.join(join);
-		
+
 								// The inner call to fetchData has already traversed through the remainder
 								// of the source requested, so we exit from the loop
 								break;
@@ -134193,18 +134672,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 								data = data[ a[i] ]();
 								continue;
 							}
-		
+
 							if ( data === null || data[ a[i] ] === undefined$1 ) {
 								return undefined$1;
 							}
-	
+
 							data = data[ a[i] ];
 						}
 					}
-		
+
 					return data;
 				};
-		
+
 				return function (data, type) { // row and meta also passed, but not used
 					return fetchData( data, type, source );
 				};
@@ -134217,9 +134696,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	};
-	
-	
-	
+
+
+
 	/**
 	 * Create a mapping object that allows camel case parameters to be looked up
 	 * for their Hungarian counterparts. The mapping is stored in a private
@@ -134234,26 +134713,26 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			match,
 			newKey,
 			map = {};
-	
+
 		$.each( o, function (key, val) {
 			match = key.match(/^([^A-Z]+?)([A-Z])/);
-	
+
 			if ( match && hungarian.indexOf(match[1]+' ') !== -1 )
 			{
 				newKey = key.replace( match[0], match[2].toLowerCase() );
 				map[ newKey ] = key;
-	
+
 				if ( match[1] === 'o' )
 				{
 					_fnHungarianMap( o[key] );
 				}
 			}
 		} );
-	
+
 		o._hungarianMap = map;
 	}
-	
-	
+
+
 	/**
 	 * Convert from camel case parameters to Hungarian, based on a Hungarian map
 	 * created by _fnHungarianMap.
@@ -134270,12 +134749,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( ! src._hungarianMap ) {
 			_fnHungarianMap( src );
 		}
-	
+
 		var hungarianKey;
-	
+
 		$.each( user, function (key, val) {
 			hungarianKey = src._hungarianMap[ key ];
-	
+
 			if ( hungarianKey !== undefined$1 && (force || user[hungarianKey] === undefined$1) )
 			{
 				// For objects, we need to buzz down into the object to copy parameters
@@ -134286,7 +134765,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						user[ hungarianKey ] = {};
 					}
 					$.extend( true, user[hungarianKey], user[key] );
-	
+
 					_fnCamelToHungarian( src[hungarianKey], user[hungarianKey], force );
 				}
 				else {
@@ -134295,8 +134774,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		} );
 	}
-	
-	
+
+
 	/**
 	 * Language compatibility - when certain options are given, and others aren't, we
 	 * need to duplicate the values over, in order to provide backwards compatibility
@@ -134309,16 +134788,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		// Note the use of the Hungarian notation for the parameters in this method as
 		// this is called after the mapping of camelCase to Hungarian
 		var defaults = DataTable.defaults.oLanguage;
-	
+
 		// Default mapping
 		var defaultDecimal = defaults.sDecimal;
 		if ( defaultDecimal ) {
 			_addNumericSort( defaultDecimal );
 		}
-	
+
 		if ( lang ) {
 			var zeroRecords = lang.sZeroRecords;
-	
+
 			// Backwards compatibility - if there is no sEmptyTable given, then use the same as
 			// sZeroRecords - assuming that is given.
 			if ( ! lang.sEmptyTable && zeroRecords &&
@@ -134326,27 +134805,27 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			{
 				_fnMap( lang, lang, 'sZeroRecords', 'sEmptyTable' );
 			}
-	
+
 			// Likewise with loading records
 			if ( ! lang.sLoadingRecords && zeroRecords &&
 				defaults.sLoadingRecords === "Loading..." )
 			{
 				_fnMap( lang, lang, 'sZeroRecords', 'sLoadingRecords' );
 			}
-	
+
 			// Old parameter name of the thousands separator mapped onto the new
 			if ( lang.sInfoThousands ) {
 				lang.sThousands = lang.sInfoThousands;
 			}
-	
+
 			var decimal = lang.sDecimal;
 			if ( decimal && defaultDecimal !== decimal ) {
 				_addNumericSort( decimal );
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Map one parameter onto another
 	 *  @param {object} o Object to map
@@ -134358,8 +134837,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			o[ old ] = o[ knew ];
 		}
 	};
-	
-	
+
+
 	/**
 	 * Provide backwards compatibility for the main DT options. Note that the new
 	 * options are mapped onto the old parameters, so this is an external interface
@@ -134378,7 +134857,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		_fnCompatMap( init, 'pagingType',    'sPaginationType' );
 		_fnCompatMap( init, 'pageLength',    'iDisplayLength' );
 		_fnCompatMap( init, 'searching',     'bFilter' );
-	
+
 		// Boolean initialisation of x-scrolling
 		if ( typeof init.sScrollX === 'boolean' ) {
 			init.sScrollX = init.sScrollX ? '100%' : '';
@@ -134386,11 +134865,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( typeof init.scrollX === 'boolean' ) {
 			init.scrollX = init.scrollX ? '100%' : '';
 		}
-	
+
 		// Column search objects are in an array, so it needs to be converted
 		// element by element
 		var searchCols = init.aoSearchCols;
-	
+
 		if ( searchCols ) {
 			for ( var i=0, ien=searchCols.length ; i<ien ; i++ ) {
 				if ( searchCols[i] ) {
@@ -134399,8 +134878,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Provide backwards compatibility for column options. Note that the new options
 	 * are mapped onto the old parameters, so this is an external interface change
@@ -134413,15 +134892,15 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		_fnCompatMap( init, 'orderData',     'aDataSort' );
 		_fnCompatMap( init, 'orderSequence', 'asSorting' );
 		_fnCompatMap( init, 'orderDataType', 'sortDataType' );
-	
+
 		// orderData can be given as an integer
 		var dataSort = init.aDataSort;
 		if ( typeof dataSort === 'number' && ! Array.isArray( dataSort ) ) {
 			init.aDataSort = [ dataSort ];
 		}
 	}
-	
-	
+
+
 	/**
 	 * Browser feature detection for capabilities, quirks
 	 *  @param {object} settings dataTables settings object
@@ -134435,7 +134914,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( ! DataTable.__browser ) {
 			var browser = {};
 			DataTable.__browser = browser;
-	
+
 			// Scrolling feature / quirks detection
 			var n = $('<div/>')
 				.css( {
@@ -134464,10 +134943,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						)
 				)
 				.appendTo( 'body' );
-	
+
 			var outer = n.children();
 			var inner = outer.children();
-	
+
 			// Numbers below, in order, are:
 			// inner.offsetWidth, inner.clientWidth, outer.offsetWidth, outer.clientWidth
 			//
@@ -134477,30 +134956,30 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// Evergreen Windows:                 83  83 100  83
 			// Evergreen Mac with scrollbars:     85  85 100  85
 			// Evergreen Mac without scrollbars: 100 100 100 100
-	
+
 			// Get scrollbar width
 			browser.barWidth = outer[0].offsetWidth - outer[0].clientWidth;
-	
+
 			// IE6/7 will oversize a width 100% element inside a scrolling element, to
 			// include the width of the scrollbar, while other browsers ensure the inner
 			// element is contained without forcing scrolling
 			browser.bScrollOversize = inner[0].offsetWidth === 100 && outer[0].clientWidth !== 100;
-	
+
 			// In rtl text layout, some browsers (most, but not all) will place the
 			// scrollbar on the left, rather than the right.
 			browser.bScrollbarLeft = Math.round( inner.offset().left ) !== 1;
-	
+
 			// IE8- don't provide height and width for getBoundingClientRect
 			browser.bBounding = n[0].getBoundingClientRect().width ? true : false;
-	
+
 			n.remove();
 		}
-	
+
 		$.extend( settings.oBrowser, DataTable.__browser );
 		settings.oScroll.iBarWidth = DataTable.__browser.barWidth;
 	}
-	
-	
+
+
 	/**
 	 * Array.prototype reduce[Right] method, used for browsers which don't support
 	 * JS 1.6. Done this way to reduce code size, since we iterate either way
@@ -134513,28 +134992,28 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			i = start,
 			value,
 			isSet = false;
-	
+
 		if ( init !== undefined$1 ) {
 			value = init;
 			isSet = true;
 		}
-	
+
 		while ( i !== end ) {
 			if ( ! that.hasOwnProperty(i) ) {
 				continue;
 			}
-	
+
 			value = isSet ?
 				fn( value, that[i], i, that ) :
 				that[i];
-	
+
 			isSet = true;
 			i += inc;
 		}
-	
+
 		return value;
 	}
-	
+
 	/**
 	 * Add a column to the list used for the table with default values
 	 *  @param {object} oSettings dataTables settings object
@@ -134554,18 +135033,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			idx: iCol
 		} );
 		oSettings.aoColumns.push( oCol );
-	
+
 		// Add search object for column specific search. Note that the `searchCols[ iCol ]`
 		// passed into extend can be undefined. This allows the user to give a default
 		// with only some of the parameters defined, and also not give a default
 		var searchCols = oSettings.aoPreSearchCols;
 		searchCols[ iCol ] = $.extend( {}, DataTable.models.oSearch, searchCols[ iCol ] );
-	
+
 		// Use the default column options function to initialise classes etc
 		_fnColumnOptions( oSettings, iCol, $(nTh).data() );
 	}
-	
-	
+
+
 	/**
 	 * Apply options for a column
 	 *  @param {object} oSettings dataTables settings object
@@ -134578,40 +135057,40 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var oCol = oSettings.aoColumns[ iCol ];
 		var oClasses = oSettings.oClasses;
 		var th = $(oCol.nTh);
-	
+
 		// Try to get width information from the DOM. We can't get it from CSS
 		// as we'd need to parse the CSS stylesheet. `width` option can override
 		if ( ! oCol.sWidthOrig ) {
 			// Width attribute
 			oCol.sWidthOrig = th.attr('width') || null;
-	
+
 			// Style attribute
 			var t = (th.attr('style') || '').match(/width:\s*(\d+[pxem%]+)/);
 			if ( t ) {
 				oCol.sWidthOrig = t[1];
 			}
 		}
-	
+
 		/* User specified column options */
 		if ( oOptions !== undefined$1 && oOptions !== null )
 		{
 			// Backwards compatibility
 			_fnCompatCols( oOptions );
-	
+
 			// Map camel case parameters to their Hungarian counterparts
 			_fnCamelToHungarian( DataTable.defaults.column, oOptions, true );
-	
+
 			/* Backwards compatibility for mDataProp */
 			if ( oOptions.mDataProp !== undefined$1 && !oOptions.mData )
 			{
 				oOptions.mData = oOptions.mDataProp;
 			}
-	
+
 			if ( oOptions.sType )
 			{
 				oCol._sManualType = oOptions.sType;
 			}
-	
+
 			// `class` is a reserved word in Javascript, so we need to provide
 			// the ability to use a valid name for the camel case input
 			if ( oOptions.className && ! oOptions.sClass )
@@ -134621,18 +135100,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			if ( oOptions.sClass ) {
 				th.addClass( oOptions.sClass );
 			}
-	
+
 			var origClass = oCol.sClass;
-	
+
 			$.extend( oCol, oOptions );
 			_fnMap( oCol, oOptions, "sWidth", "sWidthOrig" );
-	
+
 			// Merge class from previously defined classes with this one, rather than just
 			// overwriting it in the extend above
 			if (origClass !== oCol.sClass) {
 				oCol.sClass = origClass + ' ' + oCol.sClass;
 			}
-	
+
 			/* iDataSort to be applied (backwards compatibility), but aDataSort will take
 			 * priority if defined
 			 */
@@ -134642,12 +135121,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			_fnMap( oCol, oOptions, "aDataSort" );
 		}
-	
+
 		/* Cache the data get and set functions for speed */
 		var mDataSrc = oCol.mData;
 		var mData = _fnGetObjectDataFn( mDataSrc );
 		var mRender = oCol.mRender ? _fnGetObjectDataFn( oCol.mRender ) : null;
-	
+
 		var attrTest = function( src ) {
 			return typeof src === 'string' && src.indexOf('@') !== -1;
 		};
@@ -134655,10 +135134,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			attrTest(mDataSrc.sort) || attrTest(mDataSrc.type) || attrTest(mDataSrc.filter)
 		);
 		oCol._setter = null;
-	
+
 		oCol.fnGetData = function (rowData, type, meta) {
 			var innerData = mData( rowData, type, undefined$1, meta );
-	
+
 			return mRender && type ?
 				mRender( innerData, type, rowData, meta ) :
 				innerData;
@@ -134666,20 +135145,20 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		oCol.fnSetData = function ( rowData, val, meta ) {
 			return _fnSetObjectDataFn( mDataSrc )( rowData, val, meta );
 		};
-	
+
 		// Indicate if DataTables should read DOM data as an object or array
 		// Used in _fnGetRowElements
 		if ( typeof mDataSrc !== 'number' ) {
 			oSettings._rowReadObject = true;
 		}
-	
+
 		/* Feature sorting overrides column specific when off */
 		if ( !oSettings.oFeatures.bSort )
 		{
 			oCol.bSortable = false;
 			th.addClass( oClasses.sSortableNone ); // Have to add class here as order event isn't called
 		}
-	
+
 		/* Check that the class assignment is correct for sorting */
 		var bAsc = $.inArray('asc', oCol.asSorting) !== -1;
 		var bDesc = $.inArray('desc', oCol.asSorting) !== -1;
@@ -134704,8 +135183,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			oCol.sSortingClassJUI = oClasses.sSortJUI;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Adjust the table column widths for new data. Note: you would probably want to
 	 * do a redraw after calling this function!
@@ -134718,24 +135197,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( settings.oFeatures.bAutoWidth !== false )
 		{
 			var columns = settings.aoColumns;
-	
+
 			_fnCalculateColumnWidths( settings );
 			for ( var i=0 , iLen=columns.length ; i<iLen ; i++ )
 			{
 				columns[i].nTh.style.width = columns[i].sWidth;
 			}
 		}
-	
+
 		var scroll = settings.oScroll;
 		if ( scroll.sY !== '' || scroll.sX !== '')
 		{
 			_fnScrollDraw( settings );
 		}
-	
+
 		_fnCallbackFire( settings, null, 'column-sizing', [settings] );
 	}
-	
-	
+
+
 	/**
 	 * Convert the index of a visible column to the index in the data array (take account
 	 * of hidden columns)
@@ -134747,13 +135226,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnVisibleToColumnIndex( oSettings, iMatch )
 	{
 		var aiVis = _fnGetColumns( oSettings, 'bVisible' );
-	
+
 		return typeof aiVis[iMatch] === 'number' ?
 			aiVis[iMatch] :
 			null;
 	}
-	
-	
+
+
 	/**
 	 * Convert the index of an index in the data array and convert it to the visible
 	 *   column index (take account of hidden columns)
@@ -134766,11 +135245,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		var aiVis = _fnGetColumns( oSettings, 'bVisible' );
 		var iPos = $.inArray( iMatch, aiVis );
-	
+
 		return iPos !== -1 ? iPos : null;
 	}
-	
-	
+
+
 	/**
 	 * Get the number of visible columns
 	 *  @param {object} oSettings dataTables settings object
@@ -134780,18 +135259,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnVisbleColumns( oSettings )
 	{
 		var vis = 0;
-	
+
 		// No reduce in IE8, use a loop for now
 		$.each( oSettings.aoColumns, function ( i, col ) {
 			if ( col.bVisible && $(col.nTh).css('display') !== 'none' ) {
 				vis++;
 			}
 		} );
-	
+
 		return vis;
 	}
-	
-	
+
+
 	/**
 	 * Get an array of column indexes that match a given property
 	 *  @param {object} oSettings dataTables settings object
@@ -134803,17 +135282,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnGetColumns( oSettings, sParam )
 	{
 		var a = [];
-	
+
 		$.map( oSettings.aoColumns, function(val, i) {
 			if ( val[sParam] ) {
 				a.push( i );
 			}
 		} );
-	
+
 		return a;
 	}
-	
-	
+
+
 	/**
 	 * Calculate the 'type' of a column
 	 *  @param {object} settings dataTables settings object
@@ -134826,12 +135305,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var types = DataTable.ext.type.detect;
 		var i, ien, j, jen, k, ken;
 		var col, detectedType, cache;
-	
-		// For each column, spin over the 
+
+		// For each column, spin over the
 		for ( i=0, ien=columns.length ; i<ien ; i++ ) {
 			col = columns[i];
 			cache = [];
-	
+
 			if ( ! col.sType && col._sManualType ) {
 				col.sType = col._sManualType;
 			}
@@ -134843,9 +135322,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						if ( cache[k] === undefined$1 ) {
 							cache[k] = _fnGetCellData( settings, k, i, 'type' );
 						}
-	
+
 						detectedType = types[j]( cache[k], settings );
-	
+
 						// If null, then this type can't apply to this column, so
 						// rather than testing all cells, break out. There is an
 						// exception for the last type which is `html`. We need to
@@ -134854,7 +135333,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						if ( ! detectedType && j !== types.length-1 ) {
 							break;
 						}
-	
+
 						// Only a single match is needed for html type since it is
 						// bottom of the pile and very similar to string - but it
 						// must not be empty
@@ -134862,7 +135341,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 							break;
 						}
 					}
-	
+
 					// Type is valid for all data points in the column - use this
 					// type
 					if ( detectedType ) {
@@ -134870,7 +135349,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						break;
 					}
 				}
-	
+
 				// Fall back - if no type was detected, always use string
 				if ( ! col.sType ) {
 					col.sType = 'string';
@@ -134878,8 +135357,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Take the column definitions and static columns arrays and calculate how
 	 * they relate to column indexes. The callback function will then apply the
@@ -134895,7 +135374,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		var i, iLen, j, jLen, k, kLen, def;
 		var columns = oSettings.aoColumns;
-	
+
 		// Column definitions with aTargets
 		if ( aoColDefs )
 		{
@@ -134903,19 +135382,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			for ( i=aoColDefs.length-1 ; i>=0 ; i-- )
 			{
 				def = aoColDefs[i];
-	
+
 				/* Each definition can target multiple columns, as it is an array */
 				var aTargets = def.target !== undefined$1
 					? def.target
 					: def.targets !== undefined$1
 						? def.targets
 						: def.aTargets;
-	
+
 				if ( ! Array.isArray( aTargets ) )
 				{
 					aTargets = [ aTargets ];
 				}
-	
+
 				for ( j=0, jLen=aTargets.length ; j<jLen ; j++ )
 				{
 					if ( typeof aTargets[j] === 'number' && aTargets[j] >= 0 )
@@ -134925,7 +135404,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						{
 							_fnAddColumn( oSettings );
 						}
-	
+
 						/* Integer, basic index */
 						fn( aTargets[j], def );
 					}
@@ -134949,7 +135428,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			}
 		}
-	
+
 		// Statically defined columns array
 		if ( aoCols )
 		{
@@ -134959,7 +135438,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	}
-	
+
 	/**
 	 * Add a data array to the table, creating DOM node etc. This is the parallel to
 	 * _fnGatherData, but for adding rows from a Javascript source, rather than a
@@ -134981,35 +135460,35 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			src: nTr ? 'dom' : 'data',
 			idx: iRow
 		} );
-	
+
 		oData._aData = aDataIn;
 		oSettings.aoData.push( oData );
 		var columns = oSettings.aoColumns;
-	
+
 		// Invalidate the column types as the new data needs to be revalidated
 		for ( var i=0, iLen=columns.length ; i<iLen ; i++ )
 		{
 			columns[i].sType = null;
 		}
-	
+
 		/* Add to the display array */
 		oSettings.aiDisplayMaster.push( iRow );
-	
+
 		var id = oSettings.rowIdFn( aDataIn );
 		if ( id !== undefined$1 ) {
 			oSettings.aIds[ id ] = oData;
 		}
-	
+
 		/* Create the DOM information, or register it if already present */
 		if ( nTr || ! oSettings.oFeatures.bDeferRender )
 		{
 			_fnCreateTr( oSettings, iRow, nTr, anTds );
 		}
-	
+
 		return iRow;
 	}
-	
-	
+
+
 	/**
 	 * Add one or more TR elements to the table. Generally we'd expect to
 	 * use this for reading data from a DOM sourced table, but it could be
@@ -135023,19 +135502,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnAddTr( settings, trs )
 	{
 		var row;
-	
+
 		// Allow an individual node to be passed in
 		if ( ! (trs instanceof $) ) {
 			trs = $(trs);
 		}
-	
+
 		return trs.map( function (i, el) {
 			row = _fnGetRowElements( settings, el );
 			return _fnAddData( settings, row.data, el, row.cells );
 		} );
 	}
-	
-	
+
+
 	/**
 	 * Take a TR element and convert it to an index in aoData
 	 *  @param {object} oSettings dataTables settings object
@@ -135047,8 +135526,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		return (n._DT_RowIndex!==undefined$1) ? n._DT_RowIndex : null;
 	}
-	
-	
+
+
 	/**
 	 * Take a TD element and convert it into a column data index (not the visible index)
 	 *  @param {object} oSettings dataTables settings object
@@ -135061,8 +135540,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		return $.inArray( n, oSettings.aoData[ iRow ].anCells );
 	}
-	
-	
+
+
 	/**
 	 * Get the data for a given cell from the internal cache, taking into account data mapping
 	 *  @param {object} settings dataTables settings object
@@ -135080,7 +135559,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		else if (type === 'order') {
 			type = 'sort';
 		}
-	
+
 		var draw           = settings.iDraw;
 		var col            = settings.aoColumns[colIdx];
 		var rowData        = settings.aoData[rowIdx]._aData;
@@ -135090,7 +135569,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			row:      rowIdx,
 			col:      colIdx
 		} );
-	
+
 		if ( cellData === undefined$1 ) {
 			if ( settings.iDrawError != draw && defaultContent === null ) {
 				_fnLog( settings, 0, "Requested unknown parameter "+
@@ -135100,7 +135579,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			return defaultContent;
 		}
-	
+
 		// When the data source is null and a specific data type is requested (i.e.
 		// not the original data), we can use default column data
 		if ( (cellData === rowData || cellData === null) && defaultContent !== null && type !== undefined$1 ) {
@@ -135111,23 +135590,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// executing in the scope of the data object (for instances)
 			return cellData.call( rowData );
 		}
-	
+
 		if ( cellData === null && type === 'display' ) {
 			return '';
 		}
-	
+
 		if ( type === 'filter' ) {
 			var fomatters = DataTable.ext.type.search;
-	
+
 			if ( fomatters[ col.sType ] ) {
 				cellData = fomatters[ col.sType ]( cellData );
 			}
 		}
-	
+
 		return cellData;
 	}
-	
-	
+
+
 	/**
 	 * Set the value for a specific cell, into the internal data cache
 	 *  @param {object} settings dataTables settings object
@@ -135140,19 +135619,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		var col     = settings.aoColumns[colIdx];
 		var rowData = settings.aoData[rowIdx]._aData;
-	
+
 		col.fnSetData( rowData, val, {
 			settings: settings,
 			row:      rowIdx,
 			col:      colIdx
 		}  );
 	}
-	
-	
+
+
 	// Private variable that is used to match action syntax in the data property object
 	var __reArray = /\[.*?\]$/;
 	var __reFn = /\(\)$/;
-	
+
 	/**
 	 * Split string on periods, taking into account escaped periods
 	 * @param  {string} str String to split
@@ -135164,8 +135643,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			return s.replace(/\\\./g, '.');
 		} );
 	}
-	
-	
+
+
 	/**
 	 * Return a function that can be used to get data from a source object, taking
 	 * into account the ability to use nested objects as a source
@@ -135174,8 +135653,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *  @memberof DataTable#oApi
 	 */
 	var _fnGetObjectDataFn = DataTable.util.get;
-	
-	
+
+
 	/**
 	 * Return a function that can be used to set data from a source object, taking
 	 * into account the ability to use nested objects as a source
@@ -135184,8 +135663,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *  @memberof DataTable#oApi
 	 */
 	var _fnSetObjectDataFn = DataTable.util.set;
-	
-	
+
+
 	/**
 	 * Return an array with the full table data
 	 *  @param {object} oSettings dataTables settings object
@@ -135196,8 +135675,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		return _pluck( settings.aoData, '_aData' );
 	}
-	
-	
+
+
 	/**
 	 * Nuke the table
 	 *  @param {object} oSettings dataTables settings object
@@ -135210,8 +135689,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		settings.aiDisplay.length = 0;
 		settings.aIds = {};
 	}
-	
-	
+
+
 	 /**
 	 * Take an array of integers (index array) and remove a target integer (value - not
 	 * the key!)
@@ -135222,7 +135701,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnDeleteIndex( a, iTarget, splice )
 	{
 		var iTargetIndex = -1;
-	
+
 		for ( var i=0, iLen=a.length ; i<iLen ; i++ )
 		{
 			if ( a[i] == iTarget )
@@ -135234,14 +135713,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				a[i]--;
 			}
 		}
-	
+
 		if ( iTargetIndex != -1 && splice === undefined$1 )
 		{
 			a.splice( iTargetIndex, 1 );
 		}
 	}
-	
-	
+
+
 	/**
 	 * Mark cached data as invalid such that a re-read of the data will occur when
 	 * the cached data is next requested. Also update from the data source object.
@@ -135269,10 +135748,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			while ( cell.childNodes.length ) {
 				cell.removeChild( cell.firstChild );
 			}
-	
+
 			cell.innerHTML = _fnGetCellData( settings, rowIdx, col, 'display' );
 		};
-	
+
 		// Are we reading last data from DOM or the data object?
 		if ( src === 'dom' || ((! src || src === 'auto') && row.src === 'dom') ) {
 			// Read the data from the DOM
@@ -135284,7 +135763,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		else {
 			// Reading from data object, update the DOM
 			var cells = row.anCells;
-	
+
 			if ( cells ) {
 				if ( colIdx !== undefined$1 ) {
 					cellWrite( cells[colIdx], colIdx );
@@ -135296,12 +135775,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			}
 		}
-	
+
 		// For both row and cell invalidation, the cached data for sorting and
 		// filtering is nulled out
 		row._aSortData = null;
 		row._aFilterData = null;
-	
+
 		// Invalidate the type for a specific column (if given) or all columns since
 		// the data might have changed
 		var cols = settings.aoColumns;
@@ -135312,13 +135791,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			for ( i=0, ien=cols.length ; i<ien ; i++ ) {
 				cols[i].sType = null;
 			}
-	
+
 			// Update DataTables special `DT_*` attributes for the row
 			_fnRowAttributes( settings, row );
 		}
 	}
-	
-	
+
+
 	/**
 	 * Build a data source object from an HTML row, reading the contents of the
 	 * cells that are in the row.
@@ -135343,18 +135822,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			name, col, i=0, contents,
 			columns = settings.aoColumns,
 			objectRead = settings._rowReadObject;
-	
+
 		// Allow the data object to be passed in, or construct
 		d = d !== undefined$1 ?
 			d :
 			objectRead ?
 				{} :
 				[];
-	
+
 		var attr = function ( str, td  ) {
 			if ( typeof str === 'string' ) {
 				var idx = str.indexOf('@');
-	
+
 				if ( idx !== -1 ) {
 					var attr = str.substring( idx+1 );
 					var setter = _fnSetObjectDataFn( str );
@@ -135362,17 +135841,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			}
 		};
-	
+
 		// Read data from a cell and store into the data object
 		var cellProcess = function ( cell ) {
 			if ( colIdx === undefined$1 || colIdx === i ) {
 				col = columns[i];
 				contents = (cell.innerHTML).trim();
-	
+
 				if ( col && col._bAttrSrc ) {
 					var setter = _fnSetObjectDataFn( col.mData._ );
 					setter( d, contents );
-	
+
 					attr( col.mData.sort, cell );
 					attr( col.mData.type, cell );
 					attr( col.mData.filter, cell );
@@ -135392,43 +135871,43 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					}
 				}
 			}
-	
+
 			i++;
 		};
-	
+
 		if ( td ) {
 			// `tr` element was passed in
 			while ( td ) {
 				name = td.nodeName.toUpperCase();
-	
+
 				if ( name == "TD" || name == "TH" ) {
 					cellProcess( td );
 					tds.push( td );
 				}
-	
+
 				td = td.nextSibling;
 			}
 		}
 		else {
 			// Existing row object passed in
 			tds = row.anCells;
-	
+
 			for ( var j=0, jen=tds.length ; j<jen ; j++ ) {
 				cellProcess( tds[j] );
 			}
 		}
-	
+
 		// Read the ID from the DOM if present
 		var rowNode = row.firstChild ? row : row.nTr;
-	
+
 		if ( rowNode ) {
 			var id = rowNode.getAttribute( 'id' );
-	
+
 			if ( id ) {
 				_fnSetObjectDataFn( settings.rowId )( d, id );
 			}
 		}
-	
+
 		return {
 			data: d,
 			cells: tds
@@ -135452,49 +135931,49 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			cells = [],
 			nTr, nTd, oCol,
 			i, iLen, create;
-	
+
 		if ( row.nTr === null )
 		{
 			nTr = nTrIn || document.createElement('tr');
-	
+
 			row.nTr = nTr;
 			row.anCells = cells;
-	
+
 			/* Use a private property on the node to allow reserve mapping from the node
 			 * to the aoData array for fast look up
 			 */
 			nTr._DT_RowIndex = iRow;
-	
+
 			/* Special parameters can be given by the data source to be used on the row */
 			_fnRowAttributes( oSettings, row );
-	
+
 			/* Process each column */
 			for ( i=0, iLen=oSettings.aoColumns.length ; i<iLen ; i++ )
 			{
 				oCol = oSettings.aoColumns[i];
 				create = nTrIn ? false : true;
-	
+
 				nTd = create ? document.createElement( oCol.sCellType ) : anTds[i];
 				nTd._DT_CellIndex = {
 					row: iRow,
 					column: i
 				};
-				
+
 				cells.push( nTd );
-	
+
 				// Need to create the HTML if new, or if a rendering function is defined
 				if ( create || ((oCol.mRender || oCol.mData !== i) &&
 					 (!$.isPlainObject(oCol.mData) || oCol.mData._ !== i+'.display')
 				)) {
 					nTd.innerHTML = _fnGetCellData( oSettings, iRow, i, 'display' );
 				}
-	
+
 				/* Add user defined class */
 				if ( oCol.sClass )
 				{
 					nTd.className += ' '+oCol.sClass;
 				}
-	
+
 				// Visibility - add or remove as required
 				if ( oCol.bVisible && ! nTrIn )
 				{
@@ -135504,7 +135983,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				{
 					nTd.parentNode.removeChild( nTd );
 				}
-	
+
 				if ( oCol.fnCreatedCell )
 				{
 					oCol.fnCreatedCell.call( oSettings.oInstance,
@@ -135512,12 +135991,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					);
 				}
 			}
-	
+
 			_fnCallbackFire( oSettings, 'aoRowCreatedCallback', null, [nTr, rowData, iRow, cells] );
 		}
 	}
-	
-	
+
+
 	/**
 	 * Add attributes to a row based on the special `DT_*` parameters in a data
 	 * source object.
@@ -135529,37 +136008,37 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		var tr = row.nTr;
 		var data = row._aData;
-	
+
 		if ( tr ) {
 			var id = settings.rowIdFn( data );
-	
+
 			if ( id ) {
 				tr.id = id;
 			}
-	
+
 			if ( data.DT_RowClass ) {
 				// Remove any classes added by DT_RowClass before
 				var a = data.DT_RowClass.split(' ');
 				row.__rowc = row.__rowc ?
 					_unique( row.__rowc.concat( a ) ) :
 					a;
-	
+
 				$(tr)
 					.removeClass( row.__rowc.join(' ') )
 					.addClass( data.DT_RowClass );
 			}
-	
+
 			if ( data.DT_RowAttr ) {
 				$(tr).attr( data.DT_RowAttr );
 			}
-	
+
 			if ( data.DT_RowData ) {
 				$(tr).data( data.DT_RowData );
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Create the HTML header for the table
 	 *  @param {object} oSettings dataTables settings object
@@ -135573,68 +136052,68 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var createHeader = $('th, td', thead).length === 0;
 		var classes = oSettings.oClasses;
 		var columns = oSettings.aoColumns;
-	
+
 		if ( createHeader ) {
 			row = $('<tr/>').appendTo( thead );
 		}
-	
+
 		for ( i=0, ien=columns.length ; i<ien ; i++ ) {
 			column = columns[i];
 			cell = $( column.nTh ).addClass( column.sClass );
-	
+
 			if ( createHeader ) {
 				cell.appendTo( row );
 			}
-	
+
 			// 1.11 move into sorting
 			if ( oSettings.oFeatures.bSort ) {
 				cell.addClass( column.sSortingClass );
-	
+
 				if ( column.bSortable !== false ) {
 					cell
 						.attr( 'tabindex', oSettings.iTabIndex )
 						.attr( 'aria-controls', oSettings.sTableId );
-	
+
 					_fnSortAttachListener( oSettings, column.nTh, i );
 				}
 			}
-	
+
 			if ( column.sTitle != cell[0].innerHTML ) {
 				cell.html( column.sTitle );
 			}
-	
+
 			_fnRenderer( oSettings, 'header' )(
 				oSettings, cell, column, classes
 			);
 		}
-	
+
 		if ( createHeader ) {
 			_fnDetectHeader( oSettings.aoHeader, thead );
 		}
-	
+
 		/* Deal with the footer - add classes if required */
 		$(thead).children('tr').children('th, td').addClass( classes.sHeaderTH );
 		$(tfoot).children('tr').children('th, td').addClass( classes.sFooterTH );
-	
+
 		// Cache the footer cells. Note that we only take the cells from the first
 		// row in the footer. If there is more than one row the user wants to
 		// interact with, they need to use the table().foot() method. Note also this
 		// allows cells to be used for multiple columns using colspan
 		if ( tfoot !== null ) {
 			var cells = oSettings.aoFooter[0];
-	
+
 			for ( i=0, ien=cells.length ; i<ien ; i++ ) {
 				column = columns[i];
 				column.nTf = cells[i].cell;
-	
+
 				if ( column.sClass ) {
 					$(column.nTf).addClass( column.sClass );
 				}
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Draw the header (or footer) element based on the column visibility states. The
 	 * methodology here is to use the layout array from _fnDetectHeader, modified for
@@ -135655,23 +136134,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var aApplied = [];
 		var iColumns = oSettings.aoColumns.length;
 		var iRowspan, iColspan;
-	
+
 		if ( ! aoSource )
 		{
 			return;
 		}
-	
+
 		if (  bIncludeHidden === undefined$1 )
 		{
 			bIncludeHidden = false;
 		}
-	
+
 		/* Make a copy of the master layout array, but without the visible columns in it */
 		for ( i=0, iLen=aoSource.length ; i<iLen ; i++ )
 		{
 			aoLocal[i] = aoSource[i].slice();
 			aoLocal[i].nTr = aoSource[i].nTr;
-	
+
 			/* Remove any columns which are currently hidden */
 			for ( j=iColumns-1 ; j>=0 ; j-- )
 			{
@@ -135680,15 +136159,15 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					aoLocal[i].splice( j, 1 );
 				}
 			}
-	
+
 			/* Prep the applied array - it needs an element for each row */
 			aApplied.push( [] );
 		}
-	
+
 		for ( i=0, iLen=aoLocal.length ; i<iLen ; i++ )
 		{
 			nLocalTr = aoLocal[i].nTr;
-	
+
 			/* All cells are going to be replaced, so empty out the row */
 			if ( nLocalTr )
 			{
@@ -135697,12 +136176,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					nLocalTr.removeChild( n );
 				}
 			}
-	
+
 			for ( j=0, jLen=aoLocal[i].length ; j<jLen ; j++ )
 			{
 				iRowspan = 1;
 				iColspan = 1;
-	
+
 				/* Check to see if there is already a cell (row/colspan) covering our target
 				 * insert point. If there is, then there is nothing to do.
 				 */
@@ -135710,7 +136189,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				{
 					nLocalTr.appendChild( aoLocal[i][j].cell );
 					aApplied[i][j] = 1;
-	
+
 					/* Expand the cell to cover as many rows as needed */
 					while ( aoLocal[i+iRowspan] !== undefined$1 &&
 					        aoLocal[i][j].cell == aoLocal[i+iRowspan][j].cell )
@@ -135718,7 +136197,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						aApplied[i+iRowspan][j] = 1;
 						iRowspan++;
 					}
-	
+
 					/* Expand the cell to cover as many columns as needed */
 					while ( aoLocal[i][j+iColspan] !== undefined$1 &&
 					        aoLocal[i][j].cell == aoLocal[i][j+iColspan].cell )
@@ -135730,7 +136209,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						}
 						iColspan++;
 					}
-	
+
 					/* Do the actual expansion in the DOM */
 					$(aoLocal[i][j].cell)
 						.attr('rowspan', iRowspan)
@@ -135739,8 +136218,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Insert the required TR nodes into the table for display
 	 *  @param {object} oSettings dataTables settings object
@@ -135751,7 +136230,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		// Allow for state saving and a custom start position
 		_fnStart( oSettings );
-	
+
 		/* Provide a pre-callback function which can be used to cancel the draw is false is returned */
 		var aPreDraw = _fnCallbackFire( oSettings, 'aoPreDrawCallback', 'preDraw', [oSettings] );
 		if ( $.inArray( false, aPreDraw ) !== -1 )
@@ -135759,7 +136238,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			_fnProcessingDisplay( oSettings, false );
 			return;
 		}
-	
+
 		var anRows = [];
 		var iRowCount = 0;
 		var asStripeClasses = oSettings.asStripeClasses;
@@ -135769,9 +136248,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var aiDisplay = oSettings.aiDisplay;
 		var iDisplayStart = oSettings._iDisplayStart;
 		var iDisplayEnd = oSettings.fnDisplayEnd();
-	
+
 		oSettings.bDrawing = true;
-	
+
 		/* Server-side processing draw intercept */
 		if ( oSettings.bDeferLoading )
 		{
@@ -135788,12 +136267,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			_fnAjaxUpdate( oSettings );
 			return;
 		}
-	
+
 		if ( aiDisplay.length !== 0 )
 		{
 			var iStart = bServerSide ? 0 : iDisplayStart;
 			var iEnd = bServerSide ? oSettings.aoData.length : iDisplayEnd;
-	
+
 			for ( var j=iStart ; j<iEnd ; j++ )
 			{
 				var iDataIndex = aiDisplay[j];
@@ -135802,9 +136281,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				{
 					_fnCreateTr( oSettings, iDataIndex );
 				}
-	
+
 				var nRow = aoData.nTr;
-	
+
 				/* Remove the old striping classes and then add the new one */
 				if ( iStripes !== 0 )
 				{
@@ -135815,13 +136294,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						aoData._sRowStripe = sStripe;
 					}
 				}
-	
+
 				// Row callback functions - might want to manipulate the row
 				// iRowCount and j are not currently documented. Are they at all
 				// useful?
 				_fnCallbackFire( oSettings, 'aoRowCallback', null,
 					[nRow, aoData._aData, iRowCount, j, iDataIndex] );
-	
+
 				anRows.push( nRow );
 				iRowCount++;
 			}
@@ -135838,7 +136317,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			{
 				sZero = oLang.sEmptyTable;
 			}
-	
+
 			anRows[ 0 ] = $( '<tr/>', { 'class': iStripes ? asStripeClasses[0] : '' } )
 				.append( $('<td />', {
 					'valign':  'top',
@@ -135846,29 +136325,29 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					'class':   oSettings.oClasses.sRowEmpty
 				} ).html( sZero ) )[0];
 		}
-	
+
 		/* Header and footer callbacks */
 		_fnCallbackFire( oSettings, 'aoHeaderCallback', 'header', [ $(oSettings.nTHead).children('tr')[0],
 			_fnGetDataMaster( oSettings ), iDisplayStart, iDisplayEnd, aiDisplay ] );
-	
+
 		_fnCallbackFire( oSettings, 'aoFooterCallback', 'footer', [ $(oSettings.nTFoot).children('tr')[0],
 			_fnGetDataMaster( oSettings ), iDisplayStart, iDisplayEnd, aiDisplay ] );
-	
+
 		var body = $(oSettings.nTBody);
-	
+
 		body.children().detach();
 		body.append( $(anRows) );
-	
+
 		/* Call all required callback functions for the end of a draw */
 		_fnCallbackFire( oSettings, 'aoDrawCallback', 'draw', [oSettings] );
-	
+
 		/* Draw is complete, sorting and filtering must be as well */
 		oSettings.bSorted = false;
 		oSettings.bFiltered = false;
 		oSettings.bDrawing = false;
 	}
-	
-	
+
+
 	/**
 	 * Redraw the table - taking account of the various features which are enabled
 	 *  @param {object} oSettings dataTables settings object
@@ -135882,11 +136361,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			features = settings.oFeatures,
 			sort     = features.bSort,
 			filter   = features.bFilter;
-	
+
 		if ( sort ) {
 			_fnSort( settings );
 		}
-	
+
 		if ( filter ) {
 			_fnFilterComplete( settings, settings.oPreviousSearch );
 		}
@@ -135894,21 +136373,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// No filtering, so we want to just use the display master
 			settings.aiDisplay = settings.aiDisplayMaster.slice();
 		}
-	
+
 		if ( holdPosition !== true ) {
 			settings._iDisplayStart = 0;
 		}
-	
+
 		// Let any modules know about the draw hold position state (used by
 		// scrolling internally)
 		settings._drawHold = holdPosition;
-	
+
 		_fnDraw( settings );
-	
+
 		settings._drawHold = false;
 	}
-	
-	
+
+
 	/**
 	 * Add the options to the page HTML for the table
 	 *  @param {object} oSettings dataTables settings object
@@ -135920,17 +136399,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var table = $(oSettings.nTable);
 		var holding = $('<div/>').insertBefore( table ); // Holding element for speed
 		var features = oSettings.oFeatures;
-	
+
 		// All DataTables are wrapped in a div
 		var insert = $('<div/>', {
 			id:      oSettings.sTableId+'_wrapper',
 			'class': classes.sWrapper + (oSettings.nTFoot ? '' : ' '+classes.sNoFooter)
 		} );
-	
+
 		oSettings.nHolding = holding[0];
 		oSettings.nTableWrapper = insert[0];
 		oSettings.nTableReinsertBefore = oSettings.nTable.nextSibling;
-	
+
 		/* Loop over the user set positioning and place the elements as needed */
 		var aDom = oSettings.sDom.split('');
 		var featureNode, cOption, nNewNode, cNext, sAttr, j;
@@ -135938,12 +136417,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			featureNode = null;
 			cOption = aDom[i];
-	
+
 			if ( cOption == '<' )
 			{
 				/* New container div */
 				nNewNode = $('<div/>')[0];
-	
+
 				/* Check to see if we should append an id and/or a class name to the container */
 				cNext = aDom[i+1];
 				if ( cNext == "'" || cNext == '"' )
@@ -135955,7 +136434,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						sAttr += aDom[i+j];
 						j++;
 					}
-	
+
 					/* Replace jQuery UI constants @todo depreciated */
 					if ( sAttr == "H" )
 					{
@@ -135965,7 +136444,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					{
 						sAttr = classes.sJUIFooter;
 					}
-	
+
 					/* The attribute can be in the format of "#id.class", "#id" or "class" This logic
 					 * breaks the string into parts and applies them as needed
 					 */
@@ -135983,10 +136462,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					{
 						nNewNode.className = sAttr;
 					}
-	
+
 					i += j; /* Move along the position array */
 				}
-	
+
 				insert.append( nNewNode );
 				insert = $(nNewNode);
 			}
@@ -136039,28 +136518,28 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					}
 				}
 			}
-	
+
 			/* Add to the 2D features array */
 			if ( featureNode )
 			{
 				var aanFeatures = oSettings.aanFeatures;
-	
+
 				if ( ! aanFeatures[cOption] )
 				{
 					aanFeatures[cOption] = [];
 				}
-	
+
 				aanFeatures[cOption].push( featureNode );
 				insert.append( featureNode );
 			}
 		}
-	
+
 		/* Built our DOM structure - replace the holding div with what we want */
 		holding.replaceWith( insert );
 		oSettings.nHolding = null;
 	}
-	
-	
+
+
 	/**
 	 * Use the DOM source to create up an array of header cells. The idea here is to
 	 * create a layout grid (array) of rows x columns, which contains a reference
@@ -136083,21 +136562,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			return j;
 		};
-	
+
 		aLayout.splice( 0, aLayout.length );
-	
+
 		/* We know how many rows there are in the layout - so prep it */
 		for ( i=0, iLen=nTrs.length ; i<iLen ; i++ )
 		{
 			aLayout.push( [] );
 		}
-	
+
 		/* Calculate a layout array */
 		for ( i=0, iLen=nTrs.length ; i<iLen ; i++ )
 		{
 			nTr = nTrs[i];
 			iColumn = 0;
-	
+
 			/* For every cell in the row... */
 			nCell = nTr.firstChild;
 			while ( nCell ) {
@@ -136109,15 +136588,15 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					iRowspan = nCell.getAttribute('rowspan') * 1;
 					iColspan = (!iColspan || iColspan===0 || iColspan===1) ? 1 : iColspan;
 					iRowspan = (!iRowspan || iRowspan===0 || iRowspan===1) ? 1 : iRowspan;
-	
+
 					/* There might be colspan cells already in this row, so shift our target
 					 * accordingly
 					 */
 					iColShifted = fnShiftCol( aLayout, i, iColumn );
-	
+
 					/* Cache calculation for unique columns */
 					bUnique = iColspan === 1 ? true : false;
-	
+
 					/* If there is col / rowspan, copy the information into the layout grid */
 					for ( l=0 ; l<iColspan ; l++ )
 					{
@@ -136135,8 +136614,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Get an array of unique th elements, one for each column
 	 *  @param {object} oSettings dataTables settings object
@@ -136157,7 +136636,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				_fnDetectHeader( aLayout, nHeader );
 			}
 		}
-	
+
 		for ( var i=0, iLen=aLayout.length ; i<iLen ; i++ )
 		{
 			for ( var j=0, jLen=aLayout[i].length ; j<jLen ; j++ )
@@ -136169,10 +136648,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			}
 		}
-	
+
 		return aReturn;
 	}
-	
+
 	/**
 	 * Set the start position for draw
 	 *  @param {object} oSettings dataTables settings object
@@ -136181,7 +136660,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		var bServerSide = _fnDataSource( oSettings ) == 'ssp';
 		var iInitDisplayStart = oSettings.iInitDisplayStart;
-	
+
 		// Check and see if we have an initial draw position from state saving
 		if ( iInitDisplayStart !== undefined$1 && iInitDisplayStart !== -1 )
 		{
@@ -136190,11 +136669,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				iInitDisplayStart >= oSettings.fnRecordsDisplay() ?
 					0 :
 					iInitDisplayStart;
-	
+
 			oSettings.iInitDisplayStart = -1;
 		}
 	}
-	
+
 	/**
 	 * Create an Ajax call based on the table's settings, taking into account that
 	 * parameters can have multiple forms, and backwards compatibility.
@@ -136208,20 +136687,20 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		// Compatibility with 1.9-, allow fnServerData and event to manipulate
 		_fnCallbackFire( oSettings, 'aoServerParams', 'serverParams', [data] );
-	
+
 		// Convert to object based for 1.10+ if using the old array scheme which can
 		// come from server-side processing or serverParams
 		if ( data && Array.isArray(data) ) {
 			var tmp = {};
 			var rbracket = /(.*?)\[\]$/;
-	
+
 			$.each( data, function (key, val) {
 				var match = val.name.match(rbracket);
-	
+
 				if ( match ) {
 					// Support for arrays
 					var name = match[0];
-	
+
 					if ( ! tmp[ name ] ) {
 						tmp[ name ] = [];
 					}
@@ -136233,7 +136712,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			} );
 			data = tmp;
 		}
-	
+
 		var ajaxData;
 		var ajax = oSettings.ajax;
 		var instance = oSettings.oInstance;
@@ -136241,41 +136720,41 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var status = oSettings.jqXHR
 				? oSettings.jqXHR.status
 				: null;
-	
+
 			if ( json === null || (typeof status === 'number' && status == 204 ) ) {
 				json = {};
 				_fnAjaxDataSrc( oSettings, json, [] );
 			}
-	
+
 			var error = json.error || json.sError;
 			if ( error ) {
 				_fnLog( oSettings, 0, error );
 			}
-	
+
 			oSettings.json = json;
-	
+
 			_fnCallbackFire( oSettings, null, 'xhr', [oSettings, json, oSettings.jqXHR] );
 			fn( json );
 		};
-	
+
 		if ( $.isPlainObject( ajax ) && ajax.data )
 		{
 			ajaxData = ajax.data;
-	
+
 			var newData = typeof ajaxData === 'function' ?
 				ajaxData( data, oSettings ) :  // fn can manipulate data or return
 				ajaxData;                      // an object object or array to merge
-	
+
 			// If the function returned something, use that alone
 			data = typeof ajaxData === 'function' && newData ?
 				newData :
 				$.extend( true, data, newData );
-	
+
 			// Remove the data property as we've resolved it already and don't want
 			// jQuery to do it again (it is restored at the end of the function)
 			delete ajax.data;
 		}
-	
+
 		var baseAjax = {
 			"data": data,
 			"success": callback,
@@ -136284,7 +136763,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			"type": oSettings.sServerMethod,
 			"error": function (xhr, error, thrown) {
 				var ret = _fnCallbackFire( oSettings, null, 'xhr', [oSettings, null, oSettings.jqXHR] );
-	
+
 				if ( $.inArray( true, ret ) === -1 ) {
 					if ( error == "parsererror" ) {
 						_fnLog( oSettings, 0, 'Invalid JSON response', 1 );
@@ -136293,17 +136772,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						_fnLog( oSettings, 0, 'Ajax error', 7 );
 					}
 				}
-	
+
 				_fnProcessingDisplay( oSettings, false );
 			}
 		};
-	
+
 		// Store the data submitted for the API
 		oSettings.oAjaxData = data;
-	
+
 		// Allow plug-ins and external processes to modify the data
 		_fnCallbackFire( oSettings, null, 'preXhr', [oSettings, data] );
-	
+
 		if ( oSettings.fnServerData )
 		{
 			// DataTables 1.9- compatibility
@@ -136332,13 +136811,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			// Object to extend the base settings
 			oSettings.jqXHR = $.ajax( $.extend( baseAjax, ajax ) );
-	
+
 			// Restore for next time around
 			ajax.data = ajaxData;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Update the table using an Ajax call
 	 *  @param {object} settings dataTables settings object
@@ -136349,7 +136828,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		settings.iDraw++;
 		_fnProcessingDisplay( settings, true );
-	
+
 		_fnBuildAjax(
 			settings,
 			_fnAjaxParameters( settings ),
@@ -136358,8 +136837,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		);
 	}
-	
-	
+
+
 	/**
 	 * Build up the parameters in an object needed for a server-side processing
 	 * request. Note that this is basically done twice, is different ways - a modern
@@ -136385,18 +136864,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			displayLength = features.bPaginate !== false ?
 				settings._iDisplayLength :
 				-1;
-	
+
 		var param = function ( name, value ) {
 			data.push( { 'name': name, 'value': value } );
 		};
-	
+
 		// DataTables 1.9- compatible method
 		param( 'sEcho',          settings.iDraw );
 		param( 'iColumns',       columnCount );
 		param( 'sColumns',       _pluck( columns, 'sName' ).join(',') );
 		param( 'iDisplayStart',  displayStart );
 		param( 'iDisplayLength', displayLength );
-	
+
 		// DataTables 1.10+ method
 		var d = {
 			draw:    settings.iDraw,
@@ -136409,12 +136888,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				regex: preSearch.bRegex
 			}
 		};
-	
+
 		for ( i=0 ; i<columnCount ; i++ ) {
 			column = columns[i];
 			columnSearch = preColSearch[i];
 			dataProp = typeof column.mData=="function" ? 'function' : column.mData ;
-	
+
 			d.columns.push( {
 				data:       dataProp,
 				name:       column.sName,
@@ -136425,49 +136904,49 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					regex: columnSearch.bRegex
 				}
 			} );
-	
+
 			param( "mDataProp_"+i, dataProp );
-	
+
 			if ( features.bFilter ) {
 				param( 'sSearch_'+i,     columnSearch.sSearch );
 				param( 'bRegex_'+i,      columnSearch.bRegex );
 				param( 'bSearchable_'+i, column.bSearchable );
 			}
-	
+
 			if ( features.bSort ) {
 				param( 'bSortable_'+i, column.bSortable );
 			}
 		}
-	
+
 		if ( features.bFilter ) {
 			param( 'sSearch', preSearch.sSearch );
 			param( 'bRegex', preSearch.bRegex );
 		}
-	
+
 		if ( features.bSort ) {
 			$.each( sort, function ( i, val ) {
 				d.order.push( { column: val.col, dir: val.dir } );
-	
+
 				param( 'iSortCol_'+i, val.col );
 				param( 'sSortDir_'+i, val.dir );
 			} );
-	
+
 			param( 'iSortingCols', sort.length );
 		}
-	
+
 		// If the legacy.ajax parameter is null, then we automatically decide which
 		// form to use, based on sAjaxSource
 		var legacy = DataTable.ext.legacy.ajax;
 		if ( legacy === null ) {
 			return settings.sAjaxSource ? data : d;
 		}
-	
+
 		// Otherwise, if legacy has been specified then we use that to decide on the
 		// form
 		return legacy ? data : d;
 	}
-	
-	
+
+
 	/**
 	 * Data the data from the server (nuking the old) and redraw the table
 	 *  @param {object} oSettings dataTables settings object
@@ -136486,12 +136965,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var compat = function ( old, modern ) {
 			return json[old] !== undefined$1 ? json[old] : json[modern];
 		};
-	
+
 		var data = _fnAjaxDataSrc( settings, json );
 		var draw            = compat( 'sEcho',                'draw' );
 		var recordsTotal    = compat( 'iTotalRecords',        'recordsTotal' );
 		var recordsFiltered = compat( 'iTotalDisplayRecords', 'recordsFiltered' );
-	
+
 		if ( draw !== undefined$1 ) {
 			// Protect against out of sequence returns
 			if ( draw*1 < settings.iDraw ) {
@@ -136499,31 +136978,31 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			settings.iDraw = draw * 1;
 		}
-	
+
 		// No data in returned object, so rather than an array, we show an empty table
 		if ( ! data ) {
 			data = [];
 		}
-	
+
 		_fnClearTable( settings );
 		settings._iRecordsTotal   = parseInt(recordsTotal, 10);
 		settings._iRecordsDisplay = parseInt(recordsFiltered, 10);
-	
+
 		for ( var i=0, ien=data.length ; i<ien ; i++ ) {
 			_fnAddData( settings, data[i] );
 		}
 		settings.aiDisplay = settings.aiDisplayMaster.slice();
-	
+
 		_fnDraw( settings, true );
-	
+
 		if ( ! settings._bInitComplete ) {
 			_fnInitComplete( settings, json );
 		}
-	
+
 		_fnProcessingDisplay( settings, false );
 	}
-	
-	
+
+
 	/**
 	 * Get the data from the JSON data source to use for drawing a table. Using
 	 * `_fnGetObjectDataFn` allows the data to be sourced from a property of the
@@ -136537,23 +137016,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var dataSrc = $.isPlainObject( oSettings.ajax ) && oSettings.ajax.dataSrc !== undefined$1 ?
 			oSettings.ajax.dataSrc :
 			oSettings.sAjaxDataProp; // Compatibility with 1.9-.
-	
+
 		if ( ! write ) {
 			if ( dataSrc === 'data' ) {
 				// If the default, then we still want to support the old style, and safely ignore
 				// it if possible
 				return json.aaData || json[dataSrc];
 			}
-	
+
 			return dataSrc !== "" ?
 				_fnGetObjectDataFn( dataSrc )( json ) :
 				json;
 		}
-	
+
 		// set
 		_fnSetObjectDataFn( dataSrc )( json, write );
 	}
-	
+
 	/**
 	 * Generate the node required for filtering text
 	 *  @returns {node} Filter control element
@@ -136568,18 +137047,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var previousSearch = settings.oPreviousSearch;
 		var features = settings.aanFeatures;
 		var input = '<input type="search" class="'+classes.sFilterInput+'"/>';
-	
+
 		var str = language.sSearch;
 		str = str.match(/_INPUT_/) ?
 			str.replace('_INPUT_', input) :
 			str+input;
-	
+
 		var filter = $('<div/>', {
 				'id': ! features.f ? tableId+'_filter' : null,
 				'class': classes.sFilter
 			} )
 			.append( $('<label/>' ).append( str ) );
-	
+
 		var searchFn = function(event) {
 			/* Update all other filter input elements for the new display */
 			features.f;
@@ -136596,19 +137075,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					"bCaseInsensitive": previousSearch.bCaseInsensitive,
 					"return": previousSearch.return
 				} );
-	
+
 				// Need to redraw, without resorting
 				settings._iDisplayStart = 0;
 				_fnDraw( settings );
 			}
 		};
-	
+
 		var searchDelay = settings.searchDelay !== null ?
 			settings.searchDelay :
 			_fnDataSource( settings ) === 'ssp' ?
 				400 :
 				0;
-	
+
 		var jqFilter = $('input', filter)
 			.val( previousSearch.sSearch )
 			.attr( 'placeholder', language.sSearchPlaceholder )
@@ -136633,7 +137112,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			} )
 			.attr('aria-controls', tableId);
-	
+
 		// Update the input elements whenever the table is filtered
 		$(settings.nTable).on( 'search.dt.DT', function ( ev, s ) {
 			if ( settings === s ) {
@@ -136647,11 +137126,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				catch ( e ) {}
 			}
 		} );
-	
+
 		return filter[0];
 	}
-	
-	
+
+
 	/**
 	 * Filter the table using both the global filter and column based filtering
 	 *  @param {object} oSettings dataTables settings object
@@ -136675,25 +137154,25 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// Backwards compatibility with the bEscapeRegex option
 			return o.bEscapeRegex !== undefined$1 ? !o.bEscapeRegex : o.bRegex;
 		};
-	
+
 		// Resolve any column types that are unknown due to addition or invalidation
 		// @todo As per sort - can this be moved into an event handler?
 		_fnColumnTypes( oSettings );
-	
+
 		/* In server-side processing all filtering is done by the server, so no point hanging around here */
 		if ( _fnDataSource( oSettings ) != 'ssp' )
 		{
 			/* Global filter */
 			_fnFilter( oSettings, oInput.sSearch, iForce, fnRegex(oInput), oInput.bSmart, oInput.bCaseInsensitive, oInput.return );
 			fnSaveFilter( oInput );
-	
+
 			/* Now do the individual column filter */
 			for ( var i=0 ; i<aoPrevSearch.length ; i++ )
 			{
 				_fnFilterColumn( oSettings, aoPrevSearch[i].sSearch, i, fnRegex(aoPrevSearch[i]),
 					aoPrevSearch[i].bSmart, aoPrevSearch[i].bCaseInsensitive );
 			}
-	
+
 			/* Custom filtering */
 			_fnFilterCustom( oSettings );
 		}
@@ -136701,13 +137180,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			fnSaveFilter( oInput );
 		}
-	
+
 		/* Tell the draw function we have been filtering */
 		oSettings.bFiltered = true;
 		_fnCallbackFire( oSettings, null, 'search', [oSettings] );
 	}
-	
-	
+
+
 	/**
 	 * Apply custom filtering functions
 	 *  @param {object} oSettings dataTables settings object
@@ -136718,28 +137197,28 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var filters = DataTable.ext.search;
 		var displayRows = settings.aiDisplay;
 		var row, rowIdx;
-	
+
 		for ( var i=0, ien=filters.length ; i<ien ; i++ ) {
 			var rows = [];
-	
+
 			// Loop over each row and see if it should be included
 			for ( var j=0, jen=displayRows.length ; j<jen ; j++ ) {
 				rowIdx = displayRows[ j ];
 				row = settings.aoData[ rowIdx ];
-	
+
 				if ( filters[i]( settings, row._aFilterData, rowIdx, row._aData, j ) ) {
 					rows.push( rowIdx );
 				}
 			}
-	
+
 			// So the array reference doesn't break set the results into the
 			// existing array
 			displayRows.length = 0;
 			$.merge( displayRows, rows );
 		}
 	}
-	
-	
+
+
 	/**
 	 * Filter the table on a per-column basis
 	 *  @param {object} oSettings dataTables settings object
@@ -136755,24 +137234,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( searchStr === '' ) {
 			return;
 		}
-	
+
 		var data;
 		var out = [];
 		var display = settings.aiDisplay;
 		var rpSearch = _fnFilterCreateSearch( searchStr, regex, smart, caseInsensitive );
-	
+
 		for ( var i=0 ; i<display.length ; i++ ) {
 			data = settings.aoData[ display[i] ]._aFilterData[ colIdx ];
-	
+
 			if ( rpSearch.test( data ) ) {
 				out.push( display[i] );
 			}
 		}
-	
+
 		settings.aiDisplay = out;
 	}
-	
-	
+
+
 	/**
 	 * Filter the data table based on user input and draw the table
 	 *  @param {object} settings dataTables settings object
@@ -136790,15 +137269,15 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var displayMaster = settings.aiDisplayMaster;
 		var display, invalidated, i;
 		var filtered = [];
-	
+
 		// Need to take account of custom filtering functions - always filter
 		if ( DataTable.ext.search.length !== 0 ) {
 			force = true;
 		}
-	
+
 		// Check if any of the rows were invalidated
 		invalidated = _fnFilterData( settings );
-	
+
 		// If the input is blank - we just want the full data set
 		if ( input.length <= 0 ) {
 			settings.aiDisplay = displayMaster.slice();
@@ -136815,21 +137294,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			) {
 				settings.aiDisplay = displayMaster.slice();
 			}
-	
+
 			// Search the display array
 			display = settings.aiDisplay;
-	
+
 			for ( i=0 ; i<display.length ; i++ ) {
 				if ( rpSearch.test( settings.aoData[ display[i] ]._sFilterRow ) ) {
 					filtered.push( display[i] );
 				}
 			}
-	
+
 			settings.aiDisplay = filtered;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Build a regular expression object suitable for searching a table
 	 *  @param {string} sSearch string to search for
@@ -136844,13 +137323,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		search = regex ?
 			search :
 			_fnEscapeRegex( search );
-		
+
 		if ( smart ) {
 			/* For smart filtering we want to allow the search to work regardless of
 			 * word order. We also want double quoted text to be preserved, so word
 			 * order is important - a la google. So this is what we want to
 			 * generate:
-			 * 
+			 *
 			 * ^(?=.*?\bone\b)(?=.*?\btwo three\b)(?=.*?\bfour\b).*$
 			 */
 			var a = $.map( search.match( /"[^"]+"|[^ ]+/g ) || [''], function ( word ) {
@@ -136858,17 +137337,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					var m = word.match( /^"(.*)"$/ );
 					word = m ? m[1] : word;
 				}
-	
+
 				return word.replace('"', '');
 			} );
-	
+
 			search = '^(?=.*?'+a.join( ')(?=.*?' )+').*$';
 		}
-	
+
 		return new RegExp( search, caseInsensitive ? 'i' : '' );
 	}
-	
-	
+
+
 	/**
 	 * Escape a string such that it can be used in a regular expression
 	 *  @param {string} sVal string to escape
@@ -136876,10 +137355,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *  @memberof DataTable#oApi
 	 */
 	var _fnEscapeRegex = DataTable.util.escapeRegex;
-	
+
 	var __filter_div = $('<div>')[0];
 	var __filter_div_textContent = __filter_div.textContent !== undefined$1;
-	
+
 	// Update the filtering data for each row if needed (by invalidation or first run)
 	function _fnFilterData ( settings )
 	{
@@ -136887,25 +137366,25 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var column;
 		var i, j, ien, jen, filterData, cellData, row;
 		var wasInvalidated = false;
-	
+
 		for ( i=0, ien=settings.aoData.length ; i<ien ; i++ ) {
 			row = settings.aoData[i];
-	
+
 			if ( ! row._aFilterData ) {
 				filterData = [];
-	
+
 				for ( j=0, jen=columns.length ; j<jen ; j++ ) {
 					column = columns[j];
-	
+
 					if ( column.bSearchable ) {
 						cellData = _fnGetCellData( settings, i, j, 'filter' );
-	
+
 						// Search in DataTables 1.10 is string based. In 1.11 this
 						// should be altered to also allow strict type checking.
 						if ( cellData === null ) {
 							cellData = '';
 						}
-	
+
 						if ( typeof cellData !== 'string' && cellData.toString ) {
 							cellData = cellData.toString();
 						}
@@ -136913,7 +137392,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					else {
 						cellData = '';
 					}
-	
+
 					// If it looks like there is an HTML entity in the string,
 					// attempt to decode it so sorting works as expected. Note that
 					// we could use a single line of jQuery to do this, but the DOM
@@ -136924,24 +137403,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 							__filter_div.textContent :
 							__filter_div.innerText;
 					}
-	
+
 					if ( cellData.replace ) {
 						cellData = cellData.replace(/[\r\n\u2028]/g, '');
 					}
-	
+
 					filterData.push( cellData );
 				}
-	
+
 				row._aFilterData = filterData;
 				row._sFilterRow = filterData.join('  ');
 				wasInvalidated = true;
 			}
 		}
-	
+
 		return wasInvalidated;
 	}
-	
-	
+
+
 	/**
 	 * Convert from the internal Hungarian notation to camelCase for external
 	 * interaction
@@ -136958,9 +137437,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			caseInsensitive: obj.bCaseInsensitive
 		};
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Convert from camelCase notation to the internal Hungarian. We could use the
 	 * Hungarian convert function here, but this is cleaner
@@ -136977,7 +137456,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			bCaseInsensitive: obj.caseInsensitive
 		};
 	}
-	
+
 	/**
 	 * Generate the node required for the info display
 	 *  @param {object} oSettings dataTables settings object
@@ -136993,26 +137472,26 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				'class': settings.oClasses.sInfo,
 				'id': ! nodes ? tid+'_info' : null
 			} );
-	
+
 		if ( ! nodes ) {
 			// Update display on each draw
 			settings.aoDrawCallback.push( {
 				"fn": _fnUpdateInfo,
 				"sName": "information"
 			} );
-	
+
 			n
 				.attr( 'role', 'status' )
 				.attr( 'aria-live', 'polite' );
-	
+
 			// Table is described by our info div
 			$(settings.nTable).attr( 'aria-describedby', tid+'_info' );
 		}
-	
+
 		return n[0];
 	}
-	
-	
+
+
 	/**
 	 * Update the information elements in the display
 	 *  @param {object} settings dataTables settings object
@@ -137025,7 +137504,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( nodes.length === 0 ) {
 			return;
 		}
-	
+
 		var
 			lang  = settings.oLanguage,
 			start = settings._iDisplayStart+1,
@@ -137035,27 +137514,27 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			out   = total ?
 				lang.sInfo :
 				lang.sInfoEmpty;
-	
+
 		if ( total !== max ) {
 			/* Record set after filtering */
 			out += ' ' + lang.sInfoFiltered;
 		}
-	
+
 		// Convert the macros
 		out += lang.sInfoPostFix;
 		out = _fnInfoMacros( settings, out );
-	
+
 		var callback = lang.fnInfoCallback;
 		if ( callback !== null ) {
 			out = callback.call( settings.oInstance,
 				settings, start, end, max, total, out
 			);
 		}
-	
+
 		$(nodes).html( out );
 	}
-	
-	
+
+
 	function _fnInfoMacros ( settings, str )
 	{
 		// When infinite scrolling, we are always starting at 1. _iDisplayStart is used only
@@ -137066,7 +137545,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			len        = settings._iDisplayLength,
 			vis        = settings.fnRecordsDisplay(),
 			all        = len === -1;
-	
+
 		return str.
 			replace(/_START_/g, formatter.call( settings, start ) ).
 			replace(/_END_/g,   formatter.call( settings, settings.fnDisplayEnd() ) ).
@@ -137075,9 +137554,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			replace(/_PAGE_/g,  formatter.call( settings, all ? 1 : Math.ceil( start / len ) ) ).
 			replace(/_PAGES_/g, formatter.call( settings, all ? 1 : Math.ceil( vis / len ) ) );
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Draw the table for the first time, adding all required features
 	 *  @param {object} settings dataTables settings object
@@ -137089,45 +137568,45 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var columns = settings.aoColumns, column;
 		var features = settings.oFeatures;
 		var deferLoading = settings.bDeferLoading; // value modified by the draw
-	
+
 		/* Ensure that the table data is fully initialised */
 		if ( ! settings.bInitialised ) {
 			setTimeout( function(){ _fnInitialise( settings ); }, 200 );
 			return;
 		}
-	
+
 		/* Show the display HTML options */
 		_fnAddOptionsHtml( settings );
-	
+
 		/* Build and draw the header / footer for the table */
 		_fnBuildHead( settings );
 		_fnDrawHead( settings, settings.aoHeader );
 		_fnDrawHead( settings, settings.aoFooter );
-	
+
 		/* Okay to show that something is going on now */
 		_fnProcessingDisplay( settings, true );
-	
+
 		/* Calculate sizes for columns */
 		if ( features.bAutoWidth ) {
 			_fnCalculateColumnWidths( settings );
 		}
-	
+
 		for ( i=0, iLen=columns.length ; i<iLen ; i++ ) {
 			column = columns[i];
-	
+
 			if ( column.sWidth ) {
 				column.nTh.style.width = _fnStringToCss( column.sWidth );
 			}
 		}
-	
+
 		_fnCallbackFire( settings, null, 'preInit', [settings] );
-	
+
 		// If there is default sorting required - let's do it. The sort function
 		// will do the drawing for us. Otherwise we draw the table regardless of the
 		// Ajax source - this allows the table to look initialised for Ajax sourcing
 		// data (show 'loading' message possibly)
 		_fnReDraw( settings );
-	
+
 		// Server-side processing init complete is done by _fnAjaxUpdateDraw
 		var dataSrc = _fnDataSource( settings );
 		if ( dataSrc != 'ssp' || deferLoading ) {
@@ -137135,19 +137614,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			if ( dataSrc == 'ajax' ) {
 				_fnBuildAjax( settings, [], function(json) {
 					var aData = _fnAjaxDataSrc( settings, json );
-	
+
 					// Got the data - add it to the table
 					for ( i=0 ; i<aData.length ; i++ ) {
 						_fnAddData( settings, aData[i] );
 					}
-	
+
 					// Reset the init display for cookie saving. We've already done
 					// a filter, and therefore cleared it before. So we need to make
 					// it appear 'fresh'
 					settings.iInitDisplayStart = iAjaxStart;
-	
+
 					_fnReDraw( settings );
-	
+
 					_fnProcessingDisplay( settings, false );
 					_fnInitComplete( settings, json );
 				});
@@ -137158,8 +137637,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Draw the table for the first time, adding all required features
 	 *  @param {object} oSettings dataTables settings object
@@ -137170,30 +137649,30 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnInitComplete ( settings, json )
 	{
 		settings._bInitComplete = true;
-	
+
 		// When data was added after the initialisation (data or Ajax) we need to
 		// calculate the column sizing
 		if ( json || settings.oInit.aaData ) {
 			_fnAdjustColumnSizing( settings );
 		}
-	
+
 		_fnCallbackFire( settings, null, 'plugin-init', [settings, json] );
 		_fnCallbackFire( settings, 'aoInitComplete', 'init', [settings, json] );
 	}
-	
-	
+
+
 	function _fnLengthChange ( settings, val )
 	{
 		var len = parseInt( val, 10 );
 		settings._iDisplayLength = len;
-	
+
 		_fnLengthOverflow( settings );
-	
+
 		// Fire length change event
 		_fnCallbackFire( settings, null, 'length', [settings, len] );
 	}
-	
-	
+
+
 	/**
 	 * Generate the node required for user display length changing
 	 *  @param {object} settings dataTables settings object
@@ -137209,13 +137688,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			d2       = Array.isArray( menu[0] ),
 			lengths  = d2 ? menu[0] : menu,
 			language = d2 ? menu[1] : menu;
-	
+
 		var select = $('<select/>', {
 			'name':          tableId+'_length',
 			'aria-controls': tableId,
 			'class':         classes.sLengthSelect
 		} );
-	
+
 		for ( var i=0, ien=lengths.length ; i<ien ; i++ ) {
 			select[0][ i ] = new Option(
 				typeof language[i] === 'number' ?
@@ -137224,16 +137703,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				lengths[i]
 			);
 		}
-	
+
 		var div = $('<div><label/></div>').addClass( classes.sLength );
 		if ( ! settings.aanFeatures.l ) {
 			div[0].id = tableId+'_length';
 		}
-	
+
 		div.children().append(
 			settings.oLanguage.sLengthMenu.replace( '_MENU_', select[0].outerHTML )
 		);
-	
+
 		// Can't use `select` variable as user might provide their own and the
 		// reference is broken by the use of outerHTML
 		$('select', div)
@@ -137242,24 +137721,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				_fnLengthChange( settings, $(this).val() );
 				_fnDraw( settings );
 			} );
-	
+
 		// Update node value whenever anything changes the table's length
 		$(settings.nTable).on( 'length.dt.DT', function (e, s, len) {
 			if ( settings === s ) {
 				$('select', div).val( len );
 			}
 		} );
-	
+
 		return div[0];
 	}
-	
-	
-	
+
+
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Note that most of the paging logic is done in
 	 * DataTable.ext.pager
 	 */
-	
+
 	/**
 	 * Generate the node required for default pagination
 	 *  @param {object} oSettings dataTables settings object
@@ -137277,16 +137756,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			},
 			node = $('<div/>').addClass( settings.oClasses.sPaging + type )[0],
 			features = settings.aanFeatures;
-	
+
 		if ( ! modern ) {
 			plugin.fnInit( settings, node, redraw );
 		}
-	
+
 		/* Add a draw callback for the pagination on first instance, to update the paging display */
 		if ( ! features.p )
 		{
 			node.id = settings.sTableId+'_paginate';
-	
+
 			settings.aoDrawCallback.push( {
 				"fn": function( settings ) {
 					if ( modern ) {
@@ -137299,7 +137778,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 							pages = all ? 1 : Math.ceil( visRecords / len ),
 							buttons = plugin(page, pages),
 							i, ien;
-	
+
 						for ( i=0, ien=features.p.length ; i<ien ; i++ ) {
 							_fnRenderer( settings, 'pageButton' )(
 								settings, features.p[i], i, buttons, page, pages
@@ -137313,11 +137792,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				"sName": "pagination"
 			} );
 		}
-	
+
 		return node;
 	}
-	
-	
+
+
 	/**
 	 * Alter the display settings to change the page
 	 *  @param {object} settings DataTables settings object
@@ -137333,7 +137812,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			start     = settings._iDisplayStart,
 			len       = settings._iDisplayLength,
 			records   = settings.fnRecordsDisplay();
-	
+
 		if ( records === 0 || len === -1 )
 		{
 			start = 0;
@@ -137341,7 +137820,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		else if ( typeof action === "number" )
 		{
 			start = action * len;
-	
+
 			if ( start > records )
 			{
 				start = 0;
@@ -137356,7 +137835,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			start = len >= 0 ?
 				start - len :
 				0;
-	
+
 			if ( start < 0 )
 			{
 			  start = 0;
@@ -137377,23 +137856,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			_fnLog( settings, 0, "Unknown paging action: "+action, 5 );
 		}
-	
+
 		var changed = settings._iDisplayStart !== start;
 		settings._iDisplayStart = start;
-	
+
 		if ( changed ) {
 			_fnCallbackFire( settings, null, 'page', [settings] );
-	
+
 			if ( redraw ) {
 				_fnDraw( settings );
 			}
 		}
-	
+
 		return changed;
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Generate the node required for the processing node
 	 *  @param {object} settings dataTables settings object
@@ -137410,8 +137889,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			.append('<div><div></div><div></div><div></div><div></div></div>')
 			.insertBefore( settings.nTable )[0];
 	}
-	
-	
+
+
 	/**
 	 * Display or hide the processing indicator
 	 *  @param {object} settings dataTables settings object
@@ -137423,10 +137902,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( settings.oFeatures.bProcessing ) {
 			$(settings.aanFeatures.r).css( 'display', show ? 'block' : 'none' );
 		}
-	
+
 		_fnCallbackFire( settings, null, 'processing', [settings, show] );
 	}
-	
+
 	/**
 	 * Add any control elements for the table - specifically scrolling
 	 *  @param {object} settings dataTables settings object
@@ -137436,14 +137915,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnFeatureHtmlTable ( settings )
 	{
 		var table = $(settings.nTable);
-	
+
 		// Scrolling from here on in
 		var scroll = settings.oScroll;
-	
+
 		if ( scroll.sX === '' && scroll.sY === '' ) {
 			return settings.nTable;
 		}
-	
+
 		var scrollX = scroll.sX;
 		var scrollY = scroll.sY;
 		var classes = settings.oClasses;
@@ -137456,11 +137935,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var size = function ( s ) {
 			return !s ? null : _fnStringToCss( s );
 		};
-	
+
 		if ( ! footer.length ) {
 			footer = null;
 		}
-	
+
 		/*
 		 * The HTML structure that we want to generate in this function is:
 		 *  div - scroller
@@ -137512,7 +137991,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					} )
 					.append( table )
 			);
-	
+
 		if ( footer ) {
 			scroller.append(
 				$(_div, { 'class': classes.sScrollFoot } )
@@ -137535,45 +138014,45 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					)
 			);
 		}
-	
+
 		var children = scroller.children();
 		var scrollHead = children[0];
 		var scrollBody = children[1];
 		var scrollFoot = footer ? children[2] : null;
-	
+
 		// When the body is scrolled, then we also want to scroll the headers
 		if ( scrollX ) {
 			$(scrollBody).on( 'scroll.DT', function (e) {
 				var scrollLeft = this.scrollLeft;
-	
+
 				scrollHead.scrollLeft = scrollLeft;
-	
+
 				if ( footer ) {
 					scrollFoot.scrollLeft = scrollLeft;
 				}
 			} );
 		}
-	
+
 		$(scrollBody).css('max-height', scrollY);
 		if (! scroll.bCollapse) {
 			$(scrollBody).css('height', scrollY);
 		}
-	
+
 		settings.nScrollHead = scrollHead;
 		settings.nScrollBody = scrollBody;
 		settings.nScrollFoot = scrollFoot;
-	
+
 		// On redraw - align columns
 		settings.aoDrawCallback.push( {
 			"fn": _fnScrollDraw,
 			"sName": "scrolling"
 		} );
-	
+
 		return scroller[0];
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Update the header, footer and body tables for resizing - i.e. column
 	 * alignment.
@@ -137630,12 +138109,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				style.borderBottomWidth = "0";
 				style.height = 0;
 			};
-	
+
 		// If the scrollbar visibility has changed from the last draw, we need to
 		// adjust the column sizes as the table width will have changed to account
 		// for the scrollbar
 		var scrollBarVis = divBodyEl.scrollHeight > divBodyEl.clientHeight;
-		
+
 		if ( settings.scrollBarVis !== scrollBarVis && settings.scrollBarVis !== undefined$1 ) {
 			settings.scrollBarVis = scrollBarVis;
 			_fnAdjustColumnSizing( settings );
@@ -137644,33 +138123,33 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		else {
 			settings.scrollBarVis = scrollBarVis;
 		}
-	
+
 		/*
 		 * 1. Re-create the table inside the scrolling div
 		 */
-	
+
 		// Remove the old minimised thead and tfoot elements in the inner table
 		table.children('thead, tfoot').remove();
-	
+
 		if ( footer ) {
 			footerCopy = footer.clone().prependTo( table );
 			footerTrgEls = footer.find('tr'); // the original tfoot is in its own table and must be sized
 			footerSrcEls = footerCopy.find('tr');
 			footerCopy.find('[id]').removeAttr('id');
 		}
-	
+
 		// Clone the current header and footer elements and then place it into the inner table
 		headerCopy = header.clone().prependTo( table );
 		headerTrgEls = header.find('tr'); // original header is in its own table
 		headerSrcEls = headerCopy.find('tr');
 		headerCopy.find('th, td').removeAttr('tabindex');
 		headerCopy.find('[id]').removeAttr('id');
-	
-	
+
+
 		/*
 		 * 2. Take live measurements from the DOM - do not alter the DOM itself!
 		 */
-	
+
 		// Remove old sizing and apply the calculated column widths
 		// Get the unique column headers in the newly created (cloned) header. We want to apply the
 		// calculated sizes to this header
@@ -137679,24 +138158,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			divBodyStyle.width = '100%';
 			divHeader[0].style.width = '100%';
 		}
-	
+
 		$.each( _fnGetUniqueThs( settings, headerCopy ), function ( i, el ) {
 			idx = _fnVisibleToColumnIndex( settings, i );
 			el.style.width = settings.aoColumns[idx].sWidth;
 		} );
-	
+
 		if ( footer ) {
 			_fnApplyToChildren( function(n) {
 				n.style.width = "";
 			}, footerSrcEls );
 		}
-	
+
 		// Size the table as a whole
 		sanityWidth = table.outerWidth();
 		if ( scrollX === "" ) {
 			// No x scrolling
 			tableStyle.width = "100%";
-	
+
 			// IE7 will make the width of the table when 100% include the scrollbar
 			// - which is shouldn't. When there is a scrollbar we need to take this
 			// into account.
@@ -137705,63 +138184,63 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			) {
 				tableStyle.width = _fnStringToCss( table.outerWidth() - barWidth);
 			}
-	
+
 			// Recalculate the sanity width
 			sanityWidth = table.outerWidth();
 		}
 		else if ( scrollXInner !== "" ) {
 			// legacy x scroll inner has been given - use it
 			tableStyle.width = _fnStringToCss(scrollXInner);
-	
+
 			// Recalculate the sanity width
 			sanityWidth = table.outerWidth();
 		}
-	
+
 		// Hidden header should have zero height, so remove padding and borders. Then
 		// set the width based on the real headers
-	
+
 		// Apply all styles in one pass
 		_fnApplyToChildren( zeroOut, headerSrcEls );
-	
+
 		// Read all widths in next pass
 		_fnApplyToChildren( function(nSizer) {
 			var style = window.getComputedStyle ?
 				window.getComputedStyle(nSizer).width :
 				_fnStringToCss( $(nSizer).width() );
-	
+
 			headerContent.push( nSizer.innerHTML );
 			headerWidths.push( style );
 		}, headerSrcEls );
-	
+
 		// Apply all widths in final pass
 		_fnApplyToChildren( function(nToSize, i) {
 			nToSize.style.width = headerWidths[i];
 		}, headerTrgEls );
-	
+
 		$(headerSrcEls).css('height', 0);
-	
+
 		/* Same again with the footer if we have one */
 		if ( footer )
 		{
 			_fnApplyToChildren( zeroOut, footerSrcEls );
-	
+
 			_fnApplyToChildren( function(nSizer) {
 				footerContent.push( nSizer.innerHTML );
 				footerWidths.push( _fnStringToCss( $(nSizer).css('width') ) );
 			}, footerSrcEls );
-	
+
 			_fnApplyToChildren( function(nToSize, i) {
 				nToSize.style.width = footerWidths[i];
 			}, footerTrgEls );
-	
+
 			$(footerSrcEls).height(0);
 		}
-	
-	
+
+
 		/*
 		 * 3. Apply the measurements
 		 */
-	
+
 		// "Hide" the header and footer that we used for the sizing. We need to keep
 		// the content of the cell so that the width applied to the header and body
 		// both match, but we want to hide it completely. We want to also fix their
@@ -137772,7 +138251,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			nSizer.childNodes[0].style.overflow = "hidden";
 			nSizer.style.width = headerWidths[i];
 		}, headerSrcEls );
-	
+
 		if ( footer )
 		{
 			_fnApplyToChildren( function(nSizer, i) {
@@ -137782,7 +138261,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				nSizer.style.width = footerWidths[i];
 			}, footerSrcEls );
 		}
-	
+
 		// Sanity check that the table is of a sensible width. If not then we are going to get
 		// misalignment - try to prevent this by not allowing the table to shrink below its min width
 		if ( Math.round(table.outerWidth()) < Math.round(sanityWidth) )
@@ -137792,14 +138271,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				divBody.css('overflow-y') == "scroll")) ?
 					sanityWidth+barWidth :
 					sanityWidth;
-	
+
 			// IE6/7 are a law unto themselves...
 			if ( ie67 && (divBodyEl.scrollHeight >
 				divBodyEl.offsetHeight || divBody.css('overflow-y') == "scroll")
 			) {
 				tableStyle.width = _fnStringToCss( correction-barWidth );
 			}
-	
+
 			// And give the user a warning that we've stopped the table getting too small
 			if ( scrollX === "" || scrollXInner !== "" ) {
 				_fnLog( settings, 1, 'Possible column misalignment', 6 );
@@ -137809,16 +138288,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			correction = '100%';
 		}
-	
+
 		// Apply to the container elements
 		divBodyStyle.width = _fnStringToCss( correction );
 		divHeaderStyle.width = _fnStringToCss( correction );
-	
+
 		if ( footer ) {
 			settings.nScrollFoot.style.width = _fnStringToCss( correction );
 		}
-	
-	
+
+
 		/*
 		 * 4. Clean up
 		 */
@@ -137831,39 +138310,39 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				divBodyStyle.height = _fnStringToCss( tableEl.offsetHeight+barWidth );
 			}
 		}
-	
+
 		/* Finally set the width's of the header and footer tables */
 		var iOuterWidth = table.outerWidth();
 		divHeaderTable[0].style.width = _fnStringToCss( iOuterWidth );
 		divHeaderInnerStyle.width = _fnStringToCss( iOuterWidth );
-	
+
 		// Figure out if there are scrollbar present - if so then we need a the header and footer to
 		// provide a bit more space to allow "overflow" scrolling (i.e. past the scrollbar)
 		var bScrolling = table.height() > divBodyEl.clientHeight || divBody.css('overflow-y') == "scroll";
 		var padding = 'padding' + (browser.bScrollbarLeft ? 'Left' : 'Right' );
 		divHeaderInnerStyle[ padding ] = bScrolling ? barWidth+"px" : "0px";
-	
+
 		if ( footer ) {
 			divFooterTable[0].style.width = _fnStringToCss( iOuterWidth );
 			divFooterInner[0].style.width = _fnStringToCss( iOuterWidth );
 			divFooterInner[0].style[padding] = bScrolling ? barWidth+"px" : "0px";
 		}
-	
+
 		// Correct DOM ordering for colgroup - comes before the thead
 		table.children('colgroup').insertBefore( table.children('thead') );
-	
+
 		/* Adjust the position of the header in case we loose the y-scrollbar */
 		divBody.trigger('scroll');
-	
+
 		// If sorting or filtering has occurred, jump the scrolling back to the top
 		// only if we aren't holding the position
 		if ( (settings.bSorted || settings.bFiltered) && ! settings._drawHold ) {
 			divBodyEl.scrollTop = 0;
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Apply a given function to the display child nodes of an element array (typically
 	 * TD children of TR rows
@@ -137876,11 +138355,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		var index=0, i=0, iLen=an1.length;
 		var nNode1, nNode2;
-	
+
 		while ( i < iLen ) {
 			nNode1 = an1[i].firstChild;
 			nNode2 = an2 ? an2[i].firstChild : null;
-	
+
 			while ( nNode1 ) {
 				if ( nNode1.nodeType === 1 ) {
 					if ( an2 ) {
@@ -137889,23 +138368,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					else {
 						fn( nNode1, index );
 					}
-	
+
 					index++;
 				}
-	
+
 				nNode1 = nNode1.nextSibling;
 				nNode2 = an2 ? nNode2.nextSibling : null;
 			}
-	
+
 			i++;
 		}
 	}
-	
-	
-	
+
+
+
 	var __re_html_remove = /<.*?>/g;
-	
-	
+
+
 	/**
 	 * Calculate the width of columns for the table
 	 *  @param {object} oSettings dataTables settings object
@@ -137927,23 +138406,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			userInputs = false,
 			i, column, columnIdx, browser = oSettings.oBrowser,
 			ie67 = browser.bScrollOversize;
-	
+
 		var styleWidth = table.style.width;
 		if ( styleWidth && styleWidth.indexOf('%') !== -1 ) {
 			tableWidthAttr = styleWidth;
 		}
-	
+
 		/* Convert any user input sizes into pixel sizes */
 		for ( i=0 ; i<visibleColumns.length ; i++ ) {
 			column = columns[ visibleColumns[i] ];
-	
+
 			if ( column.sWidth !== null ) {
 				column.sWidth = _fnConvertToWidth( column.sWidthOrig, tableContainer );
-	
+
 				userInputs = true;
 			}
 		}
-	
+
 		/* If the number of columns in the DOM equals the number that we have to
 		 * process in DataTables, then we can use the offsets that are created by
 		 * the web- browser. No custom sizes can be set in order for this to happen,
@@ -137955,7 +138434,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		) {
 			for ( i=0 ; i<columnCount ; i++ ) {
 				var colIdx = _fnVisibleToColumnIndex( oSettings, i );
-	
+
 				if ( colIdx !== null ) {
 					columns[ colIdx ].sWidth = _fnStringToCss( headerCells.eq(i).width() );
 				}
@@ -137970,11 +138449,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var tmpTable = $(table).clone() // don't use cloneNode - IE8 will remove events on the main table
 				.css( 'visibility', 'hidden' )
 				.removeAttr( 'id' );
-	
+
 			// Clean up the table body
 			tmpTable.find('tbody tr').remove();
 			var tr = $('<tr/>').appendTo( tmpTable.find('tbody') );
-	
+
 			// Clone the table header and footer - we can't use the header / footer
 			// from the cloned table, since if scrolling is active, the table's
 			// real header and footer are contained in different table tags
@@ -137982,20 +138461,20 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			tmpTable
 				.append( $(oSettings.nTHead).clone() )
 				.append( $(oSettings.nTFoot).clone() );
-	
+
 			// Remove any assigned widths from the footer (from scrolling)
 			tmpTable.find('tfoot th, tfoot td').css('width', '');
-	
+
 			// Apply custom sizing to the cloned header
 			headerCells = _fnGetUniqueThs( oSettings, tmpTable.find('thead')[0] );
-	
+
 			for ( i=0 ; i<visibleColumns.length ; i++ ) {
 				column = columns[ visibleColumns[i] ];
-	
+
 				headerCells[i].style.width = column.sWidthOrig !== null && column.sWidthOrig !== '' ?
 					_fnStringToCss( column.sWidthOrig ) :
 					'';
-	
+
 				// For scrollX we need to force the column width otherwise the
 				// browser will collapse it. If this width is smaller than the
 				// width the column requires, then it will have no effect
@@ -138009,24 +138488,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					} ) );
 				}
 			}
-	
+
 			// Find the widest cell for each column and put it into the table
 			if ( oSettings.aoData.length ) {
 				for ( i=0 ; i<visibleColumns.length ; i++ ) {
 					columnIdx = visibleColumns[i];
 					column = columns[ columnIdx ];
-	
+
 					$( _fnGetWidestNode( oSettings, columnIdx ) )
 						.clone( false )
 						.append( column.sContentPadding )
 						.appendTo( tr );
 				}
 			}
-	
+
 			// Tidy the temporary table - remove name attributes so there aren't
 			// duplicated in the dom (radio elements for example)
 			$('[name]', tmpTable).removeAttr('name');
-	
+
 			// Table has been built, attach to the document so we can work with it.
 			// A holding element is used, positioned at the top of the container
 			// with minimal height, so it has no effect on if the container scrolls
@@ -138045,8 +138524,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				)
 				.append( tmpTable )
 				.appendTo( tableContainer );
-	
-			// When scrolling (X or Y) we want to set the width of the table as 
+
+			// When scrolling (X or Y) we want to set the width of the table as
 			// appropriate. However, when not scrolling leave the table width as it
 			// is. This results in slightly different, but I think correct behaviour
 			if ( scrollX && scrollXInner ) {
@@ -138055,7 +138534,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			else if ( scrollX ) {
 				tmpTable.css( 'width', 'auto' );
 				tmpTable.removeAttr('width');
-	
+
 				// If there is no width attribute or style, then allow the table to
 				// collapse
 				if ( tmpTable.width() < tableContainer.clientWidth && tableWidthAttr ) {
@@ -138068,7 +138547,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			else if ( tableWidthAttr ) {
 				tmpTable.width( tableWidthAttr );
 			}
-	
+
 			// Get the width of each column in the constructed table - we need to
 			// know the inner width (so it can be assigned to the other table's
 			// cells) and the outer width so we can calculate the full width of the
@@ -138079,27 +138558,27 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			for ( i=0 ; i<visibleColumns.length ; i++ ) {
 				var cell = $(headerCells[i]);
 				var border = cell.outerWidth() - cell.width();
-	
+
 				// Use getBounding... where possible (not IE8-) because it can give
 				// sub-pixel accuracy, which we then want to round up!
 				var bounding = browser.bBounding ?
 					Math.ceil( headerCells[i].getBoundingClientRect().width ) :
 					cell.outerWidth();
-	
+
 				// Total is tracked to remove any sub-pixel errors as the outerWidth
 				// of the table might not equal the total given here (IE!).
 				total += bounding;
-	
+
 				// Width for each column to use
 				columns[ visibleColumns[i] ].sWidth = _fnStringToCss( bounding - border );
 			}
-	
+
 			table.style.width = _fnStringToCss( total );
-	
+
 			// Finished with the table - ditch it
 			holder.remove();
 		}
-	
+
 		// If there is a width attr, we want to attach an event listener which
 		// allows the table sizing to automatically adjust when the window is
 		// resized. Use the width attr rather than CSS, since we can't know if the
@@ -138107,14 +138586,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( tableWidthAttr ) {
 			table.style.width = _fnStringToCss( tableWidthAttr );
 		}
-	
+
 		if ( (tableWidthAttr || scrollX) && ! oSettings._reszEvt ) {
 			var bindResize = function () {
 				$(window).on('resize.DT-'+oSettings.sInstance, _fnThrottle( function () {
 					_fnAdjustColumnSizing( oSettings );
 				} ) );
 			};
-	
+
 			// IE6/7 will crash if we bind a resize event handler on page load.
 			// To be removed in 1.11 which drops IE6/7 support
 			if ( ie67 ) {
@@ -138123,12 +138602,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			else {
 				bindResize();
 			}
-	
+
 			oSettings._reszEvt = true;
 		}
 	}
-	
-	
+
+
 	/**
 	 * Throttle the calls to a function. Arguments and context are maintained for
 	 * the throttled function
@@ -138138,8 +138617,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *  @memberof DataTable#oApi
 	 */
 	var _fnThrottle = DataTable.util.throttle;
-	
-	
+
+
 	/**
 	 * Convert a CSS unit width to pixels (e.g. 2em)
 	 *  @param {string} width width to be converted
@@ -138152,18 +138631,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( ! width ) {
 			return 0;
 		}
-	
+
 		var n = $('<div/>')
 			.css( 'width', _fnStringToCss( width ) )
 			.appendTo( parent || document.body );
-	
+
 		var val = n[0].offsetWidth;
 		n.remove();
-	
+
 		return val;
 	}
-	
-	
+
+
 	/**
 	 * Get the widest node
 	 *  @param {object} settings dataTables settings object
@@ -138177,14 +138656,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( idx < 0 ) {
 			return null;
 		}
-	
+
 		var data = settings.aoData[ idx ];
 		return ! data.nTr ? // Might not have been created when deferred rendering
 			$('<td/>').html( _fnGetCellData( settings, idx, colIdx, 'display' ) )[0] :
 			data.anCells[ colIdx ];
 	}
-	
-	
+
+
 	/**
 	 * Get the maximum strlen for each data column
 	 *  @param {object} settings dataTables settings object
@@ -138195,22 +138674,22 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnGetMaxLenString( settings, colIdx )
 	{
 		var s, max=-1, maxIdx = -1;
-	
+
 		for ( var i=0, ien=settings.aoData.length ; i<ien ; i++ ) {
 			s = _fnGetCellData( settings, i, colIdx, 'display' )+'';
 			s = s.replace( __re_html_remove, '' );
 			s = s.replace( /&nbsp;/g, ' ' );
-	
+
 			if ( s.length > max ) {
 				max = s.length;
 				maxIdx = i;
 			}
 		}
-	
+
 		return maxIdx;
 	}
-	
-	
+
+
 	/**
 	 * Append a CSS unit (only if required) to a string
 	 *  @param {string} value to css-ify
@@ -138222,21 +138701,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( s === null ) {
 			return '0px';
 		}
-	
+
 		if ( typeof s == 'number' ) {
 			return s < 0 ?
 				'0px' :
 				s+'px';
 		}
-	
+
 		// Check it has a unit character already
 		return s.match(/\d$/) ?
 			s+'px' :
 			s;
 	}
-	
-	
-	
+
+
+
 	function _fnSortFlatten ( settings )
 	{
 		var i, k, kLen,
@@ -138256,37 +138735,37 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					$.merge( nestedSort, a );
 				}
 			};
-	
+
 		// Build the sort array, with pre-fix and post-fix options if they have been
 		// specified
 		if ( Array.isArray( fixed ) ) {
 			add( fixed );
 		}
-	
+
 		if ( fixedObj && fixed.pre ) {
 			add( fixed.pre );
 		}
-	
+
 		add( settings.aaSorting );
-	
+
 		if (fixedObj && fixed.post ) {
 			add( fixed.post );
 		}
-	
+
 		for ( i=0 ; i<nestedSort.length ; i++ )
 		{
 			srcCol = nestedSort[i][0];
 			aDataSort = aoColumns[ srcCol ].aDataSort;
-	
+
 			for ( k=0, kLen=aDataSort.length ; k<kLen ; k++ )
 			{
 				iCol = aDataSort[k];
 				sType = aoColumns[ iCol ].sType || 'string';
-	
+
 				if ( nestedSort[i]._idx === undefined$1 ) {
 					nestedSort[i]._idx = $.inArray( nestedSort[i][1], aoColumns[iCol].asSorting );
 				}
-	
+
 				aSort.push( {
 					src:       srcCol,
 					col:       iCol,
@@ -138297,10 +138776,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				} );
 			}
 		}
-	
+
 		return aSort;
 	}
-	
+
 	/**
 	 * Change the order of the table
 	 *  @param {object} oSettings dataTables settings object
@@ -138317,26 +138796,26 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			sortCol,
 			displayMaster = oSettings.aiDisplayMaster,
 			aSort;
-	
+
 		// Resolve any column types that are unknown due to addition or invalidation
 		// @todo Can this be moved into a 'data-ready' handler which is called when
 		//   data is going to be used in the table?
 		_fnColumnTypes( oSettings );
-	
+
 		aSort = _fnSortFlatten( oSettings );
-	
+
 		for ( i=0, ien=aSort.length ; i<ien ; i++ ) {
 			sortCol = aSort[i];
-	
+
 			// Track if we can use the fast sort algorithm
 			if ( sortCol.formatter ) {
 				formatters++;
 			}
-	
+
 			// Load the data needed for the sort, for each cell
 			_fnSortData( oSettings, sortCol.col );
 		}
-	
+
 		/* No sorting required if server-side or no sorting array */
 		if ( _fnDataSource( oSettings ) != 'ssp' && aSort.length !== 0 )
 		{
@@ -138345,7 +138824,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			for ( i=0, iLen=displayMaster.length ; i<iLen ; i++ ) {
 				aiOrig[ displayMaster[i] ] = i;
 			}
-	
+
 			/* Do the sort - here we want multi-column sorting based on a given data source (column)
 			 * and sorting function (from oSort) in a certain direction. It's reasonably complex to
 			 * follow on it's own, but this is what we want (example two column sorting):
@@ -138375,19 +138854,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						len=aSort.length,
 						dataA = aoData[a]._aSortData,
 						dataB = aoData[b]._aSortData;
-	
+
 					for ( k=0 ; k<len ; k++ ) {
 						sort = aSort[k];
-	
+
 						x = dataA[ sort.col ];
 						y = dataB[ sort.col ];
-	
+
 						test = x<y ? -1 : x>y ? 1 : 0;
 						if ( test !== 0 ) {
 							return sort.dir === 'asc' ? test : -test;
 						}
 					}
-	
+
 					x = aiOrig[a];
 					y = aiOrig[b];
 					return x<y ? -1 : x>y ? 1 : 0;
@@ -138402,32 +138881,32 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						len=aSort.length,
 						dataA = aoData[a]._aSortData,
 						dataB = aoData[b]._aSortData;
-	
+
 					for ( k=0 ; k<len ; k++ ) {
 						sort = aSort[k];
-	
+
 						x = dataA[ sort.col ];
 						y = dataB[ sort.col ];
-	
+
 						fn = oExtSort[ sort.type+"-"+sort.dir ] || oExtSort[ "string-"+sort.dir ];
 						test = fn( x, y );
 						if ( test !== 0 ) {
 							return test;
 						}
 					}
-	
+
 					x = aiOrig[a];
 					y = aiOrig[b];
 					return x<y ? -1 : x>y ? 1 : 0;
 				} );
 			}
 		}
-	
+
 		/* Tell the draw function that we have sorted the data */
 		oSettings.bSorted = true;
 	}
-	
-	
+
+
 	function _fnSortAria ( settings )
 	{
 		var label;
@@ -138435,7 +138914,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var columns = settings.aoColumns;
 		var aSort = _fnSortFlatten( settings );
 		var oAria = settings.oLanguage.oAria;
-	
+
 		// ARIA attributes - need to loop all columns, to update all (removing old
 		// attributes as needed)
 		for ( var i=0, iLen=columns.length ; i<iLen ; i++ )
@@ -138444,11 +138923,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var asSorting = col.asSorting;
 			var sTitle = col.ariaTitle || col.sTitle.replace( /<.*?>/g, "" );
 			var th = col.nTh;
-	
+
 			// IE7 is throwing an error when setting these properties with jQuery's
 			// attr() and removeAttr() methods...
 			th.removeAttribute('aria-sort');
-	
+
 			/* In ARIA only the first sorting column can be marked as sorting - no multi-sort option */
 			if ( col.bSortable ) {
 				if ( aSort.length > 0 && aSort[0].col == i ) {
@@ -138458,7 +138937,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				else {
 					nextSort = asSorting[0];
 				}
-	
+
 				label = sTitle + ( nextSort === "asc" ?
 					oAria.sSortAscending :
 					oAria.sSortDescending
@@ -138467,12 +138946,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			else {
 				label = sTitle;
 			}
-	
+
 			th.setAttribute('aria-label', label);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Function to run on user sort request
 	 *  @param {object} settings dataTables settings object
@@ -138494,32 +138973,32 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			if ( idx === undefined$1 ) {
 				idx = $.inArray( a[1], asSorting );
 			}
-	
+
 			return idx+1 < asSorting.length ?
 				idx+1 :
 				overflow ?
 					null :
 					0;
 		};
-	
+
 		// Convert to 2D array if needed
 		if ( typeof sorting[0] === 'number' ) {
 			sorting = settings.aaSorting = [ sorting ];
 		}
-	
+
 		// If appending the sort then we are multi-column sorting
 		if ( append && settings.oFeatures.bSortMulti ) {
 			// Are we already doing some kind of sort on this column?
 			var sortIdx = $.inArray( colIdx, _pluck(sorting, '0') );
-	
+
 			if ( sortIdx !== -1 ) {
 				// Yes, modify the sort
 				nextSortIdx = next( sorting[sortIdx], true );
-	
+
 				if ( nextSortIdx === null && sorting.length === 1 ) {
 					nextSortIdx = 0; // can't remove sorting completely
 				}
-	
+
 				if ( nextSortIdx === null ) {
 					sorting.splice( sortIdx, 1 );
 				}
@@ -138537,7 +139016,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		else if ( sorting.length && sorting[0][0] == colIdx ) {
 			// Single column - already sorting on this column, modify the sort
 			nextSortIdx = next( sorting[0] );
-	
+
 			sorting.length = 1;
 			sorting[0][1] = asSorting[ nextSortIdx ];
 			sorting[0]._idx = nextSortIdx;
@@ -138548,17 +139027,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			sorting.push( [ colIdx, asSorting[0] ] );
 			sorting[0]._idx = 0;
 		}
-	
+
 		// Run the sort by calling a full redraw
 		_fnReDraw( settings );
-	
+
 		// callback used for async user interaction
 		if ( typeof callback == 'function' ) {
 			callback( settings );
 		}
 	}
-	
-	
+
+
 	/**
 	 * Attach a sort handler (click) to a node
 	 *  @param {object} settings dataTables settings object
@@ -138570,21 +139049,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnSortAttachListener ( settings, attachTo, colIdx, callback )
 	{
 		var col = settings.aoColumns[ colIdx ];
-	
+
 		_fnBindAction( attachTo, {}, function (e) {
 			/* If the column is not sortable - don't to anything */
 			if ( col.bSortable === false ) {
 				return;
 			}
-	
+
 			// If processing is enabled use a timeout to allow the processing
 			// display to be shown - otherwise to it synchronously
 			if ( settings.oFeatures.bProcessing ) {
 				_fnProcessingDisplay( settings, true );
-	
+
 				setTimeout( function() {
 					_fnSortListener( settings, colIdx, e.shiftKey, callback );
-	
+
 					// In server-side processing, the draw callback will remove the
 					// processing display
 					if ( _fnDataSource( settings ) !== 'ssp' ) {
@@ -138597,8 +139076,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		} );
 	}
-	
-	
+
+
 	/**
 	 * Set the sorting classes on table's body, Note: it is safe to call this function
 	 * when bSort and bSortClasses are false
@@ -138612,30 +139091,30 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var sort = _fnSortFlatten( settings );
 		var features = settings.oFeatures;
 		var i, ien, colIdx;
-	
+
 		if ( features.bSort && features.bSortClasses ) {
 			// Remove old sorting classes
 			for ( i=0, ien=oldSort.length ; i<ien ; i++ ) {
 				colIdx = oldSort[i].src;
-	
+
 				// Remove column sorting
 				$( _pluck( settings.aoData, 'anCells', colIdx ) )
 					.removeClass( sortClass + (i<2 ? i+1 : 3) );
 			}
-	
+
 			// Add new column sorting
 			for ( i=0, ien=sort.length ; i<ien ; i++ ) {
 				colIdx = sort[i].src;
-	
+
 				$( _pluck( settings.aoData, 'anCells', colIdx ) )
 					.addClass( sortClass + (i<2 ? i+1 : 3) );
 			}
 		}
-	
+
 		settings.aLastSort = sort;
 	}
-	
-	
+
+
 	// Get the data to sort a column, be it from cache, fresh (populating the
 	// cache), or from a sort formatter
 	function _fnSortData( settings, idx )
@@ -138644,38 +139123,38 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var column = settings.aoColumns[ idx ];
 		var customSort = DataTable.ext.order[ column.sSortDataType ];
 		var customData;
-	
+
 		if ( customSort ) {
 			customData = customSort.call( settings.oInstance, settings, idx,
 				_fnColumnIndexToVisible( settings, idx )
 			);
 		}
-	
+
 		// Use / populate cache
 		var row, cellData;
 		var formatter = DataTable.ext.type.order[ column.sType+"-pre" ];
-	
+
 		for ( var i=0, ien=settings.aoData.length ; i<ien ; i++ ) {
 			row = settings.aoData[i];
-	
+
 			if ( ! row._aSortData ) {
 				row._aSortData = [];
 			}
-	
+
 			if ( ! row._aSortData[idx] || customSort ) {
 				cellData = customSort ?
 					customData[i] : // If there was a custom sort function, use data from there
 					_fnGetCellData( settings, i, idx, 'sort' );
-	
+
 				row._aSortData[ idx ] = formatter ?
 					formatter( cellData ) :
 					cellData;
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Save the state of a table
 	 *  @param {object} oSettings dataTables settings object
@@ -138686,7 +139165,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if (settings._bLoadingState) {
 			return;
 		}
-	
+
 		/* Store the interesting variables */
 		var state = {
 			time:    +new Date(),
@@ -138701,17 +139180,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				};
 			} )
 		};
-	
+
 		settings.oSavedState = state;
 		_fnCallbackFire( settings, "aoStateSaveParams", 'stateSaveParams', [settings, state] );
-		
+
 		if ( settings.oFeatures.bStateSave && !settings.bDestroying )
 		{
 			settings.fnStateSaveCallback.call( settings.oInstance, settings, state );
-		}	
+		}
 	}
-	
-	
+
+
 	/**
 	 * Attempt to load a saved table state
 	 *  @param {object} oSettings dataTables settings object
@@ -138725,36 +139204,36 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			callback();
 			return;
 		}
-	
+
 		var loaded = function(state) {
 			_fnImplementState(settings, state, callback);
 		};
-	
+
 		var state = settings.fnStateLoadCallback.call( settings.oInstance, settings, loaded );
-	
+
 		if ( state !== undefined$1 ) {
 			_fnImplementState( settings, state, callback );
 		}
 		// otherwise, wait for the loaded callback to be executed
-	
+
 		return true;
 	}
-	
+
 	function _fnImplementState ( settings, s, callback) {
 		var i, ien;
 		var columns = settings.aoColumns;
 		settings._bLoadingState = true;
-	
+
 		// When StateRestore was introduced the state could now be implemented at any time
 		// Not just initialisation. To do this an api instance is required in some places
 		var api = settings._bInitComplete ? new DataTable.Api(settings) : null;
-	
+
 		if ( ! s || ! s.time ) {
 			settings._bLoadingState = false;
 			callback();
 			return;
 		}
-	
+
 		// Allow custom and plug-in manipulation functions to alter the saved data set and
 		// cancelling of loading by returning false
 		var abStateLoad = _fnCallbackFire( settings, 'aoStateLoadParams', 'stateLoadParams', [settings, s] );
@@ -138763,7 +139242,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			callback();
 			return;
 		}
-	
+
 		// Reject old data
 		var duration = settings.iStateDuration;
 		if ( duration > 0 && s.time < +new Date() - (duration*1000) ) {
@@ -138771,17 +139250,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			callback();
 			return;
 		}
-	
+
 		// Number of columns have changed - all bets are off, no restore of settings
 		if ( s.columns && columns.length !== s.columns.length ) {
 			settings._bLoadingState = false;
 			callback();
 			return;
 		}
-	
+
 		// Store the saved state so it might be accessed at any time
 		settings.oLoadedState = $.extend( true, {}, s );
-	
+
 		// Page Length
 		if ( s.length !== undefined$1 ) {
 			// If already initialised just set the value directly so that the select element is also updated
@@ -138792,7 +139271,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				settings._iDisplayLength   = s.length;
 			}
 		}
-	
+
 		// Restore key features - todo - for 1.11 this needs to be done by
 		// subscribed events
 		if ( s.start !== undefined$1 ) {
@@ -138804,7 +139283,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				_fnPageChange(settings, s.start/settings._iDisplayLength);
 			}
 		}
-	
+
 		// Order
 		if ( s.order !== undefined$1 ) {
 			settings.aaSorting = [];
@@ -138815,17 +139294,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				);
 			} );
 		}
-	
+
 		// Search
 		if ( s.search !== undefined$1 ) {
 			$.extend( settings.oPreviousSearch, _fnSearchToHung( s.search ) );
 		}
-	
+
 		// Columns
 		if ( s.columns ) {
 			for ( i=0, ien=s.columns.length ; i<ien ; i++ ) {
 				var col = s.columns[i];
-	
+
 				// Visibility
 				if ( col.visible !== undefined$1 ) {
 					// If the api is defined, the table has been initialised so we need to use it rather than internal settings
@@ -138837,24 +139316,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						columns[i].bVisible = col.visible;
 					}
 				}
-	
+
 				// Search
 				if ( col.search !== undefined$1 ) {
 					$.extend( settings.aoPreSearchCols[i], _fnSearchToHung( col.search ) );
 				}
 			}
-			
+
 			// If the api is defined then we need to adjust the columns once the visibility has been changed
 			if (api) {
 				api.columns.adjust();
 			}
 		}
-	
+
 		settings._bLoadingState = false;
 		_fnCallbackFire( settings, 'aoStateLoaded', 'stateLoaded', [settings, s] );
 		callback();
-	}	
-	
+	}
+
 	/**
 	 * Return the settings object for a particular table
 	 *  @param {node} table table we are using as a dataTable
@@ -138865,13 +139344,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		var settings = DataTable.settings;
 		var idx = $.inArray( table, _pluck( settings, 'nTable' ) );
-	
+
 		return idx !== -1 ?
 			settings[ idx ] :
 			null;
 	}
-	
-	
+
+
 	/**
 	 * Log an error message
 	 *  @param {object} settings dataTables settings object
@@ -138884,21 +139363,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		msg = 'DataTables warning: '+
 			(settings ? 'table id='+settings.sTableId+' - ' : '')+msg;
-	
+
 		if ( tn ) {
 			msg += '. For more information about this error, please see '+
 			'http://datatables.net/tn/'+tn;
 		}
-	
+
 		if ( ! level  ) {
 			// Backwards compatibility pre 1.10
 			var ext = DataTable.ext;
 			var type = ext.sErrMode || ext.errMode;
-	
+
 			if ( settings ) {
 				_fnCallbackFire( settings, null, 'error', [ settings, tn, msg ] );
 			}
-	
+
 			if ( type == 'alert' ) {
 				alert( msg );
 			}
@@ -138913,8 +139392,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			console.log( msg );
 		}
 	}
-	
-	
+
+
 	/**
 	 * See if a property is defined on one object, if so assign it to the other object
 	 *  @param {object} ret target object
@@ -138934,20 +139413,20 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					_fnMap( ret, src, val );
 				}
 			} );
-	
+
 			return;
 		}
-	
+
 		if ( mappedName === undefined$1 ) {
 			mappedName = name;
 		}
-	
+
 		if ( src[name] !== undefined$1 ) {
 			ret[mappedName] = src[name];
 		}
 	}
-	
-	
+
+
 	/**
 	 * Extend objects - very similar to jQuery.extend, but deep copy objects, and
 	 * shallow copy arrays. The reason we need to do this, is that we don't want to
@@ -138968,11 +139447,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnExtend( out, extender, breakRefs )
 	{
 		var val;
-	
+
 		for ( var prop in extender ) {
 			if ( extender.hasOwnProperty(prop) ) {
 				val = extender[prop];
-	
+
 				if ( $.isPlainObject( val ) ) {
 					if ( ! $.isPlainObject( out[prop] ) ) {
 						out[prop] = {};
@@ -138987,11 +139466,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			}
 		}
-	
+
 		return out;
 	}
-	
-	
+
+
 	/**
 	 * Bind an event handers to allow a click or return key to activate the callback.
 	 * This is good for accessibility since a return on the keyboard will have the
@@ -139019,8 +139498,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					return false;
 				} );
 	}
-	
-	
+
+
 	/**
 	 * Register a callback function. Easily allows a callback function to be added to
 	 * an array store of callback functions that can then all be called together.
@@ -139040,8 +139519,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			} );
 		}
 	}
-	
-	
+
+
 	/**
 	 * Fire callback functions and trigger events. Note that the loop over the
 	 * callback array store is done backwards! Further note that you do not want to
@@ -139059,55 +139538,55 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	function _fnCallbackFire( settings, callbackArr, eventName, args )
 	{
 		var ret = [];
-	
+
 		if ( callbackArr ) {
 			ret = $.map( settings[callbackArr].slice().reverse(), function (val, i) {
 				return val.fn.apply( settings.oInstance, args );
 			} );
 		}
-	
+
 		if ( eventName !== null ) {
 			var e = $.Event( eventName+'.dt' );
-	
+
 			$(settings.nTable).trigger( e, args );
-	
+
 			ret.push( e.result );
 		}
-	
+
 		return ret;
 	}
-	
-	
+
+
 	function _fnLengthOverflow ( settings )
 	{
 		var
 			start = settings._iDisplayStart,
 			end = settings.fnDisplayEnd(),
 			len = settings._iDisplayLength;
-	
+
 		/* If we have space to show extra rows (backing up from the end point - then do so */
 		if ( start >= end )
 		{
 			start = end - len;
 		}
-	
+
 		// Keep the start record on the current page
 		start -= (start % len);
-	
+
 		if ( len === -1 || start < 0 )
 		{
 			start = 0;
 		}
-	
+
 		settings._iDisplayStart = start;
 	}
-	
-	
+
+
 	function _fnRenderer( settings, type )
 	{
 		var renderer = settings.renderer;
 		var host = DataTable.ext.renderer[type];
-	
+
 		if ( $.isPlainObject( renderer ) && renderer[type] ) {
 			// Specific renderer for this type. If available use it, otherwise use
 			// the default.
@@ -139118,12 +139597,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// otherwise use the default
 			return host[renderer] || host._;
 		}
-	
+
 		// Use the default
 		return host._;
 	}
-	
-	
+
+
 	/**
 	 * Detect the data source being used for the table. Used to simplify the code
 	 * a little (ajax) and to make it compress a little smaller.
@@ -139142,10 +139621,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		}
 		return 'dom';
 	}
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Computed structure of the DataTables API, defined by the options passed to
 	 * `DataTable.Api.register()` when building the API.
@@ -139183,8 +139662,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 * @ignore
 	 */
 	var __apiStruct = [];
-	
-	
+
+
 	/**
 	 * `Array.prototype` reference.
 	 *
@@ -139192,8 +139671,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 * @ignore
 	 */
 	var __arrayProto = Array.prototype;
-	
-	
+
+
 	/**
 	 * Abstraction for `context` parameter of the `Api` constructor to allow it to
 	 * take several different forms for ease of use.
@@ -139221,7 +139700,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var tables = $.map( settings, function (el, i) {
 			return el.nTable;
 		} );
-	
+
 		if ( ! mixed ) {
 			return [];
 		}
@@ -139245,7 +139724,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// jQuery object (also DataTables instance)
 			jq = mixed;
 		}
-	
+
 		if ( jq ) {
 			return jq.map( function(i) {
 				idx = $.inArray( this, tables );
@@ -139253,8 +139732,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			} ).toArray();
 		}
 	};
-	
-	
+
+
 	/**
 	 * DataTables API class - used to control and interface with  one or more
 	 * DataTables enhanced tables.
@@ -139314,7 +139793,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( ! (this instanceof _Api) ) {
 			return new _Api( context, data );
 		}
-	
+
 		var settings = [];
 		var ctxSettings = function ( o ) {
 			var a = _toSettings( o );
@@ -139322,7 +139801,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				settings.push.apply( settings, a );
 			}
 		};
-	
+
 		if ( Array.isArray( context ) ) {
 			for ( var i=0, ien=context.length ; i<ien ; i++ ) {
 				ctxSettings( context[i] );
@@ -139331,27 +139810,27 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		else {
 			ctxSettings( context );
 		}
-	
+
 		// Remove duplicates
 		this.context = _unique( settings );
-	
+
 		// Initial data
 		if ( data ) {
 			$.merge( this, data );
 		}
-	
+
 		// selector
 		this.selector = {
 			rows: null,
 			cols: null,
 			opts: null
 		};
-	
+
 		_Api.extend( this, this, __apiStruct );
 	};
-	
+
 	DataTable.Api = _Api;
-	
+
 	// Don't destroy the existing prototype, just extend it. Required for jQuery 2's
 	// isPlainObject.
 	$.extend( _Api.prototype, {
@@ -139359,44 +139838,44 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		{
 			return this.count() !== 0;
 		},
-	
-	
+
+
 		concat:  __arrayProto.concat,
-	
-	
+
+
 		context: [], // array of table settings objects
-	
-	
+
+
 		count: function ()
 		{
 			return this.flatten().length;
 		},
-	
-	
+
+
 		each: function ( fn )
 		{
 			for ( var i=0, ien=this.length ; i<ien; i++ ) {
 				fn.call( this, this[i], i, this );
 			}
-	
+
 			return this;
 		},
-	
-	
+
+
 		eq: function ( idx )
 		{
 			var ctx = this.context;
-	
+
 			return ctx.length > idx ?
 				new _Api( ctx[idx], this[idx] ) :
 				null;
 		},
-	
-	
+
+
 		filter: function ( fn )
 		{
 			var a = [];
-	
+
 			if ( __arrayProto.filter ) {
 				a = __arrayProto.filter.call( this, fn, this );
 			}
@@ -139408,21 +139887,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					}
 				}
 			}
-	
+
 			return new _Api( this.context, a );
 		},
-	
-	
+
+
 		flatten: function ()
 		{
 			var a = [];
 			return new _Api( this.context, a.concat.apply( a, this.toArray() ) );
 		},
-	
-	
+
+
 		join:    __arrayProto.join,
-	
-	
+
+
 		indexOf: __arrayProto.indexOf || function (obj, start)
 		{
 			for ( var i=(start || 0), ien=this.length ; i<ien ; i++ ) {
@@ -139432,7 +139911,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			return -1;
 		},
-	
+
 		iterator: function ( flatten, type, fn, alwaysNew ) {
 			var
 				a = [], ret,
@@ -139440,7 +139919,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				context = this.context,
 				rows, items, item,
 				selector = this.selector;
-	
+
 			// Argument shifting
 			if ( typeof flatten === 'string' ) {
 				alwaysNew = fn;
@@ -139448,13 +139927,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				type = flatten;
 				flatten = false;
 			}
-	
+
 			for ( i=0, ien=context.length ; i<ien ; i++ ) {
 				var apiInst = new _Api( context[i] );
-	
+
 				if ( type === 'table' ) {
 					ret = fn.call( apiInst, context[i], i );
-	
+
 					if ( ret !== undefined$1 ) {
 						a.push( ret );
 					}
@@ -139462,7 +139941,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				else if ( type === 'columns' || type === 'rows' ) {
 					// this has same length as context - one entry for each table
 					ret = fn.call( apiInst, context[i], this[i], i );
-	
+
 					if ( ret !== undefined$1 ) {
 						a.push( ret );
 					}
@@ -139471,28 +139950,28 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					// columns and rows share the same structure.
 					// 'this' is an array of column indexes for each context
 					items = this[i];
-	
+
 					if ( type === 'column-rows' ) {
 						rows = _selector_row_indexes( context[i], selector.opts );
 					}
-	
+
 					for ( j=0, jen=items.length ; j<jen ; j++ ) {
 						item = items[j];
-	
+
 						if ( type === 'cell' ) {
 							ret = fn.call( apiInst, context[i], item.row, item.column, i, j );
 						}
 						else {
 							ret = fn.call( apiInst, context[i], item, i, j, rows );
 						}
-	
+
 						if ( ret !== undefined$1 ) {
 							a.push( ret );
 						}
 					}
 				}
 			}
-	
+
 			if ( a.length || alwaysNew ) {
 				var api = new _Api( context, flatten ? a.concat.apply( [], a ) : a );
 				var apiSelector = api.selector;
@@ -139503,22 +139982,22 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			return this;
 		},
-	
-	
+
+
 		lastIndexOf: __arrayProto.lastIndexOf || function (obj, start)
 		{
 			// Bit cheeky...
 			return this.indexOf.apply( this.toArray.reverse(), arguments );
 		},
-	
-	
+
+
 		length:  0,
-	
-	
+
+
 		map: function ( fn )
 		{
 			var a = [];
-	
+
 			if ( __arrayProto.map ) {
 				a = __arrayProto.map.call( this, fn, this );
 			}
@@ -139528,136 +140007,136 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					a.push( fn.call( this, this[i], i ) );
 				}
 			}
-	
+
 			return new _Api( this.context, a );
 		},
-	
-	
+
+
 		pluck: function ( prop )
 		{
 			let fn = DataTable.util.get(prop);
-	
+
 			return this.map( function ( el ) {
 				return fn(el);
 			} );
 		},
-	
+
 		pop:     __arrayProto.pop,
-	
-	
+
+
 		push:    __arrayProto.push,
-	
-	
+
+
 		// Does not return an API instance
 		reduce: __arrayProto.reduce || function ( fn, init )
 		{
 			return _fnReduce( this, fn, init, 0, this.length, 1 );
 		},
-	
-	
+
+
 		reduceRight: __arrayProto.reduceRight || function ( fn, init )
 		{
 			return _fnReduce( this, fn, init, this.length-1, -1, -1 );
 		},
-	
-	
+
+
 		reverse: __arrayProto.reverse,
-	
-	
+
+
 		// Object with rows, columns and opts
 		selector: null,
-	
-	
+
+
 		shift:   __arrayProto.shift,
-	
-	
+
+
 		slice: function () {
 			return new _Api( this.context, this );
 		},
-	
-	
+
+
 		sort:    __arrayProto.sort, // ? name - order?
-	
-	
+
+
 		splice:  __arrayProto.splice,
-	
-	
+
+
 		toArray: function ()
 		{
 			return __arrayProto.slice.call( this );
 		},
-	
-	
+
+
 		to$: function ()
 		{
 			return $( this );
 		},
-	
-	
+
+
 		toJQuery: function ()
 		{
 			return $( this );
 		},
-	
-	
+
+
 		unique: function ()
 		{
 			return new _Api( this.context, _unique(this) );
 		},
-	
-	
+
+
 		unshift: __arrayProto.unshift
 	} );
-	
-	
+
+
 	_Api.extend = function ( scope, obj, ext )
 	{
 		// Only extend API instances and static properties of the API
 		if ( ! ext.length || ! obj || ( ! (obj instanceof _Api) && ! obj.__dt_wrapper ) ) {
 			return;
 		}
-	
+
 		var
 			i, ien,
 			struct,
 			methodScoping = function ( scope, fn, struc ) {
 				return function () {
 					var ret = fn.apply( scope, arguments );
-	
+
 					// Method extension
 					_Api.extend( ret, ret, struc.methodExt );
 					return ret;
 				};
 			};
-	
+
 		for ( i=0, ien=ext.length ; i<ien ; i++ ) {
 			struct = ext[i];
-	
+
 			// Value
 			obj[ struct.name ] = struct.type === 'function' ?
 				methodScoping( scope, struct.val, struct ) :
 				struct.type === 'object' ?
 					{} :
 					struct.val;
-	
+
 			obj[ struct.name ].__dt_wrapper = true;
-	
+
 			// Property extension
 			_Api.extend( scope, obj[ struct.name ], struct.propExt );
 		}
 	};
-	
-	
+
+
 	// @todo - Is there need for an augment function?
 	// _Api.augment = function ( inst, name )
 	// {
 	// 	// Find src object in the structure from the name
 	// 	var parts = name.split('.');
-	
+
 	// 	_Api.extend( inst, obj );
 	// };
-	
-	
+
+
 	//     [
 	//       {
 	//         name:      'data'                -- string   - Property name
@@ -139680,7 +140159,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	//         ]
 	//       }
 	//     ]
-	
+
 	_Api.register = _api_register = function ( name, val )
 	{
 		if ( Array.isArray( name ) ) {
@@ -139689,13 +140168,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			return;
 		}
-	
+
 		var
 			i, ien,
 			heir = name.split('.'),
 			struct = __apiStruct,
 			key, method;
-	
+
 		var find = function ( src, name ) {
 			for ( var i=0, ien=src.length ; i<ien ; i++ ) {
 				if ( src[i].name === name ) {
@@ -139704,13 +140183,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 			return null;
 		};
-	
+
 		for ( i=0, ien=heir.length ; i<ien ; i++ ) {
 			method = heir[i].indexOf('()') !== -1;
 			key = method ?
 				heir[i].replace('()', '') :
 				heir[i];
-	
+
 			var src = find( struct, key );
 			if ( ! src ) {
 				src = {
@@ -139722,7 +140201,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				};
 				struct.push( src );
 			}
-	
+
 			if ( i === ien-1 ) {
 				src.val = val;
 				src.type = typeof val === 'function' ?
@@ -139738,13 +140217,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	};
-	
+
 	_Api.registerPlural = _api_registerPlural = function ( pluralName, singularName, val ) {
 		_Api.register( pluralName, val );
-	
+
 		_Api.register( singularName, function () {
 			var ret = val.apply( this, arguments );
-	
+
 			if ( ret === this ) {
 				// Returned item is the API instance that was passed in, return it
 				return this;
@@ -139758,13 +140237,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						ret[0] :
 					undefined$1;
 			}
-	
+
 			// Non-API return - just fire it back
 			return ret;
 		} );
 	};
-	
-	
+
+
 	/**
 	 * Selector for HTML tables. Apply the given selector to the give array of
 	 * DataTables settings objects.
@@ -139781,17 +140260,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				return __table_selector(item, a);
 			} );
 		}
-	
+
 		// Integer is used to pick out a table by index
 		if ( typeof selector === 'number' ) {
 			return [ a[ selector ] ];
 		}
-	
+
 		// Perform a jQuery selector on the table nodes
 		var nodes = $.map( a, function (el, i) {
 			return el.nTable;
 		} );
-	
+
 		return $(nodes)
 			.filter( selector )
 			.map( function (i) {
@@ -139801,9 +140280,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			} )
 			.toArray();
 	};
-	
-	
-	
+
+
+
 	/**
 	 * Context selector for the API's context (i.e. the tables the API instance
 	 * refers to.
@@ -139821,55 +140300,55 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			new _Api( __table_selector( selector, this.context ) ) :
 			this;
 	} );
-	
-	
+
+
 	_api_register( 'table()', function ( selector ) {
 		var tables = this.tables( selector );
 		var ctx = tables.context;
-	
+
 		// Truncate to the first matched table
 		return ctx.length ?
 			new _Api( ctx[0] ) :
 			tables;
 	} );
-	
-	
+
+
 	_api_registerPlural( 'tables().nodes()', 'table().node()' , function () {
 		return this.iterator( 'table', function ( ctx ) {
 			return ctx.nTable;
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_registerPlural( 'tables().body()', 'table().body()' , function () {
 		return this.iterator( 'table', function ( ctx ) {
 			return ctx.nTBody;
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_registerPlural( 'tables().header()', 'table().header()' , function () {
 		return this.iterator( 'table', function ( ctx ) {
 			return ctx.nTHead;
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_registerPlural( 'tables().footer()', 'table().footer()' , function () {
 		return this.iterator( 'table', function ( ctx ) {
 			return ctx.nTFoot;
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_registerPlural( 'tables().containers()', 'table().container()' , function () {
 		return this.iterator( 'table', function ( ctx ) {
 			return ctx.nTableWrapper;
 		}, 1 );
 	} );
-	
-	
-	
+
+
+
 	/**
 	 * Redraw the tables in the current context.
 	 */
@@ -139884,14 +140363,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						false :
 						true;
 				}
-	
+
 				_fnReDraw( settings, paging===false );
 			}
 		} );
 	} );
-	
-	
-	
+
+
+
 	/**
 	 * Get the current page index.
 	 *
@@ -139915,14 +140394,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( action === undefined$1 ) {
 			return this.page.info().page; // not an expensive call
 		}
-	
+
 		// else, have an action to take on all tables
 		return this.iterator( 'table', function ( settings ) {
 			_fnPageChange( settings, action );
 		} );
 	} );
-	
-	
+
+
 	/**
 	 * Paging information for the first table in the current context.
 	 *
@@ -139945,14 +140424,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		if ( this.context.length === 0 ) {
 			return undefined$1;
 		}
-	
+
 		var
 			settings   = this.context[0],
 			start      = settings._iDisplayStart,
 			len        = settings.oFeatures.bPaginate ? settings._iDisplayLength : -1,
 			visRecords = settings.fnRecordsDisplay(),
 			all        = len === -1;
-	
+
 		return {
 			"page":           all ? 0 : Math.floor( start / len ),
 			"pages":          all ? 1 : Math.ceil( visRecords / len ),
@@ -139964,8 +140443,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			"serverSide":     _fnDataSource( settings ) === 'ssp'
 		};
 	} );
-	
-	
+
+
 	/**
 	 * Get the current page length.
 	 *
@@ -139986,53 +140465,53 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				this.context[0]._iDisplayLength :
 				undefined$1;
 		}
-	
+
 		// else, set the page length
 		return this.iterator( 'table', function ( settings ) {
 			_fnLengthChange( settings, len );
 		} );
 	} );
-	
-	
-	
+
+
+
 	var __reload = function ( settings, holdPosition, callback ) {
 		// Use the draw event to trigger a callback
 		if ( callback ) {
 			var api = new _Api( settings );
-	
+
 			api.one( 'draw', function () {
 				callback( api.ajax.json() );
 			} );
 		}
-	
+
 		if ( _fnDataSource( settings ) == 'ssp' ) {
 			_fnReDraw( settings, holdPosition );
 		}
 		else {
 			_fnProcessingDisplay( settings, true );
-	
+
 			// Cancel an existing request
 			var xhr = settings.jqXHR;
 			if ( xhr && xhr.readyState !== 4 ) {
 				xhr.abort();
 			}
-	
+
 			// Trigger xhr
 			_fnBuildAjax( settings, [], function( json ) {
 				_fnClearTable( settings );
-	
+
 				var data = _fnAjaxDataSrc( settings, json );
 				for ( var i=0, ien=data.length ; i<ien ; i++ ) {
 					_fnAddData( settings, data[i] );
 				}
-	
+
 				_fnReDraw( settings, holdPosition );
 				_fnProcessingDisplay( settings, false );
 			} );
 		}
 	};
-	
-	
+
+
 	/**
 	 * Get the JSON response from the last Ajax request that DataTables made to the
 	 * server. Note that this returns the JSON from the first table in the current
@@ -140042,29 +140521,29 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 */
 	_api_register( 'ajax.json()', function () {
 		var ctx = this.context;
-	
+
 		if ( ctx.length > 0 ) {
 			return ctx[0].json;
 		}
-	
+
 		// else return undefined;
 	} );
-	
-	
+
+
 	/**
 	 * Get the data submitted in the last Ajax request
 	 */
 	_api_register( 'ajax.params()', function () {
 		var ctx = this.context;
-	
+
 		if ( ctx.length > 0 ) {
 			return ctx[0].oAjaxData;
 		}
-	
+
 		// else return undefined;
 	} );
-	
-	
+
+
 	/**
 	 * Reload tables from the Ajax data source. Note that this function will
 	 * automatically re-draw the table when the remote data has been loaded.
@@ -140079,8 +140558,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			__reload( settings, resetPaging===false, callback );
 		} );
 	} );
-	
-	
+
+
 	/**
 	 * Get the current Ajax URL. Note that this returns the URL from the first
 	 * table in the current context.
@@ -140095,21 +140574,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 */
 	_api_register( 'ajax.url()', function ( url ) {
 		var ctx = this.context;
-	
+
 		if ( url === undefined$1 ) {
 			// get
 			if ( ctx.length === 0 ) {
 				return undefined$1;
 			}
 			ctx = ctx[0];
-	
+
 			return ctx.ajax ?
 				$.isPlainObject( ctx.ajax ) ?
 					ctx.ajax.url :
 					ctx.ajax :
 				ctx.sAjaxSource;
 		}
-	
+
 		// set
 		return this.iterator( 'table', function ( settings ) {
 			if ( $.isPlainObject( settings.ajax ) ) {
@@ -140123,8 +140602,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// value of `sAjaxSource` redundant.
 		} );
 	} );
-	
-	
+
+
 	/**
 	 * Load data from the newly set Ajax URL. Note that this method is only
 	 * available when `ajax.url()` is used to set a URL. Additionally, this method
@@ -140141,38 +140620,38 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			__reload( ctx, resetPaging===false, callback );
 		} );
 	} );
-	
-	
-	
-	
+
+
+
+
 	var _selector_run = function ( type, selector, selectFn, settings, opts )
 	{
 		var
 			out = [], res,
 			a, i, ien, j, jen,
 			selectorType = typeof selector;
-	
+
 		// Can't just check for isArray here, as an API or jQuery instance might be
 		// given with their array like look
 		if ( ! selector || selectorType === 'string' || selectorType === 'function' || selector.length === undefined$1 ) {
 			selector = [ selector ];
 		}
-	
+
 		for ( i=0, ien=selector.length ; i<ien ; i++ ) {
 			// Only split on simple strings - complex expressions will be jQuery selectors
 			a = selector[i] && selector[i].split && ! selector[i].match(/[\[\(:]/) ?
 				selector[i].split(',') :
 				[ selector[i] ];
-	
+
 			for ( j=0, jen=a.length ; j<jen ; j++ ) {
 				res = selectFn( typeof a[j] === 'string' ? (a[j]).trim() : a[j] );
-	
+
 				if ( res && res.length ) {
 					out = out.concat( res );
 				}
 			}
 		}
-	
+
 		// selector extensions
 		var ext = _ext.selector[ type ];
 		if ( ext.length ) {
@@ -140180,31 +140659,31 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				out = ext[i]( settings, opts, out );
 			}
 		}
-	
+
 		return _unique( out );
 	};
-	
-	
+
+
 	var _selector_opts = function ( opts )
 	{
 		if ( ! opts ) {
 			opts = {};
 		}
-	
+
 		// Backwards compatibility for 1.9- which used the terminology filter rather
 		// than search
 		if ( opts.filter && opts.search === undefined$1 ) {
 			opts.search = opts.filter;
 		}
-	
+
 		return $.extend( {
 			search: 'none',
 			order: 'current',
 			page: 'all'
 		}, opts );
 	};
-	
-	
+
+
 	var _selector_first = function ( inst )
 	{
 		// Reduce the API instance to the first item found
@@ -140216,29 +140695,29 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				inst[0].length = 1;
 				inst.length = 1;
 				inst.context = [ inst.context[i] ];
-	
+
 				return inst;
 			}
 		}
-	
+
 		// Not found - return an empty instance
 		inst.length = 0;
 		return inst;
 	};
-	
-	
+
+
 	var _selector_row_indexes = function ( settings, opts )
 	{
 		var
 			i, ien, tmp, a=[],
 			displayFiltered = settings.aiDisplay,
 			displayMaster = settings.aiDisplayMaster;
-	
+
 		var
 			search = opts.search,  // none, applied, removed
 			order  = opts.order,   // applied, current, index (original - compatibility with 1.9)
 			page   = opts.page;    // all, current
-	
+
 		if ( _fnDataSource( settings ) == 'ssp' ) {
 			// In server-side processing mode, most options are irrelevant since
 			// rows not shown don't exist and the index order is the applied order
@@ -140266,11 +140745,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			else if ( search == 'removed' ) {
 				// O(n+m) solution by creating a hash map
 				var displayFilteredMap = {};
-	
+
 				for ( var i=0, ien=displayFiltered.length ; i<ien ; i++ ) {
 					displayFilteredMap[displayFiltered[i]] = null;
 				}
-	
+
 				a = $.map( displayMaster, function (el) {
 					return ! displayFilteredMap.hasOwnProperty(el) ?
 						el :
@@ -140285,7 +140764,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 				else { // applied | removed
 					tmp = $.inArray( i, displayFiltered );
-	
+
 					if ((tmp === -1 && search == 'removed') ||
 						(tmp >= 0   && search == 'applied') )
 					{
@@ -140294,11 +140773,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			}
 		}
-	
+
 		return a;
 	};
-	
-	
+
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Rows
 	 *
@@ -140315,18 +140794,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var run = function ( sel ) {
 			var selInt = _intVal( sel );
 			var aoData = settings.aoData;
-	
+
 			// Short cut - selector is a number and no options provided (default is
 			// all records, so no need to check if the index is in there, since it
 			// must be - dev error if the index doesn't exist).
 			if ( selInt !== null && ! opts ) {
 				return [ selInt ];
 			}
-	
+
 			if ( ! rows ) {
 				rows = _selector_row_indexes( settings, opts );
 			}
-	
+
 			if ( selInt !== null && $.inArray( selInt, rows ) !== -1 ) {
 				// Selector - integer
 				return [ selInt ];
@@ -140335,7 +140814,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				// Selector - none
 				return rows;
 			}
-	
+
 			// Selector - function
 			if ( typeof sel === 'function' ) {
 				return $.map( rows, function (idx) {
@@ -140343,12 +140822,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					return sel( idx, row._aData, row.nTr ) ? idx : null;
 				} );
 			}
-	
+
 			// Selector - node
 			if ( sel.nodeName ) {
 				var rowIdx = sel._DT_RowIndex;  // Property added by DT for fast lookup
 				var cellIdx = sel._DT_CellIndex;
-	
+
 				if ( rowIdx !== undefined$1 ) {
 					// Make sure that the row is actually still present in the table
 					return aoData[ rowIdx ] && aoData[ rowIdx ].nTr === sel ?
@@ -140367,7 +140846,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						[];
 				}
 			}
-	
+
 			// ID selector. Want to always be able to select rows by id, regardless
 			// of if the tr element has been created or not, so can't rely upon
 			// jQuery here - hence a custom implementation. This does not match
@@ -140383,16 +140862,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				if ( rowObj !== undefined$1 ) {
 					return [ rowObj.idx ];
 				}
-	
+
 				// need to fall through to jQuery in case there is DOM id that
 				// matches
 			}
-			
+
 			// Get nodes in the order from the `rows` array with null values removed
 			var nodes = _removeEmpty(
 				_pluck_order( settings.aoData, rows, 'nTr' )
 			);
-	
+
 			// Selector - jQuery selector string, array of nodes or jQuery object/
 			// As jQuery's .filter() allows jQuery objects to be passed in filter,
 			// it also allows arrays, so this will cope with all three options
@@ -140403,11 +140882,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				} )
 				.toArray();
 		};
-	
+
 		return _selector_run( 'row', selector, run, settings, opts );
 	};
-	
-	
+
+
 	_api_register( 'rows()', function ( selector, opts ) {
 		// argument shifting
 		if ( selector === undefined$1 ) {
@@ -140417,55 +140896,55 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			opts = selector;
 			selector = '';
 		}
-	
+
 		opts = _selector_opts( opts );
-	
+
 		var inst = this.iterator( 'table', function ( settings ) {
 			return __row_selector( settings, selector, opts );
 		}, 1 );
-	
+
 		// Want argument shifting here and in __row_selector?
 		inst.selector.rows = selector;
 		inst.selector.opts = opts;
-	
+
 		return inst;
 	} );
-	
+
 	_api_register( 'rows().nodes()', function () {
 		return this.iterator( 'row', function ( settings, row ) {
 			return settings.aoData[ row ].nTr || undefined$1;
 		}, 1 );
 	} );
-	
+
 	_api_register( 'rows().data()', function () {
 		return this.iterator( true, 'rows', function ( settings, rows ) {
 			return _pluck_order( settings.aoData, rows, '_aData' );
 		}, 1 );
 	} );
-	
+
 	_api_registerPlural( 'rows().cache()', 'row().cache()', function ( type ) {
 		return this.iterator( 'row', function ( settings, row ) {
 			var r = settings.aoData[ row ];
 			return type === 'search' ? r._aFilterData : r._aSortData;
 		}, 1 );
 	} );
-	
+
 	_api_registerPlural( 'rows().invalidate()', 'row().invalidate()', function ( src ) {
 		return this.iterator( 'row', function ( settings, row ) {
 			_fnInvalidate( settings, row, src );
 		} );
 	} );
-	
+
 	_api_registerPlural( 'rows().indexes()', 'row().index()', function () {
 		return this.iterator( 'row', function ( settings, row ) {
 			return row;
 		}, 1 );
 	} );
-	
+
 	_api_registerPlural( 'rows().ids()', 'row().id()', function ( hash ) {
 		var a = [];
 		var context = this.context;
-	
+
 		// `iterator` will drop undefined values, but in this case we want them
 		for ( var i=0, ien=context.length ; i<ien ; i++ ) {
 			for ( var j=0, jen=this[i].length ; j<jen ; j++ ) {
@@ -140473,31 +140952,31 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				a.push( (hash === true ? '#' : '' )+ id );
 			}
 		}
-	
+
 		return new _Api( context, a );
 	} );
-	
+
 	_api_registerPlural( 'rows().remove()', 'row().remove()', function () {
 		var that = this;
-	
+
 		this.iterator( 'row', function ( settings, row, thatIdx ) {
 			var data = settings.aoData;
 			var rowData = data[ row ];
 			var i, ien, j, jen;
 			var loopRow, loopCells;
-	
+
 			data.splice( row, 1 );
-	
+
 			// Update the cached indexes
 			for ( i=0, ien=data.length ; i<ien ; i++ ) {
 				loopRow = data[i];
 				loopCells = loopRow.anCells;
-	
+
 				// Rows
 				if ( loopRow.nTr !== null ) {
 					loopRow.nTr._DT_RowIndex = i;
 				}
-	
+
 				// Cells
 				if ( loopCells !== null ) {
 					for ( j=0, jen=loopCells.length ; j<jen ; j++ ) {
@@ -140505,45 +140984,45 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					}
 				}
 			}
-	
+
 			// Delete from the display arrays
 			_fnDeleteIndex( settings.aiDisplayMaster, row );
 			_fnDeleteIndex( settings.aiDisplay, row );
 			_fnDeleteIndex( that[ thatIdx ], row, false ); // maintain local indexes
-	
+
 			// For server-side processing tables - subtract the deleted row from the count
 			if ( settings._iRecordsDisplay > 0 ) {
 				settings._iRecordsDisplay--;
 			}
-	
+
 			// Check for an 'overflow' they case for displaying the table
 			_fnLengthOverflow( settings );
-	
+
 			// Remove the row's ID reference if there is one
 			var id = settings.rowIdFn( rowData._aData );
 			if ( id !== undefined$1 ) {
 				delete settings.aIds[ id ];
 			}
 		} );
-	
+
 		this.iterator( 'table', function ( settings ) {
 			for ( var i=0, ien=settings.aoData.length ; i<ien ; i++ ) {
 				settings.aoData[i].idx = i;
 			}
 		} );
-	
+
 		return this;
 	} );
-	
-	
+
+
 	_api_register( 'rows.add()', function ( rows ) {
 		var newRows = this.iterator( 'table', function ( settings ) {
 				var row, i, ien;
 				var out = [];
-	
+
 				for ( i=0, ien=rows.length ; i<ien ; i++ ) {
 					row = rows[i];
-	
+
 					if ( row.nodeName && row.nodeName.toUpperCase() === 'TR' ) {
 						out.push( _fnAddTr( settings, row )[0] );
 					}
@@ -140551,105 +141030,105 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						out.push( _fnAddData( settings, row ) );
 					}
 				}
-	
+
 				return out;
 			}, 1 );
-	
+
 		// Return an Api.rows() extended instance, so rows().nodes() etc can be used
 		var modRows = this.rows( -1 );
 		modRows.pop();
 		$.merge( modRows, newRows );
-	
+
 		return modRows;
 	} );
-	
-	
-	
-	
-	
+
+
+
+
+
 	/**
 	 *
 	 */
 	_api_register( 'row()', function ( selector, opts ) {
 		return _selector_first( this.rows( selector, opts ) );
 	} );
-	
-	
+
+
 	_api_register( 'row().data()', function ( data ) {
 		var ctx = this.context;
-	
+
 		if ( data === undefined$1 ) {
 			// Get
 			return ctx.length && this.length ?
 				ctx[0].aoData[ this[0] ]._aData :
 				undefined$1;
 		}
-	
+
 		// Set
 		var row = ctx[0].aoData[ this[0] ];
 		row._aData = data;
-	
+
 		// If the DOM has an id, and the data source is an array
 		if ( Array.isArray( data ) && row.nTr && row.nTr.id ) {
 			_fnSetObjectDataFn( ctx[0].rowId )( data, row.nTr.id );
 		}
-	
+
 		// Automatically invalidate
 		_fnInvalidate( ctx[0], this[0], 'data' );
-	
+
 		return this;
 	} );
-	
-	
+
+
 	_api_register( 'row().node()', function () {
 		var ctx = this.context;
-	
+
 		return ctx.length && this.length ?
 			ctx[0].aoData[ this[0] ].nTr || null :
 			null;
 	} );
-	
-	
+
+
 	_api_register( 'row.add()', function ( row ) {
 		// Allow a jQuery object to be passed in - only a single row is added from
 		// it though - the first element in the set
 		if ( row instanceof $ && row.length ) {
 			row = row[0];
 		}
-	
+
 		var rows = this.iterator( 'table', function ( settings ) {
 			if ( row.nodeName && row.nodeName.toUpperCase() === 'TR' ) {
 				return _fnAddTr( settings, row )[0];
 			}
 			return _fnAddData( settings, row );
 		} );
-	
+
 		// Return an Api.rows() extended instance, with the newly added row selected
 		return this.row( rows[0] );
 	} );
-	
-	
+
+
 	$(document).on('plugin-init.dt', function (e, context) {
 		var api = new _Api( context );
-	
+
 		api.on( 'stateSaveParams', function ( e, settings, d ) {
 			// This could be more compact with the API, but it is a lot faster as a simple
 			// internal loop
 			var idFn = settings.rowIdFn;
 			var data = settings.aoData;
 			var ids = [];
-	
+
 			for (var i=0 ; i<data.length ; i++) {
 				if (data[i]._detailsShow) {
 					ids.push( '#' + idFn(data[i]._aData) );
 				}
 			}
-	
+
 			d.childRows = ids;
 		});
-	
+
 		var loaded = api.state.loaded();
-	
+
 		if ( loaded && loaded.childRows ) {
 			api
 				.rows( $.map(loaded.childRows, function (id){
@@ -140660,7 +141139,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				});
 		}
 	});
-	
+
 	var __details_add = function ( ctx, row, data, klass )
 	{
 		// Convert to array of TR elements
@@ -140673,7 +141152,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 				return;
 			}
-	
+
 			// If we get a TR element, then just add it directly - up to the dev
 			// to add the correct number of columns etc
 			if ( r.nodeName && r.nodeName.toLowerCase() === 'tr' ) {
@@ -140686,26 +141165,26 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					.addClass( k )
 					.html( r )
 					[0].colSpan = _fnVisbleColumns( ctx );
-	
+
 				rows.push( created[0] );
 			}
 		};
-	
+
 		addRow( data, klass );
-	
+
 		if ( row._details ) {
 			row._details.detach();
 		}
-	
+
 		row._details = $(rows);
-	
+
 		// If the children were already shown, that state should be retained
 		if ( row._detailsShow ) {
 			row._details.insertAfter( row.nTr );
 		}
 	};
-	
-	
+
+
 	// Make state saving of child row details async to allow them to be batch processed
 	var __details_state = DataTable.util.throttle(
 		function (ctx) {
@@ -140713,18 +141192,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		},
 		500
 	);
-	
-	
+
+
 	var __details_remove = function ( api, idx )
 	{
 		var ctx = api.context;
-	
+
 		if ( ctx.length ) {
 			var row = ctx[0].aoData[ idx !== undefined$1 ? idx : api[0] ];
-	
+
 			if ( row && row._details ) {
 				row._details.remove();
-	
+
 				row._detailsShow = undefined$1;
 				row._details = undefined$1;
 				$( row.nTr ).removeClass( 'dt-hasChild' );
@@ -140732,17 +141211,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	};
-	
-	
+
+
 	var __details_display = function ( api, show ) {
 		var ctx = api.context;
-	
+
 		if ( ctx.length && api.length ) {
 			var row = ctx[0].aoData[ api[0] ];
-	
+
 			if ( row._details ) {
 				row._detailsShow = show;
-	
+
 				if ( show ) {
 					row._details.insertAfter( row.nTr );
 					$( row.nTr ).addClass( 'dt-hasChild' );
@@ -140751,16 +141230,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					row._details.detach();
 					$( row.nTr ).removeClass( 'dt-hasChild' );
 				}
-	
+
 				_fnCallbackFire( ctx[0], null, 'childRow', [ show, api.row( api[0] ) ] );
-	
+
 				__details_events( ctx[0] );
 				__details_state( ctx );
 			}
 		}
 	};
-	
-	
+
+
 	var __details_events = function ( settings )
 	{
 		var api = new _Api( settings );
@@ -140769,51 +141248,51 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var colvisEvent = 'column-sizing'+namespace;
 		var destroyEvent = 'destroy'+namespace;
 		var data = settings.aoData;
-	
+
 		api.off( drawEvent +' '+ colvisEvent +' '+ destroyEvent );
-	
+
 		if ( _pluck( data, '_details' ).length > 0 ) {
 			// On each draw, insert the required elements into the document
 			api.on( drawEvent, function ( e, ctx ) {
 				if ( settings !== ctx ) {
 					return;
 				}
-	
+
 				api.rows( {page:'current'} ).eq(0).each( function (idx) {
 					// Internal data grab
 					var row = data[ idx ];
-	
+
 					if ( row._detailsShow ) {
 						row._details.insertAfter( row.nTr );
 					}
 				} );
 			} );
-	
+
 			// Column visibility change - update the colspan
 			api.on( colvisEvent, function ( e, ctx, idx, vis ) {
 				if ( settings !== ctx ) {
 					return;
 				}
-	
+
 				// Update the colspan for the details rows (note, only if it already has
 				// a colspan)
 				var row, visible = _fnVisbleColumns( ctx );
-	
+
 				for ( var i=0, ien=data.length ; i<ien ; i++ ) {
 					row = data[i];
-	
+
 					if ( row._details ) {
 						row._details.children('td[colspan]').attr('colspan', visible );
 					}
 				}
 			} );
-	
+
 			// Table destroyed - nuke any child rows
 			api.on( destroyEvent, function ( e, ctx ) {
 				if ( settings !== ctx ) {
 					return;
 				}
-	
+
 				for ( var i=0, ien=data.length ; i<ien ; i++ ) {
 					if ( data[i]._details ) {
 						__details_remove( api, i );
@@ -140822,19 +141301,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			} );
 		}
 	};
-	
+
 	// Strings for the method names to help minification
 	var _emp = '';
 	var _child_obj = _emp+'row().child';
 	var _child_mth = _child_obj+'()';
-	
+
 	// data can be:
 	//  tr
 	//  string
 	//  jQuery or array of any of the above
 	_api_register( _child_mth, function ( data, klass ) {
 		var ctx = this.context;
-	
+
 		if ( data === undefined$1 ) {
 			// get
 			return ctx.length && this.length ?
@@ -140853,11 +141332,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// set
 			__details_add( ctx[0], ctx[0].aoData[ this[0] ], data, klass );
 		}
-	
+
 		return this;
 	} );
-	
-	
+
+
 	_api_register( [
 		_child_obj+'.show()',
 		_child_mth+'.show()' // only when `child()` was called with parameters (without
@@ -140865,8 +141344,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		__details_display( this, true );
 		return this;
 	} );
-	
-	
+
+
 	_api_register( [
 		_child_obj+'.hide()',
 		_child_mth+'.hide()' // only when `child()` was called with parameters (without
@@ -140874,8 +141353,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		__details_display( this, false );
 		return this;
 	} );
-	
-	
+
+
 	_api_register( [
 		_child_obj+'.remove()',
 		_child_mth+'.remove()' // only when `child()` was called with parameters (without
@@ -140883,20 +141362,20 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		__details_remove( this );
 		return this;
 	} );
-	
-	
+
+
 	_api_register( _child_obj+'.isShown()', function () {
 		var ctx = this.context;
-	
+
 		if ( ctx.length && this.length ) {
 			// _detailsShown as false or undefined will fall through to return false
 			return ctx[0].aoData[ this[0] ]._detailsShow || false;
 		}
 		return false;
 	} );
-	
-	
-	
+
+
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Columns
 	 *
@@ -140907,13 +141386,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 * "{string}"          - jQuery selector on column header nodes
 	 *
 	 */
-	
+
 	// can be an array of these items, comma separated list, or an array of comma
 	// separated lists
-	
+
 	var __re_column_selector = /^([^:]+):(name|visIdx|visible)$/;
-	
-	
+
+
 	// r1 and r2 are redundant - but it means that the parameters match for the
 	// iterator callback in columns().data()
 	var __columnData = function ( settings, column, r1, r2, rows ) {
@@ -140923,23 +141402,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		}
 		return a;
 	};
-	
-	
+
+
 	var __column_selector = function ( settings, selector, opts )
 	{
 		var
 			columns = settings.aoColumns,
 			names = _pluck( columns, 'sName' ),
 			nodes = _pluck( columns, 'nTh' );
-	
+
 		var run = function ( s ) {
 			var selInt = _intVal( s );
-	
+
 			// Selector - all
 			if ( s === '' ) {
 				return _range( columns.length );
 			}
-	
+
 			// Selector - index
 			if ( selInt !== null ) {
 				return [ selInt >= 0 ?
@@ -140947,11 +141426,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					columns.length + selInt // Count from right (+ because its a negative value)
 				];
 			}
-	
+
 			// Selector = function
 			if ( typeof s === 'function' ) {
 				var rows = _selector_row_indexes( settings, opts );
-	
+
 				return $.map( columns, function (col, idx) {
 					return s(
 							idx,
@@ -140960,12 +141439,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						) ? idx : null;
 				} );
 			}
-	
+
 			// jQuery or string selector
 			var match = typeof s === 'string' ?
 				s.match( __re_column_selector ) :
 				'';
-	
+
 			if ( match ) {
 				switch( match[2] ) {
 					case 'visIdx':
@@ -140981,23 +141460,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						}
 						// Counting from the left
 						return [ _fnVisibleToColumnIndex( settings, idx ) ];
-	
+
 					case 'name':
 						// match by name. `names` is column index complete and in order
 						return $.map( names, function (name, i) {
 							return name === match[1] ? i : null;
 						} );
-	
+
 					default:
 						return [];
 				}
 			}
-	
+
 			// Cell in the table body
 			if ( s.nodeName && s._DT_CellIndex ) {
 				return [ s._DT_CellIndex.column ];
 			}
-	
+
 			// jQuery selector on the TH elements for the columns
 			var jqResult = $( nodes )
 				.filter( s )
@@ -141005,11 +141484,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					return $.inArray( this, nodes ); // `nodes` is column index complete and in order
 				} )
 				.toArray();
-	
+
 			if ( jqResult.length || ! s.nodeName ) {
 				return jqResult;
 			}
-	
+
 			// Otherwise a node which might have a `dt-column` data attribute, or be
 			// a child or such an element
 			var host = $(s).closest('*[data-dt-column]');
@@ -141017,37 +141496,37 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				[ host.data('dt-column') ] :
 				[];
 		};
-	
+
 		return _selector_run( 'column', selector, run, settings, opts );
 	};
-	
-	
+
+
 	var __setColumnVis = function ( settings, column, vis ) {
 		var cols = settings.aoColumns,
 			col  = cols[ column ],
 			data = settings.aoData,
 			cells, i, ien, tr;
-	
+
 		// Get
 		if ( vis === undefined$1 ) {
 			return col.bVisible;
 		}
-	
+
 		// Set
 		// No change
 		if ( col.bVisible === vis ) {
 			return;
 		}
-	
+
 		if ( vis ) {
 			// Insert column
 			// Need to decide if we should use appendChild or insertBefore
 			var insertBefore = $.inArray( true, _pluck(cols, 'bVisible'), column+1 );
-	
+
 			for ( i=0, ien=data.length ; i<ien ; i++ ) {
 				tr = data[i].nTr;
 				cells = data[i].anCells;
-	
+
 				if ( tr ) {
 					// insertBefore can act like appendChild if 2nd arg is null
 					tr.insertBefore( cells[ column ], cells[ insertBefore ] || null );
@@ -141058,12 +141537,12 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// Remove column
 			$( _pluck( settings.aoData, 'anCells', column ) ).detach();
 		}
-	
+
 		// Common actions
 		col.bVisible = vis;
 	};
-	
-	
+
+
 	_api_register( 'columns()', function ( selector, opts ) {
 		// argument shifting
 		if ( selector === undefined$1 ) {
@@ -141073,42 +141552,42 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			opts = selector;
 			selector = '';
 		}
-	
+
 		opts = _selector_opts( opts );
-	
+
 		var inst = this.iterator( 'table', function ( settings ) {
 			return __column_selector( settings, selector, opts );
 		}, 1 );
-	
+
 		// Want argument shifting here and in _row_selector?
 		inst.selector.cols = selector;
 		inst.selector.opts = opts;
-	
+
 		return inst;
 	} );
-	
+
 	_api_registerPlural( 'columns().header()', 'column().header()', function ( selector, opts ) {
 		return this.iterator( 'column', function ( settings, column ) {
 			return settings.aoColumns[column].nTh;
 		}, 1 );
 	} );
-	
+
 	_api_registerPlural( 'columns().footer()', 'column().footer()', function ( selector, opts ) {
 		return this.iterator( 'column', function ( settings, column ) {
 			return settings.aoColumns[column].nTf;
 		}, 1 );
 	} );
-	
+
 	_api_registerPlural( 'columns().data()', 'column().data()', function () {
 		return this.iterator( 'column-rows', __columnData, 1 );
 	} );
-	
+
 	_api_registerPlural( 'columns().dataSrc()', 'column().dataSrc()', function () {
 		return this.iterator( 'column', function ( settings, column ) {
 			return settings.aoColumns[column].mData;
 		}, 1 );
 	} );
-	
+
 	_api_registerPlural( 'columns().cache()', 'column().cache()', function ( type ) {
 		return this.iterator( 'column-rows', function ( settings, column, i, j, rows ) {
 			return _pluck_order( settings.aoData, rows,
@@ -141116,13 +141595,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			);
 		}, 1 );
 	} );
-	
+
 	_api_registerPlural( 'columns().nodes()', 'column().nodes()', function () {
 		return this.iterator( 'column-rows', function ( settings, column, i, j, rows ) {
 			return _pluck_order( settings.aoData, rows, 'anCells', column ) ;
 		}, 1 );
 	} );
-	
+
 	_api_registerPlural( 'columns().visible()', 'column().visible()', function ( vis, calc ) {
 		var that = this;
 		var ret = this.iterator( 'column', function ( settings, column ) {
@@ -141131,36 +141610,36 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			} // else
 			__setColumnVis( settings, column, vis );
 		} );
-	
+
 		// Group the column visibility changes
 		if ( vis !== undefined$1 ) {
 			this.iterator( 'table', function ( settings ) {
 				// Redraw the header after changes
 				_fnDrawHead( settings, settings.aoHeader );
 				_fnDrawHead( settings, settings.aoFooter );
-		
+
 				// Update colspan for no records display. Child rows and extensions will use their own
 				// listeners to do this - only need to update the empty table item here
 				if ( ! settings.aiDisplay.length ) {
 					$(settings.nTBody).find('td[colspan]').attr('colspan', _fnVisbleColumns(settings));
 				}
-		
+
 				_fnSaveState( settings );
-	
+
 				// Second loop once the first is done for events
 				that.iterator( 'column', function ( settings, column ) {
 					_fnCallbackFire( settings, null, 'column-visibility', [settings, column, vis, calc] );
 				} );
-	
+
 				if ( calc === undefined$1 || calc ) {
 					that.columns.adjust();
 				}
 			});
 		}
-	
+
 		return ret;
 	} );
-	
+
 	_api_registerPlural( 'columns().indexes()', 'column().index()', function ( type ) {
 		return this.iterator( 'column', function ( settings, column ) {
 			return type === 'visible' ?
@@ -141168,17 +141647,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				column;
 		}, 1 );
 	} );
-	
+
 	_api_register( 'columns.adjust()', function () {
 		return this.iterator( 'table', function ( settings ) {
 			_fnAdjustColumnSizing( settings );
 		}, 1 );
 	} );
-	
+
 	_api_register( 'column.index()', function ( type, idx ) {
 		if ( this.context.length !== 0 ) {
 			var ctx = this.context[0];
-	
+
 			if ( type === 'fromVisible' || type === 'toData' ) {
 				return _fnVisibleToColumnIndex( ctx, idx );
 			}
@@ -141187,11 +141666,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	} );
-	
+
 	_api_register( 'column()', function ( selector, opts ) {
 		return _selector_first( this.columns( selector, opts ) );
 	} );
-	
+
 	var __cell_selector = function ( settings, selector, opts )
 	{
 		var data = settings.aoData;
@@ -141201,27 +141680,27 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var row;
 		var columns = settings.aoColumns.length;
 		var a, i, ien, j, o, host;
-	
+
 		var run = function ( s ) {
 			var fnSelector = typeof s === 'function';
-	
+
 			if ( s === null || s === undefined$1 || fnSelector ) {
 				// All cells and function selectors
 				a = [];
-	
+
 				for ( i=0, ien=rows.length ; i<ien ; i++ ) {
 					row = rows[i];
-	
+
 					for ( j=0 ; j<columns ; j++ ) {
 						o = {
 							row: row,
 							column: j
 						};
-	
+
 						if ( fnSelector ) {
 							// Selector - function
 							host = data[ row ];
-	
+
 							if ( s( o, _fnGetCellData(settings, row, j), host.anCells ? host.anCells[j] : null ) ) {
 								a.push( o );
 							}
@@ -141232,10 +141711,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						}
 					}
 				}
-	
+
 				return a;
 			}
-			
+
 			// Selector - index
 			if ( $.isPlainObject( s ) ) {
 				// Valid cell index and its in the array of selectable rows
@@ -141243,7 +141722,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					[s] :
 					[];
 			}
-	
+
 			// Selector - jQuery filtered cells
 			var jqResult = allCells
 				.filter( s )
@@ -141254,11 +141733,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 				};
 				} )
 				.toArray();
-	
+
 			if ( jqResult.length || ! s.nodeName ) {
 				return jqResult;
 			}
-	
+
 			// Otherwise the selector is a node, and there is one last option - the
 			// element might be a child of an element which has dt-row and dt-column
 			// data attributes
@@ -141270,13 +141749,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				} ] :
 				[];
 		};
-	
+
 		return _selector_run( 'cell', selector, run, settings, opts );
 	};
-	
-	
-	
-	
+
+
+
+
 	_api_register( 'cells()', function ( rowSelector, columnSelector, opts ) {
 		// Argument shifting
 		if ( $.isPlainObject( rowSelector ) ) {
@@ -141296,29 +141775,29 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			opts = columnSelector;
 			columnSelector = null;
 		}
-	
+
 		// Cell selector
 		if ( columnSelector === null || columnSelector === undefined$1 ) {
 			return this.iterator( 'table', function ( settings ) {
 				return __cell_selector( settings, rowSelector, _selector_opts( opts ) );
 			} );
 		}
-	
+
 		// The default built in options need to apply to row and columns
 		var internalOpts = opts ? {
 			page: opts.page,
 			order: opts.order,
 			search: opts.search
 		} : {};
-	
+
 		// Row + column selector
 		var columns = this.columns( columnSelector, internalOpts );
 		var rows = this.rows( rowSelector, internalOpts );
 		var i, ien, j, jen;
-	
+
 		var cellsNoOpts = this.iterator( 'table', function ( settings, idx ) {
 			var a = [];
-	
+
 			for ( i=0, ien=rows[idx].length ; i<ien ; i++ ) {
 				for ( j=0, jen=columns[idx].length ; j<jen ; j++ ) {
 					a.push( {
@@ -141327,61 +141806,61 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					} );
 				}
 			}
-	
+
 			return a;
 		}, 1 );
-	
+
 		// There is currently only one extension which uses a cell selector extension
 		// It is a _major_ performance drag to run this if it isn't needed, so this is
 		// an extension specific check at the moment
 		var cells = opts && opts.selected ?
 			this.cells( cellsNoOpts, opts ) :
 			cellsNoOpts;
-	
+
 		$.extend( cells.selector, {
 			cols: columnSelector,
 			rows: rowSelector,
 			opts: opts
 		} );
-	
+
 		return cells;
 	} );
-	
-	
+
+
 	_api_registerPlural( 'cells().nodes()', 'cell().node()', function () {
 		return this.iterator( 'cell', function ( settings, row, column ) {
 			var data = settings.aoData[ row ];
-	
+
 			return data && data.anCells ?
 				data.anCells[ column ] :
 				undefined$1;
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_register( 'cells().data()', function () {
 		return this.iterator( 'cell', function ( settings, row, column ) {
 			return _fnGetCellData( settings, row, column );
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_registerPlural( 'cells().cache()', 'cell().cache()', function ( type ) {
 		type = type === 'search' ? '_aFilterData' : '_aSortData';
-	
+
 		return this.iterator( 'cell', function ( settings, row, column ) {
 			return settings.aoData[ row ][ type ][ column ];
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_registerPlural( 'cells().render()', 'cell().render()', function ( type ) {
 		return this.iterator( 'cell', function ( settings, row, column ) {
 			return _fnGetCellData( settings, row, column, type );
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_registerPlural( 'cells().indexes()', 'cell().index()', function () {
 		return this.iterator( 'cell', function ( settings, row, column ) {
 			return {
@@ -141391,41 +141870,41 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			};
 		}, 1 );
 	} );
-	
-	
+
+
 	_api_registerPlural( 'cells().invalidate()', 'cell().invalidate()', function ( src ) {
 		return this.iterator( 'cell', function ( settings, row, column ) {
 			_fnInvalidate( settings, row, src, column );
 		} );
 	} );
-	
-	
-	
+
+
+
 	_api_register( 'cell()', function ( rowSelector, columnSelector, opts ) {
 		return _selector_first( this.cells( rowSelector, columnSelector, opts ) );
 	} );
-	
-	
+
+
 	_api_register( 'cell().data()', function ( data ) {
 		var ctx = this.context;
 		var cell = this[0];
-	
+
 		if ( data === undefined$1 ) {
 			// Get
 			return ctx.length && cell.length ?
 				_fnGetCellData( ctx[0], cell[0].row, cell[0].column ) :
 				undefined$1;
 		}
-	
+
 		// Set
 		_fnSetCellData( ctx[0], cell[0].row, cell[0].column, data );
 		_fnInvalidate( ctx[0], cell[0].row, 'data', cell[0].column );
-	
+
 		return this;
 	} );
-	
-	
-	
+
+
+
 	/**
 	 * Get current ordering (sorting) that has been applied to the table.
 	 *
@@ -141456,14 +141935,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 */
 	_api_register( 'order()', function ( order, dir ) {
 		var ctx = this.context;
-	
+
 		if ( order === undefined$1 ) {
 			// get
 			return ctx.length !== 0 ?
 				ctx[0].aaSorting :
 				undefined$1;
 		}
-	
+
 		// set
 		if ( typeof order === 'number' ) {
 			// Simple column / direction passed in
@@ -141474,13 +141953,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			order = Array.prototype.slice.call( arguments );
 		}
 		// otherwise a 2D array was passed in
-	
+
 		return this.iterator( 'table', function ( settings ) {
 			settings.aaSorting = order.slice();
 		} );
 	} );
-	
-	
+
+
 	/**
 	 * Attach a sort listener to an element for a given column
 	 *
@@ -141496,62 +141975,62 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			_fnSortAttachListener( settings, node, column, callback );
 		} );
 	} );
-	
-	
+
+
 	_api_register( 'order.fixed()', function ( set ) {
 		if ( ! set ) {
 			var ctx = this.context;
 			var fixed = ctx.length ?
 				ctx[0].aaSortingFixed :
 				undefined$1;
-	
+
 			return Array.isArray( fixed ) ?
 				{ pre: fixed } :
 				fixed;
 		}
-	
+
 		return this.iterator( 'table', function ( settings ) {
 			settings.aaSortingFixed = $.extend( true, {}, set );
 		} );
 	} );
-	
-	
+
+
 	// Order by the selected column(s)
 	_api_register( [
 		'columns().order()',
 		'column().order()'
 	], function ( dir ) {
 		var that = this;
-	
+
 		return this.iterator( 'table', function ( settings, i ) {
 			var sort = [];
-	
+
 			$.each( that[i], function (j, col) {
 				sort.push( [ col, dir ] );
 			} );
-	
+
 			settings.aaSorting = sort;
 		} );
 	} );
-	
-	
-	
+
+
+
 	_api_register( 'search()', function ( input, regex, smart, caseInsen ) {
 		var ctx = this.context;
-	
+
 		if ( input === undefined$1 ) {
 			// get
 			return ctx.length !== 0 ?
 				ctx[0].oPreviousSearch.sSearch :
 				undefined$1;
 		}
-	
+
 		// set
 		return this.iterator( 'table', function ( settings ) {
 			if ( ! settings.oFeatures.bFilter ) {
 				return;
 			}
-	
+
 			_fnFilterComplete( settings, $.extend( {}, settings.oPreviousSearch, {
 				"sSearch": input+"",
 				"bRegex":  regex === null ? false : regex,
@@ -141560,71 +142039,71 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			} ), 1 );
 		} );
 	} );
-	
-	
+
+
 	_api_registerPlural(
 		'columns().search()',
 		'column().search()',
 		function ( input, regex, smart, caseInsen ) {
 			return this.iterator( 'column', function ( settings, column ) {
 				var preSearch = settings.aoPreSearchCols;
-	
+
 				if ( input === undefined$1 ) {
 					// get
 					return preSearch[ column ].sSearch;
 				}
-	
+
 				// set
 				if ( ! settings.oFeatures.bFilter ) {
 					return;
 				}
-	
+
 				$.extend( preSearch[ column ], {
 					"sSearch": input+"",
 					"bRegex":  regex === null ? false : regex,
 					"bSmart":  smart === null ? true  : smart,
 					"bCaseInsensitive": caseInsen === null ? true : caseInsen
 				} );
-	
+
 				_fnFilterComplete( settings, settings.oPreviousSearch, 1 );
 			} );
 		}
 	);
-	
+
 	/*
 	 * State API methods
 	 */
-	
+
 	_api_register( 'state()', function () {
 		return this.context.length ?
 			this.context[0].oSavedState :
 			null;
 	} );
-	
-	
+
+
 	_api_register( 'state.clear()', function () {
 		return this.iterator( 'table', function ( settings ) {
 			// Save an empty object
 			settings.fnStateSaveCallback.call( settings.oInstance, settings, {} );
 		} );
 	} );
-	
-	
+
+
 	_api_register( 'state.loaded()', function () {
 		return this.context.length ?
 			this.context[0].oLoadedState :
 			null;
 	} );
-	
-	
+
+
 	_api_register( 'state.save()', function () {
 		return this.iterator( 'table', function ( settings ) {
 			_fnSaveState( settings );
 		} );
 	} );
-	
-	
-	
+
+
+
 	/**
 	 * Provide a common method for plug-ins to check the version of DataTables being
 	 * used, in order to ensure compatibility.
@@ -141645,24 +142124,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var aThis = DataTable.version.split('.');
 		var aThat = version.split('.');
 		var iThis, iThat;
-	
+
 		for ( var i=0, iLen=aThat.length ; i<iLen ; i++ ) {
 			iThis = parseInt( aThis[i], 10 ) || 0;
 			iThat = parseInt( aThat[i], 10 ) || 0;
-	
+
 			// Parts are the same, keep comparing
 			if (iThis === iThat) {
 				continue;
 			}
-	
+
 			// Parts are different, return immediately
 			return iThis > iThat;
 		}
-	
+
 		return true;
 	};
-	
-	
+
+
 	/**
 	 * Check if a `<table>` node is a DataTable table already or not.
 	 *
@@ -141682,24 +142161,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	{
 		var t = $(table).get(0);
 		var is = false;
-	
+
 		if ( table instanceof DataTable.Api ) {
 			return true;
 		}
-	
+
 		$.each( DataTable.settings, function (i, o) {
 			var head = o.nScrollHead ? $('table', o.nScrollHead)[0] : null;
 			var foot = o.nScrollFoot ? $('table', o.nScrollFoot)[0] : null;
-	
+
 			if ( o.nTable === t || head === t || foot === t ) {
 				is = true;
 			}
 		} );
-	
+
 		return is;
 	};
-	
-	
+
+
 	/**
 	 * Get all DataTable tables that have been initialised - optionally you can
 	 * select to get only currently visible tables.
@@ -141719,24 +142198,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	DataTable.tables = DataTable.fnTables = function ( visible )
 	{
 		var api = false;
-	
+
 		if ( $.isPlainObject( visible ) ) {
 			api = visible.api;
 			visible = visible.visible;
 		}
-	
+
 		var a = $.map( DataTable.settings, function (o) {
 			if ( !visible || (visible && $(o.nTable).is(':visible')) ) {
 				return o.nTable;
 			}
 		} );
-	
+
 		return api ?
 			new _Api( a ) :
 			a;
 	};
-	
-	
+
+
 	/**
 	 * Convert from camel case parameters to Hungarian notation. This is made public
 	 * for the extensions to provide the same ability as DataTables core to accept
@@ -141751,9 +142230,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *    won't be.
 	 */
 	DataTable.camelToHungarian = _fnCamelToHungarian;
-	
-	
-	
+
+
+
 	/**
 	 *
 	 */
@@ -141761,61 +142240,61 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		var
 			rows   = this.rows( opts ).nodes(), // Get all rows
 			jqRows = $(rows);
-	
+
 		return $( [].concat(
 			jqRows.filter( selector ).toArray(),
 			jqRows.find( selector ).toArray()
 		) );
 	} );
-	
-	
+
+
 	// jQuery functions to operate on the tables
 	$.each( [ 'on', 'one', 'off' ], function (i, key) {
 		_api_register( key+'()', function ( /* event, handler */ ) {
 			var args = Array.prototype.slice.call(arguments);
-	
+
 			// Add the `dt` namespace automatically if it isn't already present
 			args[0] = $.map( args[0].split( /\s/ ), function ( e ) {
 				return ! e.match(/\.dt\b/) ?
 					e+'.dt' :
 					e;
 				} ).join( ' ' );
-	
+
 			var inst = $( this.tables().nodes() );
 			inst[key].apply( inst, args );
 			return this;
 		} );
 	} );
-	
-	
+
+
 	_api_register( 'clear()', function () {
 		return this.iterator( 'table', function ( settings ) {
 			_fnClearTable( settings );
 		} );
 	} );
-	
-	
+
+
 	_api_register( 'settings()', function () {
 		return new _Api( this.context, this.context );
 	} );
-	
-	
+
+
 	_api_register( 'init()', function () {
 		var ctx = this.context;
 		return ctx.length ? ctx[0].oInit : null;
 	} );
-	
-	
+
+
 	_api_register( 'data()', function () {
 		return this.iterator( 'table', function ( settings ) {
 			return _pluck( settings.aoData, '_aData' );
 		} ).flatten();
 	} );
-	
-	
+
+
 	_api_register( 'destroy()', function ( remove ) {
 		remove = remove || false;
-	
+
 		return this.iterator( 'table', function ( settings ) {
 			var classes   = settings.oClasses;
 			var table     = settings.nTable;
@@ -141827,80 +142306,80 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var jqWrapper = $(settings.nTableWrapper);
 			var rows      = $.map( settings.aoData, function (r) { return r.nTr; } );
 			var ien;
-	
+
 			// Flag to note that the table is currently being destroyed - no action
 			// should be taken
 			settings.bDestroying = true;
-	
+
 			// Fire off the destroy callbacks for plug-ins etc
 			_fnCallbackFire( settings, "aoDestroyCallback", "destroy", [settings] );
-	
+
 			// If not being removed from the document, make all columns visible
 			if ( ! remove ) {
 				new _Api( settings ).columns().visible( true );
 			}
-	
+
 			// Blitz all `DT` namespaced events (these are internal events, the
 			// lowercase, `dt` events are user subscribed and they are responsible
 			// for removing them
 			jqWrapper.off('.DT').find(':not(tbody *)').off('.DT');
 			$(window).off('.DT-'+settings.sInstance);
-	
+
 			// When scrolling we had to break the table up - restore it
 			if ( table != thead.parentNode ) {
 				jqTable.children('thead').detach();
 				jqTable.append( thead );
 			}
-	
+
 			if ( tfoot && table != tfoot.parentNode ) {
 				jqTable.children('tfoot').detach();
 				jqTable.append( tfoot );
 			}
-	
+
 			settings.aaSorting = [];
 			settings.aaSortingFixed = [];
 			_fnSortingClasses( settings );
-	
+
 			$( rows ).removeClass( settings.asStripeClasses.join(' ') );
-	
+
 			$('th, td', thead).removeClass( classes.sSortable+' '+
 				classes.sSortableAsc+' '+classes.sSortableDesc+' '+classes.sSortableNone
 			);
-	
+
 			// Add the TR elements back into the table in their original order
 			jqTbody.children().detach();
 			jqTbody.append( rows );
-	
+
 			var orig = settings.nTableWrapper.parentNode;
-	
+
 			// Remove the DataTables generated nodes, events and classes
 			var removedMethod = remove ? 'remove' : 'detach';
 			jqTable[ removedMethod ]();
 			jqWrapper[ removedMethod ]();
-	
+
 			// If we need to reattach the table to the document
 			if ( ! remove && orig ) {
 				// insertBefore acts like appendChild if !arg[1]
 				orig.insertBefore( table, settings.nTableReinsertBefore );
-	
+
 				// Restore the width of the original table - was read from the style property,
 				// so we can restore directly to that
 				jqTable
 					.css( 'width', settings.sDestroyWidth )
 					.removeClass( classes.sTable );
-	
+
 				// If the were originally stripe classes - then we add them back here.
 				// Note this is not fool proof (for example if not all rows had stripe
 				// classes - but it's a good effort without getting carried away
 				ien = settings.asDestroyStripes.length;
-	
+
 				if ( ien ) {
 					jqTbody.children().each( function (i) {
 						$(this).addClass( settings.asDestroyStripes[i % ien] );
 					} );
 				}
 			}
-	
+
 			/* Remove the settings object from the settings array */
 			var idx = $.inArray( settings, DataTable.settings );
 			if ( idx !== -1 ) {
@@ -141908,14 +142387,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		} );
 	} );
-	
-	
+
+
 	// Add the `every()` method for rows, columns and cells in a compact form
 	$.each( [ 'column', 'row', 'cell' ], function ( i, type ) {
 		_api_register( type+'s().every()', function ( fn ) {
 			var opts = this.selector.opts;
 			var api = this;
-	
+
 			return this.iterator( type, function ( settings, arg1, arg2, arg3, arg4 ) {
 				// Rows and columns:
 				//  arg1 - index
@@ -141938,26 +142417,26 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			} );
 		} );
 	} );
-	
-	
+
+
 	// i18n method for extensions to be able to use the language object from the
 	// DataTable
 	_api_register( 'i18n()', function ( token, def, plural ) {
 		var ctx = this.context[0];
 		var resolved = _fnGetObjectDataFn( token )( ctx.oLanguage );
-	
+
 		if ( resolved === undefined$1 ) {
 			resolved = def;
 		}
-	
+
 		if ( plural !== undefined$1 && $.isPlainObject( resolved ) ) {
 			resolved = resolved[ plural ] !== undefined$1 ?
 				resolved[ plural ] :
 				resolved._;
 		}
-	
+
 		return resolved.replace( '%d', plural ); // nb: plural might be undefined,
-	} );	
+	} );
 	/**
 	 * Version string for plug-ins to check compatibility. Allowed format is
 	 * `a.b.c-d` where: a:int, b:int, c:int, d:string(dev|beta|alpha). `d` is used
@@ -141967,7 +142446,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *  @default Version number
 	 */
 	DataTable.version = "1.12.1";
-	
+
 	/**
 	 * Private data store, containing all of the settings objects that are
 	 * created for the tables on a given page.
@@ -141981,7 +142460,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *  @private
 	 */
 	DataTable.settings = [];
-	
+
 	/**
 	 * Object models container, for the various models that DataTables has
 	 * available to it. These models define the objects that are used to hold
@@ -141989,9 +142468,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *  @namespace
 	 */
 	DataTable.models = {};
-	
-	
-	
+
+
+
 	/**
 	 * Template object for the way in which DataTables holds information about
 	 * search information for the global filter and individual column filters.
@@ -142004,14 +142483,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default true
 		 */
 		"bCaseInsensitive": true,
-	
+
 		/**
 		 * Applied search term
 		 *  @type string
 		 *  @default <i>Empty string</i>
 		 */
 		"sSearch": "",
-	
+
 		/**
 		 * Flag to indicate if the search term should be interpreted as a
 		 * regular expression (true) or not (false) and therefore and special
@@ -142020,14 +142499,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default false
 		 */
 		"bRegex": false,
-	
+
 		/**
 		 * Flag to indicate if DataTables is to use its smart filtering or not.
 		 *  @type boolean
 		 *  @default true
 		 */
 		"bSmart": true,
-	
+
 		/**
 		 * Flag to indicate if DataTables should only trigger a search when
 		 * the return key is pressed.
@@ -142036,10 +142515,10 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 */
 		"return": false
 	};
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Template object for the way in which DataTables holds information about
 	 * each individual row. This is the object format used for the settings
@@ -142053,7 +142532,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"nTr": null,
-	
+
 		/**
 		 * Array of TD elements for each row. This is null until the row has been
 		 * created.
@@ -142061,7 +142540,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"anCells": null,
-	
+
 		/**
 		 * Data object from the original data source for the row. This is either
 		 * an array if using the traditional form of DataTables, or an object if
@@ -142072,7 +142551,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"_aData": [],
-	
+
 		/**
 		 * Sorting data cache - this array is ostensibly the same length as the
 		 * number of columns (although each index is generated only as it is
@@ -142086,7 +142565,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"_aSortData": null,
-	
+
 		/**
 		 * Per cell filtering data cache. As per the sort data cache, used to
 		 * increase the performance of the filtering in DataTables
@@ -142095,7 +142574,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"_aFilterData": null,
-	
+
 		/**
 		 * Filtering data cache. This is the same as the cell filtering cache, but
 		 * in this case a string rather than an array. This is easily computed with
@@ -142106,7 +142585,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"_sFilterRow": null,
-	
+
 		/**
 		 * Cache of the class name that DataTables has applied to the row, so we
 		 * can quickly look at this variable rather than needing to do a DOM check
@@ -142116,7 +142595,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"_sRowStripe": "",
-	
+
 		/**
 		 * Denote if the original data source was from the DOM, or the data source
 		 * object. This is used for invalidating data, so DataTables can
@@ -142127,7 +142606,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"src": null,
-	
+
 		/**
 		 * Index in the aoData array. This saves an indexOf lookup when we have the
 		 * object, but want to know the index
@@ -142137,8 +142616,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 */
 		"idx": -1
 	};
-	
-	
+
+
 	/**
 	 * Template object for the column information object in DataTables. This object
 	 * is held in the settings aoColumns array and contains all the information that
@@ -142158,7 +142637,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"idx": null,
-	
+
 		/**
 		 * A list of the columns that sorting should occur on when this column
 		 * is sorted. That this property is an array allows multi-column sorting
@@ -142169,7 +142648,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @type array
 		 */
 		"aDataSort": null,
-	
+
 		/**
 		 * Define the sorting directions that are applied to the column, in sequence
 		 * as the column is repeatedly sorted upon - i.e. the first value is used
@@ -142179,26 +142658,26 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @type array
 		 */
 		"asSorting": null,
-	
+
 		/**
 		 * Flag to indicate if the column is searchable, and thus should be included
 		 * in the filtering or not.
 		 *  @type boolean
 		 */
 		"bSearchable": null,
-	
+
 		/**
 		 * Flag to indicate if the column is sortable or not.
 		 *  @type boolean
 		 */
 		"bSortable": null,
-	
+
 		/**
 		 * Flag to indicate if the column is currently visible in the table or not
 		 *  @type boolean
 		 */
 		"bVisible": null,
-	
+
 		/**
 		 * Store for manual type assignment using the `column.type` option. This
 		 * is held in store so we can manipulate the column's `sType` property.
@@ -142207,7 +142686,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"_sManualType": null,
-	
+
 		/**
 		 * Flag to indicate if HTML5 data attributes should be used as the data
 		 * source for filtering or sorting. True is either are.
@@ -142216,7 +142695,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"_bAttrSrc": false,
-	
+
 		/**
 		 * Developer definable function that is called whenever a cell is created (Ajax source,
 		 * etc) or processed for input (DOM source). This can be used as a compliment to mRender
@@ -142230,7 +142709,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"fnCreatedCell": null,
-	
+
 		/**
 		 * Function to get data from a cell in a column. You should <b>never</b>
 		 * access data directly through _aData internally in DataTables - always use
@@ -142246,7 +142725,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"fnGetData": null,
-	
+
 		/**
 		 * Function to set data for a cell in the column. You should <b>never</b>
 		 * set the data directly to _aData internally in DataTables - always use
@@ -142259,7 +142738,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"fnSetData": null,
-	
+
 		/**
 		 * Property to read the value for the cells in the column from the data
 		 * source array / object. If null, then the default content is used, if a
@@ -142268,7 +142747,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"mData": null,
-	
+
 		/**
 		 * Partner property to mData which is used (only when defined) to get
 		 * the data - i.e. it is basically the same as mData, but without the
@@ -142278,7 +142757,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"mRender": null,
-	
+
 		/**
 		 * Unique header TH/TD element for this column - this is what the sorting
 		 * listener is attached to (if sorting is enabled.)
@@ -142286,7 +142765,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"nTh": null,
-	
+
 		/**
 		 * Unique footer TH/TD element for this column (if there is one). Not used
 		 * in DataTables as such, but can be used for plug-ins to reference the
@@ -142295,14 +142774,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"nTf": null,
-	
+
 		/**
 		 * The class to apply to all TD elements in the table's TBODY for the column
 		 *  @type string
 		 *  @default null
 		 */
 		"sClass": null,
-	
+
 		/**
 		 * When DataTables calculates the column widths to assign to each column,
 		 * it finds the longest string in each column and then constructs a
@@ -142315,7 +142794,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @type string
 		 */
 		"sContentPadding": null,
-	
+
 		/**
 		 * Allows a default value to be given for a column's data, and will be used
 		 * whenever a null data source is encountered (this can be because mData
@@ -142324,14 +142803,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"sDefaultContent": null,
-	
+
 		/**
 		 * Name for the column, allowing reference to the column by name as well as
 		 * by index (needs a lookup to work by name).
 		 *  @type string
 		 */
 		"sName": null,
-	
+
 		/**
 		 * Custom sorting data type - defines which of the available plug-ins in
 		 * afnSortData the custom sorting will use - if any is defined.
@@ -142339,14 +142818,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default std
 		 */
 		"sSortDataType": 'std',
-	
+
 		/**
 		 * Class to be applied to the header element when sorting on this column
 		 *  @type string
 		 *  @default null
 		 */
 		"sSortingClass": null,
-	
+
 		/**
 		 * Class to be applied to the header element when sorting on this column -
 		 * when jQuery UI theming is used.
@@ -142354,27 +142833,27 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"sSortingClassJUI": null,
-	
+
 		/**
 		 * Title of the column - what is seen in the TH element (nTh).
 		 *  @type string
 		 */
 		"sTitle": null,
-	
+
 		/**
 		 * Column sorting and filtering type
 		 *  @type string
 		 *  @default null
 		 */
 		"sType": null,
-	
+
 		/**
 		 * Width of the column
 		 *  @type string
 		 *  @default null
 		 */
 		"sWidth": null,
-	
+
 		/**
 		 * Width of the column when it was first "encountered"
 		 *  @type string
@@ -142382,8 +142861,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 */
 		"sWidthOrig": null
 	};
-	
-	
+
+
 	/*
 	 * Developer note: The properties of the object below are given in Hungarian
 	 * notation, that was used as the interface for DataTables prior to v1.10, however
@@ -142399,7 +142878,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 * completely, but that is a massive amount of work and will break current
 	 * installs (therefore is on-hold until v2).
 	 */
-	
+
 	/**
 	 * Initialisation options that can be given to DataTables at initialisation
 	 * time.
@@ -142466,8 +142945,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"aaData": null,
-	
-	
+
+
 		/**
 		 * If ordering is enabled, then DataTables will perform a first pass sort on
 		 * initialisation. You can define which column(s) the sort is performed
@@ -142496,8 +142975,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"aaSorting": [[0,'asc']],
-	
-	
+
+
 		/**
 		 * This parameter is basically identical to the `sorting` parameter, but
 		 * cannot be overridden by user interaction with the table. What this means
@@ -142519,8 +142998,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"aaSortingFixed": [],
-	
-	
+
+
 		/**
 		 * DataTables can be instructed to load data to display in the table from a
 		 * Ajax source. This option defines how that Ajax call is made and where to.
@@ -142676,8 +143155,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *   } );
 		 */
 		"ajax": null,
-	
-	
+
+
 		/**
 		 * This parameter allows you to readily specify the entries in the length drop
 		 * down menu that DataTables shows when pagination is enabled. It can be
@@ -142702,8 +143181,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"aLengthMenu": [ 10, 25, 50, 100 ],
-	
-	
+
+
 		/**
 		 * The `columns` option in the initialisation parameter allows you to define
 		 * details about the way individual columns behave. For a full list of
@@ -142717,7 +143196,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @name DataTable.defaults.column
 		 */
 		"aoColumns": null,
-	
+
 		/**
 		 * Very similar to `columns`, `columnDefs` allows you to target a specific
 		 * column, multiple columns, or all columns, using the `targets` property of
@@ -142738,8 +143217,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @name DataTable.defaults.columnDefs
 		 */
 		"aoColumnDefs": null,
-	
-	
+
+
 		/**
 		 * Basically the same as `search`, this parameter defines the individual column
 		 * filtering state at initialisation time. The array must be of the same size
@@ -142765,8 +143244,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"aoSearchCols": [],
-	
-	
+
+
 		/**
 		 * An array of CSS classes that should be applied to displayed rows. This
 		 * array may be of any length, and DataTables will apply each class
@@ -142786,8 +143265,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"asStripeClasses": null,
-	
-	
+
+
 		/**
 		 * Enable or disable automatic column width calculation. This can be disabled
 		 * as an optimisation (it takes some time to calculate the widths) if the
@@ -142806,8 +143285,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bAutoWidth": true,
-	
-	
+
+
 		/**
 		 * Deferred rendering can provide DataTables with a huge speed boost when you
 		 * are using an Ajax or JS data source for the table. This option, when set to
@@ -142829,8 +143308,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bDeferRender": false,
-	
-	
+
+
 		/**
 		 * Replace a DataTable which matches the given selector and replace it with
 		 * one which has the properties of the new initialisation object passed. If no
@@ -142857,8 +143336,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bDestroy": false,
-	
-	
+
+
 		/**
 		 * Enable or disable filtering of data. Filtering in DataTables is "smart" in
 		 * that it allows the end user to input multiple words (space separated) and
@@ -142881,8 +143360,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bFilter": true,
-	
-	
+
+
 		/**
 		 * Enable or disable the table information display. This shows information
 		 * about the data that is currently visible on the page, including information
@@ -142901,8 +143380,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bInfo": true,
-	
-	
+
+
 		/**
 		 * Allows the end user to select the size of a formatted page from a select
 		 * menu (sizes are 10, 25, 50 and 100). Requires pagination (`paginate`).
@@ -142920,8 +143399,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bLengthChange": true,
-	
-	
+
+
 		/**
 		 * Enable or disable pagination.
 		 *  @type boolean
@@ -142938,8 +143417,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bPaginate": true,
-	
-	
+
+
 		/**
 		 * Enable or disable the display of a 'processing' indicator when the table is
 		 * being processed (e.g. a sort). This is particularly useful for tables with
@@ -142959,8 +143438,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bProcessing": false,
-	
-	
+
+
 		/**
 		 * Retrieve the DataTables object for the given selector. Note that if the
 		 * table has already been initialised, this parameter will cause DataTables
@@ -142997,8 +143476,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    }
 		 */
 		"bRetrieve": false,
-	
-	
+
+
 		/**
 		 * When vertical (y) scrolling is enabled, DataTables will force the height of
 		 * the table's viewport to the given height at all times (useful for layout).
@@ -143021,8 +143500,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bScrollCollapse": false,
-	
-	
+
+
 		/**
 		 * Configure DataTables to use server-side processing. Note that the
 		 * `ajax` parameter must also be given in order to give DataTables a
@@ -143043,8 +143522,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bServerSide": false,
-	
-	
+
+
 		/**
 		 * Enable or disable sorting of columns. Sorting of individual columns can be
 		 * disabled by the `sortable` option for each column.
@@ -143062,8 +143541,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bSort": true,
-	
-	
+
+
 		/**
 		 * Enable or display DataTables' ability to sort multiple columns at the
 		 * same time (activated by shift-click by the user).
@@ -143082,8 +143561,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bSortMulti": true,
-	
-	
+
+
 		/**
 		 * Allows control over whether DataTables should use the top (true) unique
 		 * cell that is found for a single column, or the bottom (false - default).
@@ -143102,8 +143581,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bSortCellsTop": false,
-	
-	
+
+
 		/**
 		 * Enable or disable the addition of the classes `sorting\_1`, `sorting\_2` and
 		 * `sorting\_3` to the columns which are currently being sorted on. This is
@@ -143124,8 +143603,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bSortClasses": true,
-	
-	
+
+
 		/**
 		 * Enable or disable state saving. When enabled HTML5 `localStorage` will be
 		 * used to save table display information such as pagination information,
@@ -143149,8 +143628,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bStateSave": false,
-	
-	
+
+
 		/**
 		 * This function is called when a TR element is created (and all TD child
 		 * elements have been inserted), or registered if using a DOM source, allowing
@@ -143177,8 +143656,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnCreatedRow": null,
-	
-	
+
+
 		/**
 		 * This function is called on every 'draw' event, and allows you to
 		 * dynamically modify any aspect you want about the created DOM.
@@ -143198,8 +143677,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnDrawCallback": null,
-	
-	
+
+
 		/**
 		 * Identical to fnHeaderCallback() but for the table footer this function
 		 * allows you to modify the table footer on every 'draw' event.
@@ -143226,8 +143705,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"fnFooterCallback": null,
-	
-	
+
+
 		/**
 		 * When rendering large numbers in the information element for the table
 		 * (i.e. "Showing 1 to 10 of 57 entries") DataTables will render large numbers
@@ -143261,8 +143740,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				this.oLanguage.sThousands
 			);
 		},
-	
-	
+
+
 		/**
 		 * This function is called on every 'draw' event, and allows you to
 		 * dynamically modify the header row. This can be used to calculate and
@@ -143290,8 +143769,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"fnHeaderCallback": null,
-	
-	
+
+
 		/**
 		 * The information element can be used to convey information about the current
 		 * state of the table. Although the internationalisation options presented by
@@ -143320,8 +143799,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnInfoCallback": null,
-	
-	
+
+
 		/**
 		 * Called when the table has been initialised. Normally DataTables will
 		 * initialise sequentially and there will be no need for this function,
@@ -143345,8 +143824,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"fnInitComplete": null,
-	
-	
+
+
 		/**
 		 * Called at the very start of each table draw and can be used to cancel the
 		 * draw by returning false, any other return (including undefined) results in
@@ -143371,8 +143850,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnPreDrawCallback": null,
-	
-	
+
+
 		/**
 		 * This function allows you to 'post process' each row after it have been
 		 * generated for each table draw, but before it is rendered on screen. This
@@ -143400,8 +143879,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnRowCallback": null,
-	
-	
+
+
 		/**
 		 * __Deprecated__ The functionality provided by this parameter has now been
 		 * superseded by that provided through `ajax`, which should be used instead.
@@ -143426,8 +143905,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @deprecated 1.10. Please use `ajax` for this functionality now.
 		 */
 		"fnServerData": null,
-	
-	
+
+
 		/**
 		 * __Deprecated__ The functionality provided by this parameter has now been
 		 * superseded by that provided through `ajax`, which should be used instead.
@@ -143453,8 +143932,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @deprecated 1.10. Please use `ajax` for this functionality now.
 		 */
 		"fnServerParams": null,
-	
-	
+
+
 		/**
 		 * Load the table state. With this function you can define from where, and how, the
 		 * state of a table is loaded. By default DataTables will load from `localStorage`
@@ -143496,8 +143975,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				return {};
 			}
 		},
-	
-	
+
+
 		/**
 		 * Callback which allows modification of the saved state prior to loading that state.
 		 * This callback is called when the table is loading state from the stored data, but
@@ -143534,8 +144013,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnStateLoadParams": null,
-	
-	
+
+
 		/**
 		 * Callback that is called when the state has been loaded from the state saving method
 		 * and the DataTables settings object has been modified as a result of the loaded state.
@@ -143558,8 +144037,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnStateLoaded": null,
-	
-	
+
+
 		/**
 		 * Save the table state. This function allows you to define where and how the state
 		 * information for the table is stored By default DataTables will use `localStorage`
@@ -143597,8 +144076,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				);
 			} catch (e) {}
 		},
-	
-	
+
+
 		/**
 		 * Callback which allows modification of the state to be saved. Called when the table
 		 * has changed state a new state save is required. This method allows modification of
@@ -143624,8 +144103,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnStateSaveParams": null,
-	
-	
+
+
 		/**
 		 * Duration for which the saved state information is considered valid. After this period
 		 * has elapsed the state will be returned to the default.
@@ -143644,8 +144123,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"iStateDuration": 7200,
-	
-	
+
+
 		/**
 		 * When enabled DataTables will not make a request to the server for the first
 		 * page draw - rather it will use the data already on the page (no sorting etc
@@ -143688,8 +144167,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"iDeferLoading": null,
-	
-	
+
+
 		/**
 		 * Number of rows to display on a single page when using pagination. If
 		 * feature enabled (`lengthChange`) then the end user will be able to override
@@ -143708,8 +144187,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"iDisplayLength": 10,
-	
-	
+
+
 		/**
 		 * Define the starting point for data display when using DataTables with
 		 * pagination. Note that this parameter is the number of records, rather than
@@ -143729,8 +144208,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"iDisplayStart": 0,
-	
-	
+
+
 		/**
 		 * By default DataTables allows keyboard navigation of the table (sorting, paging,
 		 * and filtering) by adding a `tabindex` attribute to the required elements. This
@@ -143752,8 +144231,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"iTabIndex": 0,
-	
-	
+
+
 		/**
 		 * Classes that DataTables assigns to the various components and features
 		 * that it adds to the HTML table. This allows classes to be configured
@@ -143763,8 +144242,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @name DataTable.defaults.classes
 		 */
 		"oClasses": {},
-	
-	
+
+
 		/**
 		 * All strings that DataTables uses in the user interface that it creates
 		 * are defined in this object, allowing you to modified them individually or
@@ -143803,7 +144282,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				 *    } );
 				 */
 				"sSortAscending": ": activate to sort column ascending",
-	
+
 				/**
 				 * ARIA label that is added to the table headers when the column may be
 				 * sorted descending by activing the column (click or return when focused).
@@ -143827,7 +144306,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				 */
 				"sSortDescending": ": activate to sort column descending"
 			},
-	
+
 			/**
 			 * Pagination string used by DataTables for the built-in pagination
 			 * control types.
@@ -143856,8 +144335,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				 *    } );
 				 */
 				"sFirst": "First",
-	
-	
+
+
 				/**
 				 * Text to use when using the 'full_numbers' type of pagination for the
 				 * button to take the user to the last page.
@@ -143879,8 +144358,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				 *    } );
 				 */
 				"sLast": "Last",
-	
-	
+
+
 				/**
 				 * Text to use for the 'next' pagination button (to take the user to the
 				 * next page).
@@ -143902,8 +144381,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				 *    } );
 				 */
 				"sNext": "Next",
-	
-	
+
+
 				/**
 				 * Text to use for the 'previous' pagination button (to take the user to
 				 * the previous page).
@@ -143926,7 +144405,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				 */
 				"sPrevious": "Previous"
 			},
-	
+
 			/**
 			 * This string is shown in preference to `zeroRecords` when the table is
 			 * empty of data (regardless of filtering). Note that this is an optional
@@ -143948,8 +144427,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sEmptyTable": "No data available in table",
-	
-	
+
+
 			/**
 			 * This string gives information to the end user about the information
 			 * that is current on display on the page. The following tokens can be
@@ -143980,8 +144459,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sInfo": "Showing _START_ to _END_ of _TOTAL_ entries",
-	
-	
+
+
 			/**
 			 * Display information string for when the table is empty. Typically the
 			 * format of this string should match `info`.
@@ -144001,8 +144480,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sInfoEmpty": "Showing 0 to 0 of 0 entries",
-	
-	
+
+
 			/**
 			 * When a user filters the information in a table, this string is appended
 			 * to the information (`info`) to give an idea of how strong the filtering
@@ -144023,8 +144502,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sInfoFiltered": "(filtered from _MAX_ total entries)",
-	
-	
+
+
 			/**
 			 * If can be useful to append extra information to the info string at times,
 			 * and this variable does exactly that. This information will be appended to
@@ -144046,8 +144525,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sInfoPostFix": "",
-	
-	
+
+
 			/**
 			 * This decimal place operator is a little different from the other
 			 * language options since DataTables doesn't output floating point
@@ -144061,7 +144540,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 * However, multiple different tables on the page can use different
 			 * decimal place characters.
 			 *  @type string
-			 *  @default 
+			 *  @default
 			 *
 			 *  @dtopt Language
 			 *  @name DataTable.defaults.language.decimal
@@ -144077,8 +144556,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sDecimal": "",
-	
-	
+
+
 			/**
 			 * DataTables has a build in number formatter (`formatNumber`) which is
 			 * used to format large numbers that are used in the table information.
@@ -144100,8 +144579,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sThousands": ",",
-	
-	
+
+
 			/**
 			 * Detail the action that will be taken when the drop down menu for the
 			 * pagination length option is changed. The '_MENU_' variable is replaced
@@ -144141,8 +144620,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sLengthMenu": "Show _MENU_ entries",
-	
-	
+
+
 			/**
 			 * When using Ajax sourced data and during the first draw when DataTables is
 			 * gathering the data, this message is shown in an empty row in the table to
@@ -144165,8 +144644,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sLoadingRecords": "Loading...",
-	
-	
+
+
 			/**
 			 * Text which is displayed when the table is processing a user action
 			 * (usually a sort command or similar).
@@ -144185,8 +144664,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sProcessing": "",
-	
-	
+
+
 			/**
 			 * Details the actions that will be taken when the user types into the
 			 * filtering input text box. The variable "_INPUT_", if used in the string,
@@ -144220,19 +144699,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sSearch": "Search:",
-	
-	
+
+
 			/**
 			 * Assign a `placeholder` attribute to the search `input` element
 			 *  @type string
-			 *  @default 
+			 *  @default
 			 *
 			 *  @dtopt Language
 			 *  @name DataTable.defaults.language.searchPlaceholder
 			 */
 			"sSearchPlaceholder": "",
-	
-	
+
+
 			/**
 			 * All of the language information can be stored in a file on the
 			 * server-side, which DataTables will look up if this parameter is passed.
@@ -144256,8 +144735,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    } );
 			 */
 			"sUrl": "",
-	
-	
+
+
 			/**
 			 * Text shown inside the table records when the is no information to be
 			 * displayed after filtering. `emptyTable` is shown when there is simply no
@@ -144279,8 +144758,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 */
 			"sZeroRecords": "No matching records found"
 		},
-	
-	
+
+
 		/**
 		 * This parameter allows you to have define the global filtering state at
 		 * initialisation time. As an object the `search` parameter must be
@@ -144303,8 +144782,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"oSearch": $.extend( {}, DataTable.models.oSearch ),
-	
-	
+
+
 		/**
 		 * __Deprecated__ The functionality provided by this parameter has now been
 		 * superseded by that provided through `ajax`, which should be used instead.
@@ -144324,8 +144803,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @deprecated 1.10. Please use `ajax` for this functionality now.
 		 */
 		"sAjaxDataProp": "data",
-	
-	
+
+
 		/**
 		 * __Deprecated__ The functionality provided by this parameter has now been
 		 * superseded by that provided through `ajax`, which should be used instead.
@@ -144343,8 +144822,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @deprecated 1.10. Please use `ajax` for this functionality now.
 		 */
 		"sAjaxSource": null,
-	
-	
+
+
 		/**
 		 * This initialisation variable allows you to specify exactly where in the
 		 * DOM you want DataTables to inject the various controls it adds to the page
@@ -144397,8 +144876,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sDom": "lfrtip",
-	
-	
+
+
 		/**
 		 * Search delay option. This will throttle full table searches that use the
 		 * DataTables provided search input element (it does not effect calls to
@@ -144417,8 +144896,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"searchDelay": null,
-	
-	
+
+
 		/**
 		 * DataTables features six different built-in options for the buttons to
 		 * display for pagination control:
@@ -144429,7 +144908,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 * * `full` - 'First', 'Previous', 'Next' and 'Last' buttons
 		 * * `full_numbers` - 'First', 'Previous', 'Next' and 'Last' buttons, plus page numbers
 		 * * `first_last_numbers` - 'First' and 'Last' buttons, plus page numbers
-		 *  
+		 *
 		 * Further methods can be added using {@link DataTable.ext.oPagination}.
 		 *  @type string
 		 *  @default simple_numbers
@@ -144445,8 +144924,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } )
 		 */
 		"sPaginationType": "simple_numbers",
-	
-	
+
+
 		/**
 		 * Enable horizontal scrolling. When a table is too wide to fit into a
 		 * certain layout, or you have a large number of columns in the table, you
@@ -144470,8 +144949,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sScrollX": "",
-	
-	
+
+
 		/**
 		 * This property can be used to force a DataTable to use more width than it
 		 * might otherwise do when x-scrolling is enabled. For example if you have a
@@ -144494,8 +144973,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sScrollXInner": "",
-	
-	
+
+
 		/**
 		 * Enable vertical scrolling. Vertical scrolling will constrain the DataTable
 		 * to the given height, and enable scrolling for any data which overflows the
@@ -144518,8 +144997,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sScrollY": "",
-	
-	
+
+
 		/**
 		 * __Deprecated__ The functionality provided by this parameter has now been
 		 * superseded by that provided through `ajax`, which should be used instead.
@@ -144536,8 +145015,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @deprecated 1.10. Please use `ajax` for this functionality now.
 		 */
 		"sServerMethod": "GET",
-	
-	
+
+
 		/**
 		 * DataTables makes use of renderers when displaying HTML elements for
 		 * a table. These renderers can be added or modified by plug-ins to
@@ -144554,8 +145033,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *
 		 */
 		"renderer": null,
-	
-	
+
+
 		/**
 		 * Set the data property name that DataTables should use to get a row's id
 		 * to set as the `id` property in the node.
@@ -144566,16 +145045,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 */
 		"rowId": "DT_RowId"
 	};
-	
+
 	_fnHungarianMap( DataTable.defaults );
-	
-	
-	
+
+
+
 	/*
 	 * Developer note - See note in model.defaults.js about the use of Hungarian
 	 * notation and camel case.
 	 */
-	
+
 	/**
 	 * Column options that can be given to DataTables at initialisation time.
 	 *  @namespace
@@ -144621,8 +145100,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 */
 		"aDataSort": null,
 		"iDataSort": -1,
-	
-	
+
+
 		/**
 		 * You can control the default ordering direction, and even alter the
 		 * behaviour of the sort handler (i.e. only allow ascending ordering etc)
@@ -144660,8 +145139,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"asSorting": [ 'asc', 'desc' ],
-	
-	
+
+
 		/**
 		 * Enable or disable filtering on the data in this column.
 		 *  @type boolean
@@ -144693,8 +145172,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bSearchable": true,
-	
-	
+
+
 		/**
 		 * Enable or disable ordering on this column.
 		 *  @type boolean
@@ -144726,8 +145205,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bSortable": true,
-	
-	
+
+
 		/**
 		 * Enable or disable the display of this column.
 		 *  @type boolean
@@ -144759,8 +145238,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"bVisible": true,
-	
-	
+
+
 		/**
 		 * Developer definable function that is called whenever a cell is created (Ajax source,
 		 * etc) or processed for input (DOM source). This can be used as a compliment to mRender
@@ -144791,8 +145270,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"fnCreatedCell": null,
-	
-	
+
+
 		/**
 		 * This parameter has been replaced by `data` in DataTables to ensure naming
 		 * consistency. `dataProp` can still be used, as there is backwards
@@ -144800,8 +145279,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 * recommended that you use `data` in preference to `dataProp`.
 		 *  @name DataTable.defaults.column.dataProp
 		 */
-	
-	
+
+
 		/**
 		 * This property can be used to read data from any data source property,
 		 * including deeply nested objects / properties. `data` can be given in a
@@ -144972,8 +145451,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *
 		 */
 		"mData": null,
-	
-	
+
+
 		/**
 		 * This property is the rendering partner to `data` and it is suggested that
 		 * when you want to manipulate data for display (including filtering,
@@ -145094,8 +145573,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"mRender": null,
-	
-	
+
+
 		/**
 		 * Change the cell type created for the column - either TD cells or TH cells. This
 		 * can be useful as TH cells have semantic meaning in the table body, allowing them
@@ -145118,8 +145597,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sCellType": "td",
-	
-	
+
+
 		/**
 		 * Class to give to each cell in this column.
 		 *  @type string
@@ -145153,7 +145632,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sClass": "",
-	
+
 		/**
 		 * When DataTables calculates the column widths to assign to each column,
 		 * it finds the longest string in each column and then constructs a
@@ -145186,8 +145665,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sContentPadding": "",
-	
-	
+
+
 		/**
 		 * Allows a default value to be given for a column's data, and will be used
 		 * whenever a null data source is encountered (this can be because `data`
@@ -145229,8 +145708,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sDefaultContent": null,
-	
-	
+
+
 		/**
 		 * This parameter is only used in DataTables' server-side processing. It can
 		 * be exceptionally useful to know what columns are being displayed on the
@@ -145273,8 +145752,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sName": "",
-	
-	
+
+
 		/**
 		 * Defines a data source type for the ordering which can be used to read
 		 * real-time information from the table (updating the internally cached
@@ -145315,8 +145794,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sSortDataType": "std",
-	
-	
+
+
 		/**
 		 * The title of this column.
 		 *  @type string
@@ -145351,8 +145830,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sTitle": null,
-	
-	
+
+
 		/**
 		 * The type allows you to specify how the data for this column will be
 		 * ordered. Four types (string, numeric, date and html (which will strip
@@ -145392,8 +145871,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		"sType": null,
-	
-	
+
+
 		/**
 		 * Defining the width of the column, this parameter may take any CSS value
 		 * (3em, 20px etc). DataTables applies 'smart' widths to columns which have not
@@ -145431,11 +145910,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 */
 		"sWidth": null
 	};
-	
+
 	_fnHungarianMap( DataTable.defaults.column );
-	
-	
-	
+
+
+
 	/**
 	 * DataTables settings object - this holds all the information needed for a
 	 * given table, including configuration, data and current application of the
@@ -145464,7 +145943,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @namespace
 		 */
 		"oFeatures": {
-	
+
 			/**
 			 * Flag to say if DataTables should automatically try to calculate the
 			 * optimum table and columns widths (true) or not (false).
@@ -145473,7 +145952,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bAutoWidth": null,
-	
+
 			/**
 			 * Delay the creation of TR and TD elements until they are actually
 			 * needed by a driven page draw. This can give a significant speed
@@ -145484,7 +145963,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bDeferRender": null,
-	
+
 			/**
 			 * Enable filtering on the table or not. Note that if this is disabled
 			 * then there is no filtering at all on the table, including fnFilter.
@@ -145494,7 +145973,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bFilter": null,
-	
+
 			/**
 			 * Table information element (the 'Showing x of y records' div) enable
 			 * flag.
@@ -145503,7 +145982,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bInfo": null,
-	
+
 			/**
 			 * Present a user control allowing the end user to change the page size
 			 * when pagination is enabled.
@@ -145512,7 +145991,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bLengthChange": null,
-	
+
 			/**
 			 * Pagination enabled or not. Note that if this is disabled then length
 			 * changing must also be disabled.
@@ -145521,7 +146000,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bPaginate": null,
-	
+
 			/**
 			 * Processing indicator enable flag whenever DataTables is enacting a
 			 * user request - typically an Ajax request for server-side processing.
@@ -145530,7 +146009,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bProcessing": null,
-	
+
 			/**
 			 * Server-side processing enabled flag - when enabled DataTables will
 			 * get all data from the server for every draw - there is no filtering,
@@ -145540,7 +146019,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bServerSide": null,
-	
+
 			/**
 			 * Sorting enablement flag.
 			 * Note that this parameter will be set by the initialisation routine. To
@@ -145548,7 +146027,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bSort": null,
-	
+
 			/**
 			 * Multi-column sorting
 			 * Note that this parameter will be set by the initialisation routine. To
@@ -145556,7 +146035,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bSortMulti": null,
-	
+
 			/**
 			 * Apply a class to the columns which are being sorted to provide a
 			 * visual highlight or not. This can slow things down when enabled since
@@ -145566,7 +146045,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bSortClasses": null,
-	
+
 			/**
 			 * State saving enablement flag.
 			 * Note that this parameter will be set by the initialisation routine. To
@@ -145575,8 +146054,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 */
 			"bStateSave": null
 		},
-	
-	
+
+
 		/**
 		 * Scrolling settings for a table.
 		 *  @namespace
@@ -145590,7 +146069,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type boolean
 			 */
 			"bCollapse": null,
-	
+
 			/**
 			 * Width of the scrollbar for the web-browser's platform. Calculated
 			 * during table initialisation.
@@ -145598,7 +146077,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @default 0
 			 */
 			"iBarWidth": 0,
-	
+
 			/**
 			 * Viewport width for horizontal scrolling. Horizontal scrolling is
 			 * disabled if an empty string.
@@ -145607,7 +146086,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @type string
 			 */
 			"sX": null,
-	
+
 			/**
 			 * Width to expand the table to when using x-scrolling. Typically you
 			 * should not need to use this.
@@ -145617,7 +146096,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @deprecated
 			 */
 			"sXInner": null,
-	
+
 			/**
 			 * Viewport height for vertical scrolling. Vertical scrolling is disabled
 			 * if an empty string.
@@ -145627,7 +146106,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 */
 			"sY": null
 		},
-	
+
 		/**
 		 * Language information for the table.
 		 *  @namespace
@@ -145642,7 +146121,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 */
 			"fnInfoCallback": null
 		},
-	
+
 		/**
 		 * Browser support parameters
 		 *  @namespace
@@ -145655,7 +146134,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @default false
 			 */
 			"bScrollOversize": false,
-	
+
 			/**
 			 * Determine if the vertical scrollbar is on the right or left of the
 			 * scrolling container - needed for rtl language layout, although not
@@ -145664,14 +146143,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *  @default false
 			 */
 			"bScrollbarLeft": false,
-	
+
 			/**
 			 * Flag for if `getBoundingClientRect` is fully supported or not
 			 *  @type boolean
 			 *  @default false
 			 */
 			"bBounding": false,
-	
+
 			/**
 			 * Browser scrollbar width
 			 *  @type integer
@@ -145679,11 +146158,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 */
 			"barWidth": 0
 		},
-	
-	
+
+
 		"ajax": null,
-	
-	
+
+
 		/**
 		 * Array referencing the nodes which are used for the features. The
 		 * parameters of this object match what is allowed by sDom - i.e.
@@ -145699,7 +146178,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aanFeatures": [],
-	
+
 		/**
 		 * Store data information - see {@link DataTable.models.oRow} for detailed
 		 * information.
@@ -145707,49 +146186,49 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoData": [],
-	
+
 		/**
 		 * Array of indexes which are in the current display (after filtering etc)
 		 *  @type array
 		 *  @default []
 		 */
 		"aiDisplay": [],
-	
+
 		/**
 		 * Array of indexes for display - no filtering
 		 *  @type array
 		 *  @default []
 		 */
 		"aiDisplayMaster": [],
-	
+
 		/**
 		 * Map of row ids to data indexes
 		 *  @type object
 		 *  @default {}
 		 */
 		"aIds": {},
-	
+
 		/**
 		 * Store information about each column that is in use
 		 *  @type array
 		 *  @default []
 		 */
 		"aoColumns": [],
-	
+
 		/**
 		 * Store information about the table's header
 		 *  @type array
 		 *  @default []
 		 */
 		"aoHeader": [],
-	
+
 		/**
 		 * Store information about the table's footer
 		 *  @type array
 		 *  @default []
 		 */
 		"aoFooter": [],
-	
+
 		/**
 		 * Store the applied global search information in case we want to force a
 		 * research or compare the old search to a new one.
@@ -145759,7 +146238,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @extends DataTable.models.oSearch
 		 */
 		"oPreviousSearch": {},
-	
+
 		/**
 		 * Store the applied search for each column - see
 		 * {@link DataTable.models.oSearch} for the format that is used for the
@@ -145768,7 +146247,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoPreSearchCols": [],
-	
+
 		/**
 		 * Sorting that is applied to the table. Note that the inner arrays are
 		 * used in the following manner:
@@ -145782,7 +146261,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @todo These inner arrays should really be objects
 		 */
 		"aaSorting": null,
-	
+
 		/**
 		 * Sorting that is always applied to the table (i.e. prefixed in front of
 		 * aaSorting).
@@ -145792,7 +146271,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aaSortingFixed": [],
-	
+
 		/**
 		 * Classes to use for the striping of a table.
 		 * Note that this parameter will be set by the initialisation routine. To
@@ -145801,56 +146280,56 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"asStripeClasses": null,
-	
+
 		/**
 		 * If restoring a table - we should restore its striping classes as well
 		 *  @type array
 		 *  @default []
 		 */
 		"asDestroyStripes": [],
-	
+
 		/**
 		 * If restoring a table - we should restore its width
 		 *  @type int
 		 *  @default 0
 		 */
 		"sDestroyWidth": 0,
-	
+
 		/**
 		 * Callback functions array for every time a row is inserted (i.e. on a draw).
 		 *  @type array
 		 *  @default []
 		 */
 		"aoRowCallback": [],
-	
+
 		/**
 		 * Callback functions for the header on each draw.
 		 *  @type array
 		 *  @default []
 		 */
 		"aoHeaderCallback": [],
-	
+
 		/**
 		 * Callback function for the footer on each draw.
 		 *  @type array
 		 *  @default []
 		 */
 		"aoFooterCallback": [],
-	
+
 		/**
 		 * Array of callback functions for draw callback functions
 		 *  @type array
 		 *  @default []
 		 */
 		"aoDrawCallback": [],
-	
+
 		/**
 		 * Array of callback functions for row created function
 		 *  @type array
 		 *  @default []
 		 */
 		"aoRowCreatedCallback": [],
-	
+
 		/**
 		 * Callback functions for just before the table is redrawn. A return of
 		 * false will be used to cancel the draw.
@@ -145858,15 +146337,15 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoPreDrawCallback": [],
-	
+
 		/**
 		 * Callback functions for when the table has been initialised.
 		 *  @type array
 		 *  @default []
 		 */
 		"aoInitComplete": [],
-	
-	
+
+
 		/**
 		 * Callbacks for modifying the settings to be stored for state saving, prior to
 		 * saving state.
@@ -145874,7 +146353,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoStateSaveParams": [],
-	
+
 		/**
 		 * Callbacks for modifying the settings that have been stored for state saving
 		 * prior to using the stored values to restore the state.
@@ -145882,7 +146361,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoStateLoadParams": [],
-	
+
 		/**
 		 * Callbacks for operating on the settings object once the saved state has been
 		 * loaded
@@ -145890,49 +146369,49 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoStateLoaded": [],
-	
+
 		/**
 		 * Cache the table ID for quick access
 		 *  @type string
 		 *  @default <i>Empty string</i>
 		 */
 		"sTableId": "",
-	
+
 		/**
 		 * The TABLE node for the main table
 		 *  @type node
 		 *  @default null
 		 */
 		"nTable": null,
-	
+
 		/**
 		 * Permanent ref to the thead element
 		 *  @type node
 		 *  @default null
 		 */
 		"nTHead": null,
-	
+
 		/**
 		 * Permanent ref to the tfoot element - if it exists
 		 *  @type node
 		 *  @default null
 		 */
 		"nTFoot": null,
-	
+
 		/**
 		 * Permanent ref to the tbody element
 		 *  @type node
 		 *  @default null
 		 */
 		"nTBody": null,
-	
+
 		/**
 		 * Cache the wrapper node (contains all DataTables controlled elements)
 		 *  @type node
 		 *  @default null
 		 */
 		"nTableWrapper": null,
-	
+
 		/**
 		 * Indicate if when using server-side processing the loading of data
 		 * should be deferred until the second draw.
@@ -145942,14 +146421,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default false
 		 */
 		"bDeferLoading": false,
-	
+
 		/**
 		 * Indicate if all required information has been read in
 		 *  @type boolean
 		 *  @default false
 		 */
 		"bInitialised": false,
-	
+
 		/**
 		 * Information about open rows. Each object in the array has the parameters
 		 * 'nTr' and 'nParent'
@@ -145957,7 +146436,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoOpenRows": [],
-	
+
 		/**
 		 * Dictate the positioning of DataTables' control elements - see
 		 * {@link DataTable.model.oInit.sDom}.
@@ -145967,14 +146446,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"sDom": null,
-	
+
 		/**
 		 * Search delay (in mS)
 		 *  @type integer
 		 *  @default null
 		 */
 		"searchDelay": null,
-	
+
 		/**
 		 * Which type of pagination should be used.
 		 * Note that this parameter will be set by the initialisation routine. To
@@ -145983,7 +146462,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default two_button
 		 */
 		"sPaginationType": "two_button",
-	
+
 		/**
 		 * The state duration (for `stateSave`) in seconds.
 		 * Note that this parameter will be set by the initialisation routine. To
@@ -145992,7 +146471,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default 0
 		 */
 		"iStateDuration": 0,
-	
+
 		/**
 		 * Array of callback functions for state saving. Each array element is an
 		 * object with the following parameters:
@@ -146007,7 +146486,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoStateSave": [],
-	
+
 		/**
 		 * Array of callback functions for state loading. Each array element is an
 		 * object with the following parameters:
@@ -146020,21 +146499,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoStateLoad": [],
-	
+
 		/**
 		 * State that was saved. Useful for back reference
 		 *  @type object
 		 *  @default null
 		 */
 		"oSavedState": null,
-	
+
 		/**
 		 * State that was loaded. Useful for back reference
 		 *  @type object
 		 *  @default null
 		 */
 		"oLoadedState": null,
-	
+
 		/**
 		 * Source url for AJAX data for the table.
 		 * Note that this parameter will be set by the initialisation routine. To
@@ -146043,7 +146522,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"sAjaxSource": null,
-	
+
 		/**
 		 * Property from a given object from which to read the table data from. This
 		 * can be an empty string (when not server-side processing), in which case
@@ -146053,7 +146532,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @type string
 		 */
 		"sAjaxDataProp": null,
-	
+
 		/**
 		 * The last jQuery XHR object that was used for server-side data gathering.
 		 * This can be used for working with the XHR information in one of the
@@ -146062,21 +146541,21 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"jqXHR": null,
-	
+
 		/**
 		 * JSON returned from the server in the last Ajax request
 		 *  @type object
 		 *  @default undefined
 		 */
 		"json": undefined$1,
-	
+
 		/**
 		 * Data submitted as part of the last Ajax request
 		 *  @type object
 		 *  @default undefined
 		 */
 		"oAjaxData": undefined$1,
-	
+
 		/**
 		 * Function to get the server-side data.
 		 * Note that this parameter will be set by the initialisation routine. To
@@ -146084,7 +146563,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @type function
 		 */
 		"fnServerData": null,
-	
+
 		/**
 		 * Functions which are called prior to sending an Ajax request so extra
 		 * parameters can easily be sent to the server
@@ -146092,7 +146571,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoServerParams": [],
-	
+
 		/**
 		 * Send the XHR HTTP method - GET or POST (could be PUT or DELETE if
 		 * required).
@@ -146101,7 +146580,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @type string
 		 */
 		"sServerMethod": null,
-	
+
 		/**
 		 * Format numbers for display.
 		 * Note that this parameter will be set by the initialisation routine. To
@@ -146109,7 +146588,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @type function
 		 */
 		"fnFormatNumber": null,
-	
+
 		/**
 		 * List of options that can be used for the user selectable length menu.
 		 * Note that this parameter will be set by the initialisation routine. To
@@ -146118,7 +146597,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aLengthMenu": null,
-	
+
 		/**
 		 * Counter for the draws that the table does. Also used as a tracker for
 		 * server-side processing
@@ -146126,35 +146605,35 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default 0
 		 */
 		"iDraw": 0,
-	
+
 		/**
 		 * Indicate if a redraw is being done - useful for Ajax
 		 *  @type boolean
 		 *  @default false
 		 */
 		"bDrawing": false,
-	
+
 		/**
 		 * Draw index (iDraw) of the last error when parsing the returned data
 		 *  @type int
 		 *  @default -1
 		 */
 		"iDrawError": -1,
-	
+
 		/**
 		 * Paging display length
 		 *  @type int
 		 *  @default 10
 		 */
 		"_iDisplayLength": 10,
-	
+
 		/**
 		 * Paging start point - aiDisplay index
 		 *  @type int
 		 *  @default 0
 		 */
 		"_iDisplayStart": 0,
-	
+
 		/**
 		 * Server-side processing - number of records in the result set
 		 * (i.e. before filtering), Use fnRecordsTotal rather than
@@ -146165,7 +146644,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"_iRecordsTotal": 0,
-	
+
 		/**
 		 * Server-side processing - number of records in the current display set
 		 * (i.e. after filtering). Use fnRecordsDisplay rather than
@@ -146176,14 +146655,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @private
 		 */
 		"_iRecordsDisplay": 0,
-	
+
 		/**
 		 * The classes to use for the table
 		 *  @type object
 		 *  @default {}
 		 */
 		"oClasses": {},
-	
+
 		/**
 		 * Flag attached to the settings object so you can check in the draw
 		 * callback if filtering has been done in the draw. Deprecated in favour of
@@ -146193,7 +146672,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @deprecated
 		 */
 		"bFiltered": false,
-	
+
 		/**
 		 * Flag attached to the settings object so you can check in the draw
 		 * callback if sorting has been done in the draw. Deprecated in favour of
@@ -146203,7 +146682,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @deprecated
 		 */
 		"bSorted": false,
-	
+
 		/**
 		 * Indicate that if multiple rows are in the header and there is more than
 		 * one unique cell per column, if the top one (true) or bottom one (false)
@@ -146213,14 +146692,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @type boolean
 		 */
 		"bSortCellsTop": null,
-	
+
 		/**
 		 * Initialisation object that is used for the table
 		 *  @type object
 		 *  @default null
 		 */
 		"oInit": null,
-	
+
 		/**
 		 * Destroy callback functions - for plug-ins to attach themselves to the
 		 * destroy so they can clean up markup and events.
@@ -146228,8 +146707,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default []
 		 */
 		"aoDestroyCallback": [],
-	
-	
+
+
 		/**
 		 * Get the number of records in the current record set, before filtering
 		 *  @type function
@@ -146240,7 +146719,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				this._iRecordsTotal * 1 :
 				this.aiDisplayMaster.length;
 		},
-	
+
 		/**
 		 * Get the number of records in the current record set, after filtering
 		 *  @type function
@@ -146251,7 +146730,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				this._iRecordsDisplay * 1 :
 				this.aiDisplay.length;
 		},
-	
+
 		/**
 		 * Get the display end point - aiDisplay index
 		 *  @type function
@@ -146265,7 +146744,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				records  = this.aiDisplay.length,
 				features = this.oFeatures,
 				paginate = features.bPaginate;
-	
+
 			if ( features.bServerSide ) {
 				return paginate === false || len === -1 ?
 					start + records :
@@ -146277,14 +146756,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					calc;
 			}
 		},
-	
+
 		/**
 		 * The DataTables object for this table
 		 *  @type object
 		 *  @default null
 		 */
 		"oInstance": null,
-	
+
 		/**
 		 * Unique identifier for each instance of the DataTables object. If there
 		 * is an ID on the table node, then it takes that value, otherwise an
@@ -146293,44 +146772,44 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default null
 		 */
 		"sInstance": null,
-	
+
 		/**
 		 * tabindex attribute value that is added to DataTables control elements, allowing
 		 * keyboard navigation of the table and its controls.
 		 */
 		"iTabIndex": 0,
-	
+
 		/**
 		 * DIV container for the footer scrolling table if scrolling
 		 */
 		"nScrollHead": null,
-	
+
 		/**
 		 * DIV container for the footer scrolling table if scrolling
 		 */
 		"nScrollFoot": null,
-	
+
 		/**
 		 * Last applied sort
 		 *  @type array
 		 *  @default []
 		 */
 		"aLastSort": [],
-	
+
 		/**
 		 * Stored plug-in instances
 		 *  @type object
 		 *  @default {}
 		 */
 		"oPlugins": {},
-	
+
 		/**
 		 * Function used to get a row's id from the row's data
 		 *  @type function
 		 *  @default null
 		 */
 		"rowIdFn": null,
-	
+
 		/**
 		 * Data location where to store a row's id
 		 *  @type string
@@ -146338,7 +146817,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 */
 		"rowId": null
 	};
-	
+
 	/**
 	 * Extension object for DataTables that is used to provide all extension
 	 * options.
@@ -146349,11 +146828,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 	 *  @namespace
 	 *  @extends DataTable.models.ext
 	 */
-	
-	
+
+
 	/**
 	 * DataTables extensions
-	 * 
+	 *
 	 * This namespace acts as a collection area for plug-ins that can be used to
 	 * extend DataTables capabilities. Indeed many of the build in methods
 	 * use this method to provide their own capabilities (sorting methods for
@@ -146374,8 +146853,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default {}
 		 */
 		buttons: {},
-	
-	
+
+
 		/**
 		 * Element class names
 		 *
@@ -146383,19 +146862,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default {}
 		 */
 		classes: {},
-	
-	
+
+
 		/**
 		 * DataTables build type (expanded by the download builder)
 		 *
 		 *  @type string
 		 */
 		builder: "-source-",
-	
-	
+
+
 		/**
 		 * Error reporting.
-		 * 
+		 *
 		 * How should DataTables report an error. Can take the value 'alert',
 		 * 'throw', 'none' or a function.
 		 *
@@ -146403,18 +146882,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default alert
 		 */
 		errMode: "alert",
-	
-	
+
+
 		/**
 		 * Feature plug-ins.
-		 * 
+		 *
 		 * This is an array of objects which describe the feature plug-ins that are
 		 * available to DataTables. These feature plug-ins are then available for
 		 * use through the `dom` initialisation option.
-		 * 
+		 *
 		 * Each feature plug-in is described by an object which must have the
 		 * following properties:
-		 * 
+		 *
 		 * * `fnInit` - function that is used to initialise the plug-in,
 		 * * `cFeature` - a character so the feature can be enabled by the `dom`
 		 *   instillation option. This is case sensitive.
@@ -146425,7 +146904,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    {@link DataTable.models.oSettings}
 		 *
 		 * And the following return is expected:
-		 * 
+		 *
 		 * * {node|null} The element which contains your feature. Note that the
 		 *   return may also be void if your plug-in does not require to inject any
 		 *   DOM elements into DataTables control (`dom`) - for example this might
@@ -146443,11 +146922,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    } );
 		 */
 		feature: [],
-	
-	
+
+
 		/**
 		 * Row searching.
-		 * 
+		 *
 		 * This method of searching is complimentary to the default type based
 		 * searching, and a lot more comprehensive as it allows you complete control
 		 * over the searching logic. Each element in this array is a function
@@ -146504,8 +146983,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    );
 		 */
 		search: [],
-	
-	
+
+
 		/**
 		 * Selector extensions
 		 *
@@ -146535,11 +147014,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			column: [],
 			row: []
 		},
-	
-	
+
+
 		/**
 		 * Internal functions, exposed for used in plug-ins.
-		 * 
+		 *
 		 * Please note that you should not need to use the internal methods for
 		 * anything other than a plug-in (and even then, try to avoid if possible).
 		 * The internal function may change between releases.
@@ -146548,8 +147027,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *  @default {}
 		 */
 		internal: {},
-	
-	
+
+
 		/**
 		 * Legacy configuration options. Enable and disable legacy options that
 		 * are available in DataTables.
@@ -146566,11 +147045,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 */
 			ajax: null
 		},
-	
-	
+
+
 		/**
 		 * Pagination plug-in methods.
-		 * 
+		 *
 		 * Each entry in this object is a function and defines which buttons should
 		 * be shown by the pagination rendering method that is used for the table:
 		 * {@link DataTable.ext.renderer.pageButton}. The renderer addresses how the
@@ -146614,26 +147093,26 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    };
 		 */
 		pager: {},
-	
-	
+
+
 		renderer: {
 			pageButton: {},
 			header: {}
 		},
-	
-	
+
+
 		/**
 		 * Ordering plug-ins - custom data source
-		 * 
+		 *
 		 * The extension options for ordering of data available here is complimentary
 		 * to the default type based ordering that DataTables typically uses. It
 		 * allows much greater control over the the data that is being used to
 		 * order a column, but is necessarily therefore more complex.
-		 * 
+		 *
 		 * This type of ordering is useful if you want to do ordering based on data
 		 * live from the DOM (for example the contents of an 'input' element) rather
 		 * than just the static string that DataTables knows of.
-		 * 
+		 *
 		 * The way these plug-ins work is that you create an array of the values you
 		 * wish to be ordering for the column in question and then return that
 		 * array. The data in the array much be in the index order of the rows in
@@ -146663,8 +147142,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 *    }
 		 */
 		order: {},
-	
-	
+
+
 		/**
 		 * Type based plug-ins.
 		 *
@@ -146717,8 +147196,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    );
 			 */
 			detect: [],
-	
-	
+
+
 			/**
 			 * Type based search formatting.
 			 *
@@ -146728,7 +147207,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *
 			 * Note that is a search is not defined for a column of a given type,
 			 * no search formatting will be performed.
-			 * 
+			 *
 			 * Pre-processing of searching data plug-ins - When you assign the sType
 			 * for a column (or have it automatically detected for you by DataTables
 			 * or a type detection plug-in), you will typically be using this for
@@ -146756,8 +147235,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *    }
 			 */
 			search: {},
-	
-	
+
+
 			/**
 			 * Type based ordering.
 			 *
@@ -146798,7 +147277,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 *   than the second parameter, ===0 if the two parameters are equal and
 			 *   >0 if the first parameter should be sorted height than the second
 			 *   parameter.
-			 * 
+			 *
 			 *  @type object
 			 *  @default {}
 			 *
@@ -146824,7 +147303,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			 */
 			order: {}
 		},
-	
+
 		/**
 		 * Unique DataTables instance counter
 		 *
@@ -146832,39 +147311,39 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 * @private
 		 */
 		_unique: 0,
-	
-	
+
+
 		//
 		// Depreciated
 		// The following properties are retained for backwards compatibility only.
 		// The should not be used in new projects and will be removed in a future
 		// version
 		//
-	
+
 		/**
 		 * Version check function.
 		 *  @type function
 		 *  @depreciated Since 1.10
 		 */
 		fnVersionCheck: DataTable.fnVersionCheck,
-	
-	
+
+
 		/**
 		 * Index for what 'this' index API functions should use
 		 *  @type int
 		 *  @deprecated Since v1.10
 		 */
 		iApiIndex: 0,
-	
-	
+
+
 		/**
 		 * jQuery UI class container
 		 *  @type object
 		 *  @deprecated Since v1.10
 		 */
 		oJUIClasses: {},
-	
-	
+
+
 		/**
 		 * Software version
 		 *  @type string
@@ -146872,8 +147351,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		 */
 		sVersion: DataTable.version
 	};
-	
-	
+
+
 	//
 	// Backwards compatibility. Alias to pre 1.10 Hungarian notation counter parts
 	//
@@ -146888,24 +147367,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		oStdClasses:  _ext.classes,
 		oPagination:  _ext.pager
 	} );
-	
-	
+
+
 	$.extend( DataTable.ext.classes, {
 		"sTable": "dataTable",
 		"sNoFooter": "no-footer",
-	
+
 		/* Paging buttons */
 		"sPageButton": "paginate_button",
 		"sPageButtonActive": "current",
 		"sPageButtonDisabled": "disabled",
-	
+
 		/* Striping classes */
 		"sStripeOdd": "odd",
 		"sStripeEven": "even",
-	
+
 		/* Empty row */
 		"sRowEmpty": "dataTables_empty",
-	
+
 		/* Features */
 		"sWrapper": "dataTables_wrapper",
 		"sFilter": "dataTables_filter",
@@ -146913,7 +147392,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		"sPaging": "dataTables_paginate paging_", /* Note that the type is postfixed */
 		"sLength": "dataTables_length",
 		"sProcessing": "dataTables_processing",
-	
+
 		/* Sorting */
 		"sSortAsc": "sorting_asc",
 		"sSortDesc": "sorting_desc",
@@ -146922,13 +147401,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		"sSortableDesc": "sorting_asc_disabled",
 		"sSortableNone": "sorting_disabled",
 		"sSortColumn": "sorting_", /* Note that an int is postfixed for the sorting order */
-	
+
 		/* Filtering */
 		"sFilterInput": "",
-	
+
 		/* Page length */
 		"sLengthSelect": "",
-	
+
 		/* Scrolling */
 		"sScrollWrapper": "dataTables_scroll",
 		"sScrollHead": "dataTables_scrollHead",
@@ -146936,11 +147415,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		"sScrollBody": "dataTables_scrollBody",
 		"sScrollFoot": "dataTables_scrollFoot",
 		"sScrollFootInner": "dataTables_scrollFootInner",
-	
+
 		/* Misc */
 		"sHeaderTH": "",
 		"sFooterTH": "",
-	
+
 		// Deprecated
 		"sSortJUIAsc": "",
 		"sSortJUIDesc": "",
@@ -146952,15 +147431,15 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		"sJUIHeader": "",
 		"sJUIFooter": ""
 	} );
-	
-	
+
+
 	var extPagination = DataTable.ext.pager;
-	
+
 	function _numbers ( page, pages ) {
 		var numbers = [],
 			buttons = extPagination.numbers_length,
 			half = Math.floor( buttons / 2 );
-	
+
 		if ( pages <= buttons ) {
 			numbers = _range( 0, pages );
 		}
@@ -146981,45 +147460,45 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			numbers.splice( 0, 0, 'ellipsis' );
 			numbers.splice( 0, 0, 0 );
 		}
-	
+
 		numbers.DT_el = 'span';
 		return numbers;
 	}
-	
-	
+
+
 	$.extend( extPagination, {
 		simple: function ( page, pages ) {
 			return [ 'previous', 'next' ];
 		},
-	
+
 		full: function ( page, pages ) {
 			return [  'first', 'previous', 'next', 'last' ];
 		},
-	
+
 		numbers: function ( page, pages ) {
 			return [ _numbers(page, pages) ];
 		},
-	
+
 		simple_numbers: function ( page, pages ) {
 			return [ 'previous', _numbers(page, pages), 'next' ];
 		},
-	
+
 		full_numbers: function ( page, pages ) {
 			return [ 'first', 'previous', _numbers(page, pages), 'next', 'last' ];
 		},
-		
+
 		first_last_numbers: function (page, pages) {
 	 		return ['first', _numbers(page, pages), 'last'];
 	 	},
-	
+
 		// For testing and plug-ins to use
 		_numbers: _numbers,
-	
+
 		// Number of number buttons (including ellipsis) to show. _Must be odd!_
 		numbers_length: 7
 	} );
-	
-	
+
+
 	$.extend( true, DataTable.ext.renderer, {
 		pageButton: {
 			_: function ( settings, host, idx, buttons, page, pages ) {
@@ -147027,17 +147506,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				var lang = settings.oLanguage.oPaginate;
 				var aria = settings.oLanguage.oAria.paginate || {};
 				var btnDisplay, btnClass, counter=0;
-	
+
 				var attach = function( container, buttons ) {
 					var i, ien, node, button, tabIndex;
 					var disabledClass = classes.sPageButtonDisabled;
 					var clickHandler = function ( e ) {
 						_fnPageChange( settings, e.data.action, true );
 					};
-	
+
 					for ( i=0, ien=buttons.length ; i<ien ; i++ ) {
 						button = buttons[i];
-	
+
 						if ( Array.isArray( button ) ) {
 							var inner = $( '<'+(button.DT_el || 'div')+'/>' )
 								.appendTo( container );
@@ -147047,55 +147526,55 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 							btnDisplay = null;
 							btnClass = button;
 							tabIndex = settings.iTabIndex;
-	
+
 							switch ( button ) {
 								case 'ellipsis':
 									container.append('<span class="ellipsis">&#x2026;</span>');
 									break;
-	
+
 								case 'first':
 									btnDisplay = lang.sFirst;
-	
+
 									if ( page === 0 ) {
 										tabIndex = -1;
 										btnClass += ' ' + disabledClass;
 									}
 									break;
-	
+
 								case 'previous':
 									btnDisplay = lang.sPrevious;
-	
+
 									if ( page === 0 ) {
 										tabIndex = -1;
 										btnClass += ' ' + disabledClass;
 									}
 									break;
-	
+
 								case 'next':
 									btnDisplay = lang.sNext;
-	
+
 									if ( pages === 0 || page === pages-1 ) {
 										tabIndex = -1;
 										btnClass += ' ' + disabledClass;
 									}
 									break;
-	
+
 								case 'last':
 									btnDisplay = lang.sLast;
-	
+
 									if ( pages === 0 || page === pages-1 ) {
 										tabIndex = -1;
 										btnClass += ' ' + disabledClass;
 									}
 									break;
-	
+
 								default:
 									btnDisplay = settings.fnFormatNumber( button + 1 );
 									btnClass = page === button ?
 										classes.sPageButtonActive : '';
 									break;
 							}
-	
+
 							if ( btnDisplay !== null ) {
 								node = $('<a>', {
 										'class': classes.sPageButton+' '+btnClass,
@@ -147109,22 +147588,22 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 									} )
 									.html( btnDisplay )
 									.appendTo( container );
-	
+
 								_fnBindAction(
 									node, {action: button}, clickHandler
 								);
-	
+
 								counter++;
 							}
 						}
 					}
 				};
-	
+
 				// IE9 throws an 'unknown error' if document.activeElement is used
 				// inside an iframe or frame. Try / catch the error. Not good for
 				// accessibility, but neither are frames.
 				var activeEl;
-	
+
 				try {
 					// Because this approach is destroying and recreating the paging
 					// elements, focus is lost on the select button which is bad for
@@ -147133,18 +147612,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					activeEl = $(host).find(document.activeElement).data('dt-idx');
 				}
 				catch (e) {}
-	
+
 				attach( $(host).empty(), buttons );
-	
+
 				if ( activeEl !== undefined$1 ) {
 					$(host).find( '[data-dt-idx='+activeEl+']' ).trigger('focus');
 				}
 			}
 		}
 	} );
-	
-	
-	
+
+
+
 	// Built in type detection. See model.ext.aTypes for information about
 	// what is required from this methods.
 	$.extend( DataTable.ext.type.detect, [
@@ -147155,7 +147634,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var decimal = settings.oLanguage.sDecimal;
 			return _isNumber( d, decimal ) ? 'num'+decimal : null;
 		},
-	
+
 		// Dates (only those recognised by the browser's Date.parse)
 		function ( d, settings )
 		{
@@ -147168,28 +147647,28 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var parsed = Date.parse(d);
 			return (parsed !== null && !isNaN(parsed)) || _empty(d) ? 'date' : null;
 		},
-	
+
 		// Formatted numbers
 		function ( d, settings )
 		{
 			var decimal = settings.oLanguage.sDecimal;
 			return _isNumber( d, decimal, true ) ? 'num-fmt'+decimal : null;
 		},
-	
+
 		// HTML numeric
 		function ( d, settings )
 		{
 			var decimal = settings.oLanguage.sDecimal;
 			return _htmlNumeric( d, decimal ) ? 'html-num'+decimal : null;
 		},
-	
+
 		// HTML numeric, formatted
 		function ( d, settings )
 		{
 			var decimal = settings.oLanguage.sDecimal;
 			return _htmlNumeric( d, decimal, true ) ? 'html-num-fmt'+decimal : null;
 		},
-	
+
 		// HTML (this is strict checking - there must be html)
 		function ( d, settings )
 		{
@@ -147197,17 +147676,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				'html' : null;
 		}
 	] );
-	
-	
-	
+
+
+
 	// Filter formatting functions. See model.ext.ofnSearch for information about
 	// what is required from these methods.
-	// 
+	//
 	// Note that additional search methods are added for the html numbers and
 	// html formatted numbers by `_addNumericSort()` when we know what the decimal
 	// place is
-	
-	
+
+
 	$.extend( DataTable.ext.type.search, {
 		html: function ( data ) {
 			return _empty(data) ?
@@ -147218,7 +147697,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						.replace( _re_html, "" ) :
 					'';
 		},
-	
+
 		string: function ( data ) {
 			return _empty(data) ?
 				data :
@@ -147227,35 +147706,35 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					data;
 		}
 	} );
-	
-	
-	
+
+
+
 	var __numericReplace = function ( d, decimalPlace, re1, re2 ) {
 		if ( d !== 0 && (!d || d === '-') ) {
 			return -Infinity;
 		}
-	
+
 		// If a decimal place other than `.` is used, it needs to be given to the
 		// function so we can detect it and replace with a `.` which is the only
 		// decimal place Javascript recognises - it is not locale aware.
 		if ( decimalPlace ) {
 			d = _numToDecimal( d, decimalPlace );
 		}
-	
+
 		if ( d.replace ) {
 			if ( re1 ) {
 				d = d.replace( re1, '' );
 			}
-	
+
 			if ( re2 ) {
 				d = d.replace( re2, '' );
 			}
 		}
-	
+
 		return d * 1;
 	};
-	
-	
+
+
 	// Add the numeric 'deformatting' functions for sorting and search. This is done
 	// in a function to provide an easy ability for the language options to add
 	// additional methods if a non-period decimal place is used.
@@ -147266,17 +147745,17 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				"num": function ( d ) {
 					return __numericReplace( d, decimalPlace );
 				},
-	
+
 				// Formatted numbers
 				"num-fmt": function ( d ) {
 					return __numericReplace( d, decimalPlace, _re_formatted_numeric );
 				},
-	
+
 				// HTML numeric
 				"html-num": function ( d ) {
 					return __numericReplace( d, decimalPlace, _re_html );
 				},
-	
+
 				// HTML numeric, formatted
 				"html-num-fmt": function ( d ) {
 					return __numericReplace( d, decimalPlace, _re_html, _re_formatted_numeric );
@@ -147285,7 +147764,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			function ( key, fn ) {
 				// Add the ordering method
 				_ext.type.order[ key+decimalPlace+'-pre' ] = fn;
-	
+
 				// For HTML types add a search formatter that will strip the HTML
 				if ( key.match(/^html\-/) ) {
 					_ext.type.search[ key+decimalPlace ] = _ext.type.search.html;
@@ -147293,8 +147772,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		);
 	}
-	
-	
+
+
 	// Default sort methods
 	$.extend( _ext.type.order, {
 		// Dates
@@ -147302,7 +147781,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			var ts = Date.parse( d );
 			return isNaN(ts) ? -Infinity : ts;
 		},
-	
+
 		// html
 		"html-pre": function ( a ) {
 			return _empty(a) ?
@@ -147311,7 +147790,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					a.replace( /<.*?>/g, "" ).toLowerCase() :
 					a+'';
 		},
-	
+
 		// string
 		"string-pre": function ( a ) {
 			// This is a little complex, but faster than always calling toString,
@@ -147324,23 +147803,23 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						'' :
 						a.toString();
 		},
-	
+
 		// string-asc and -desc are retained only for compatibility with the old
 		// sort methods
 		"string-asc": function ( x, y ) {
 			return ((x < y) ? -1 : ((x > y) ? 1 : 0));
 		},
-	
+
 		"string-desc": function ( x, y ) {
 			return ((x < y) ? 1 : ((x > y) ? -1 : 0));
 		}
 	} );
-	
-	
+
+
 	// Numeric sorting types - order doesn't matter here
 	_addNumericSort( '' );
-	
-	
+
+
 	$.extend( true, DataTable.ext.renderer, {
 		header: {
 			_: function ( settings, cell, column, classes ) {
@@ -147353,9 +147832,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 					if ( settings !== ctx ) { // need to check this this is the host
 						return;               // table, not a nested one
 					}
-	
+
 					var colIdx = column.idx;
-	
+
 					cell
 						.removeClass(
 							classes.sSortAsc +' '+
@@ -147368,7 +147847,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						);
 				} );
 			},
-	
+
 			jqueryui: function ( settings, cell, column, classes ) {
 				$('<div/>')
 					.addClass( classes.sSortJUIWrapper )
@@ -147377,15 +147856,15 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						.addClass( classes.sSortIcon+' '+column.sSortingClassJUI )
 					)
 					.appendTo( cell );
-	
+
 				// Attach a sort listener to update on sort
 				$(settings.nTable).on( 'order.dt.DT', function ( e, ctx, sorting, columns ) {
 					if ( settings !== ctx ) {
 						return;
 					}
-	
+
 					var colIdx = column.idx;
-	
+
 					cell
 						.removeClass( classes.sSortAsc +" "+classes.sSortDesc )
 						.addClass( columns[ colIdx ] == 'asc' ?
@@ -147393,7 +147872,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 								classes.sSortDesc :
 								column.sSortingClass
 						);
-	
+
 					cell
 						.find( 'span.'+classes.sSortIcon )
 						.removeClass(
@@ -147412,19 +147891,19 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			}
 		}
 	} );
-	
+
 	/*
 	 * Public helper functions. These aren't used internally by DataTables, or
 	 * called by any of the options passed into DataTables, but they can be used
 	 * externally by developers working with DataTables. They are helper functions
 	 * to make working with DataTables a little bit easier.
 	 */
-	
+
 	var __htmlEscapeEntities = function ( d ) {
 		if (Array.isArray(d)) {
 			d = d.join(',');
 		}
-	
+
 		return typeof d === 'string' ?
 			d
 				.replace(/&/g, '&amp;')
@@ -147433,7 +147912,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				.replace(/"/g, '&quot;') :
 			d;
 	};
-	
+
 	// Common logic for moment, luxon or a date action
 	function __mld( dt, momentFn, luxonFn, dateFn, arg1 ) {
 		if (window.moment) {
@@ -147442,18 +147921,18 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		else if (window.luxon) {
 			return dt[luxonFn]( arg1 );
 		}
-		
+
 		return dateFn ? dt[dateFn]( arg1 ) : dt;
 	}
-	
-	
+
+
 	var __mlWarning = false;
 	function __mldObj (d, format, locale) {
 		var dt;
-	
+
 		if (window.moment) {
 			dt = window.moment.utc( d, format, locale, true );
-	
+
 			if (! dt.isValid()) {
 				return null;
 			}
@@ -147462,11 +147941,11 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			dt = format
 				? window.luxon.DateTime.fromFormat( d, format )
 				: window.luxon.DateTime.fromISO( d );
-	
+
 			if (! dt.isValid) {
 				return null;
 			}
-	
+
 			dt.setLocale(locale);
 		}
 		else if (! format) {
@@ -147477,13 +147956,13 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			if (! __mlWarning) {
 				alert('DataTables warning: Formatted date without Moment.js or Luxon - https://datatables.net/tn/17');
 			}
-	
+
 			__mlWarning = true;
 		}
-	
+
 		return dt;
 	}
-	
+
 	// Wrapper for date, datetime and time which all operate the same way with the exception of
 	// the output string for auto locale support
 	function __mlHelper (localeString) {
@@ -147505,9 +147984,9 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				to = from;
 				from = null;
 			}
-	
+
 			var typeName = 'datetime-' + to;
-	
+
 			// Add type detection and sorting specific to this date format - we need to be able to identify
 			// date type columns as such, rather than as numbers in extensions. Hence the need for this.
 			if (! DataTable.ext.type.order[typeName]) {
@@ -147515,24 +147994,24 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				DataTable.ext.type.detect.unshift(function (d) {
 					return d === typeName ? typeName : false;
 				});
-	
+
 				// The renderer gives us Moment, Luxon or Date obects for the sorting, all of which have a
 				// `valueOf` which gives milliseconds epoch
 				DataTable.ext.type.order[typeName + '-asc'] = function (a, b) {
 					var x = a.valueOf();
 					var y = b.valueOf();
-	
+
 					return x === y
 						? 0
 						: x < y
 							? -1
 							: 1;
 				};
-	
+
 				DataTable.ext.type.order[typeName + '-desc'] = function (a, b) {
 					var x = a.valueOf();
 					var y = b.valueOf();
-	
+
 					return x === y
 						? 0
 						: x > y
@@ -147540,7 +148019,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 							: 1;
 				};
 			}
-		
+
 			return function ( d, type ) {
 				// Allow for a default value
 				if (d === null || d === undefined$1) {
@@ -147558,38 +148037,38 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 						d = '';
 					}
 				}
-	
+
 				if (type === 'type') {
 					// Typing uses the type name for fast matching
 					return typeName;
 				}
-	
+
 				if (d === '') {
 					return type !== 'sort'
 						? ''
 						: __mldObj('0000-01-01 00:00:00', null, locale);
 				}
-	
+
 				// Shortcut. If `from` and `to` are the same, we are using the renderer to
 				// format for ordering, not display - its already in the display format.
 				if ( to !== null && from === to && type !== 'sort' && type !== 'type' && ! (d instanceof Date) ) {
 					return d;
 				}
-	
+
 				var dt = __mldObj(d, from, locale);
-	
+
 				if (dt === null) {
 					return d;
 				}
-	
+
 				if (type === 'sort') {
 					return dt;
 				}
-				
+
 				var formatted = to === null
 					? __mld(dt, 'toDate', 'toJSDate', '')[localeString]()
 					: __mld(dt, 'format', 'toFormat', 'toISOString', to);
-	
+
 				// XSS protection
 				return type === 'display' ?
 					__htmlEscapeEntities( formatted ) :
@@ -147597,16 +148076,16 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			};
 		}
 	}
-	
+
 	// Based on locale, determine standard number formatting
 	// Fallback for legacy browsers is US English
 	var __thousands = ',';
 	var __decimal = '.';
-	
+
 	if (Intl) {
 		try {
 			var num = new Intl.NumberFormat().formatToParts(100000.1);
-		
+
 			for (var i=0 ; i<num.length ; i++) {
 				if (num[i].type === 'group') {
 					__thousands = num[i].value;
@@ -147620,27 +148099,27 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			// noop
 		}
 	}
-	
+
 	// Formatted date time detection - use by declaring the formats you are going to use
 	DataTable.datetime = function ( format, locale ) {
 		var typeName = 'datetime-detect-' + format;
-	
+
 		if (! locale) {
 			locale = 'en';
 		}
-	
+
 		if (! DataTable.ext.type.order[typeName]) {
 			DataTable.ext.type.detect.unshift(function (d) {
 				var dt = __mldObj(d, format, locale);
 				return d === '' || dt ? typeName : false;
 			});
-	
+
 			DataTable.ext.type.order[typeName + '-pre'] = function (d) {
 				return __mldObj(d, format, locale) || 0;
 			};
 		}
 	};
-	
+
 	/**
 	 * Helpers for `columns.render`.
 	 *
@@ -147676,44 +148155,44 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			if (thousands === null || thousands === undefined$1) {
 				thousands = __thousands;
 			}
-	
+
 			if (decimal === null || decimal === undefined$1) {
 				decimal = __decimal;
 			}
-	
+
 			return {
 				display: function ( d ) {
 					if ( typeof d !== 'number' && typeof d !== 'string' ) {
 						return d;
 					}
-	
+
 					if (d === '' || d === null) {
 						return d;
 					}
-	
+
 					var negative = d < 0 ? '-' : '';
 					var flo = parseFloat( d );
-	
+
 					// If NaN then there isn't much formatting that we can do - just
 					// return immediately, escaping any HTML (this was supposed to
 					// be a number after all)
 					if ( isNaN( flo ) ) {
 						return __htmlEscapeEntities( d );
 					}
-	
+
 					flo = flo.toFixed( precision );
 					d = Math.abs( flo );
-	
+
 					var intPart = parseInt( d, 10 );
 					var floatPart = precision ?
 						decimal+(d - intPart).toFixed( precision ).substring( 2 ):
 						'';
-	
+
 					// If zero, then can't have a negative prefix
 					if (intPart === 0 && parseFloat(floatPart) === 0) {
 						negative = '';
 					}
-	
+
 					return negative + (prefix||'') +
 						intPart.toString().replace(
 							/\B(?=(\d{3})+(?!\d))/g, thousands
@@ -147723,7 +148202,7 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 				}
 			};
 		},
-	
+
 		text: function () {
 			return {
 				display: __htmlEscapeEntities,
@@ -147731,14 +148210,14 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			};
 		}
 	};
-	
-	
+
+
 	/*
 	 * This is really a good bit rubbish this method of exposing the internal methods
 	 * publicly... - To be fixed in 2.0 using methods on the prototype
 	 */
-	
-	
+
+
 	/**
 	 * Create a wrapper function for exporting an internal functions to an external API.
 	 *  @param {string} fn API function name
@@ -147754,8 +148233,8 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 			return DataTable.ext.internal[fn].apply( this, args );
 		};
 	}
-	
-	
+
+
 	/**
 	 * Reference to internal functions for use by plug-in developers. Note that
 	 * these methods are references to internal functions and are considered to be
@@ -147858,30 +148337,30 @@ var jquery_dataTables = createCommonjsModule(function (module, exports) {
 		                                // in 1.10, so this dead-end function is
 		                                // added to prevent errors
 	} );
-	
-	
+
+
 	// jQuery access
 	$.fn.dataTable = DataTable;
-	
+
 	// Provide access to the host jQuery object (circular reference)
 	DataTable.$ = $;
-	
+
 	// Legacy aliases
 	$.fn.dataTableSettings = DataTable.settings;
 	$.fn.dataTableExt = DataTable.ext;
-	
+
 	// With a capital `D` we return a DataTables API instance rather than a
 	// jQuery object
 	$.fn.DataTable = function ( opts ) {
 		return $(this).dataTable( opts ).api();
 	};
-	
+
 	// All properties that are available to $.fn.dataTable should also be
 	// available on $.fn.DataTable
 	$.each( DataTable, function ( prop, val ) {
 		$.fn.DataTable[ prop ] = val;
 	} );
-	
+
 	return DataTable;
 }));
 });
@@ -187404,7 +187883,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _css_loader_dist_cjs_js_clonedRuleSet_9_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_main_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./main.css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/@vuepic/vue-datepicker/dist/main.css");
 
-            
+
 
 var options = {};
 
@@ -187434,7 +187913,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _css_loader_dist_cjs_js_clonedRuleSet_9_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_index_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./index.css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-datepicker-next/index.css");
 
-            
+
 
 var options = {};
 
@@ -187464,7 +187943,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _css_loader_dist_cjs_js_clonedRuleSet_9_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_style_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./style.css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue3-easy-data-table/dist/style.css");
 
-            
+
 
 var options = {};
 
@@ -187494,7 +187973,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_App_vue_vue_type_style_index_0_id_f348271a_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../node_modules/vue-loader/dist/stylePostLoader.js!../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./App.vue?vue&type=style&index=0&id=f348271a&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/App.vue?vue&type=style&index=0&id=f348271a&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187524,7 +188003,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Homepage_vue_vue_type_style_index_0_id_4bc28aa0_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Homepage.vue?vue&type=style&index=0&id=4bc28aa0&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/Homepage.vue?vue&type=style&index=0&id=4bc28aa0&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187554,7 +188033,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_aboutMe_vue_vue_type_style_index_0_id_e51ff83a_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./aboutMe.vue?vue&type=style&index=0&id=e51ff83a&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/aboutMe.vue?vue&type=style&index=0&id=e51ff83a&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187584,7 +188063,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_footer_vue_vue_type_style_index_0_id_cf1db4dc_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./footer.vue?vue&type=style&index=0&id=cf1db4dc&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/components/footer.vue?vue&type=style&index=0&id=cf1db4dc&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187614,7 +188093,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_header_vue_vue_type_style_index_0_id_8cb8ecf8_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./header.vue?vue&type=style&index=0&id=8cb8ecf8&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/components/header.vue?vue&type=style&index=0&id=8cb8ecf8&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187644,7 +188123,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_contactUS_vue_vue_type_style_index_0_id_20c262c8_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./contactUS.vue?vue&type=style&index=0&id=20c262c8&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/contactUS.vue?vue&type=style&index=0&id=20c262c8&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187674,7 +188153,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_listOfFoods_vue_vue_type_style_index_0_id_7b9d071e_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./listOfFoods.vue?vue&type=style&index=0&id=7b9d071e&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/listOfFoods.vue?vue&type=style&index=0&id=7b9d071e&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187704,7 +188183,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_podcast_vue_vue_type_style_index_0_id_56607162_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./podcast.vue?vue&type=style&index=0&id=56607162&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/podcast.vue?vue&type=style&index=0&id=56607162&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187734,7 +188213,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_userLogin_vue_vue_type_style_index_0_id_5047db88_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./userLogin.vue?vue&type=style&index=0&id=5047db88&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/userLogin.vue?vue&type=style&index=0&id=5047db88&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187764,7 +188243,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addHabit_vue_vue_type_style_index_0_id_6e2b2ac5_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addHabit.vue?vue&type=style&index=0&id=6e2b2ac5&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/addHabit.vue?vue&type=style&index=0&id=6e2b2ac5&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187794,7 +188273,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addToGroup_vue_vue_type_style_index_0_id_5aaf63d5_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addToGroup.vue?vue&type=style&index=0&id=5aaf63d5&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/addToGroup.vue?vue&type=style&index=0&id=5aaf63d5&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187824,7 +188303,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignTags_vue_vue_type_style_index_0_id_6c1523cc_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./assignTags.vue?vue&type=style&index=0&id=6c1523cc&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/assignTags.vue?vue&type=style&index=0&id=6c1523cc&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187854,7 +188333,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignToTrainer_vue_vue_type_style_index_0_id_4a560909_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./assignToTrainer.vue?vue&type=style&index=0&id=4a560909&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/assignToTrainer.vue?vue&type=style&index=0&id=4a560909&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187884,7 +188363,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_clientPopup_vue_vue_type_style_index_0_id_d09599c2_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./clientPopup.vue?vue&type=style&index=0&id=d09599c2&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/clientPopup.vue?vue&type=style&index=0&id=d09599c2&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187914,7 +188393,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_subscribeToProgram_vue_vue_type_style_index_0_id_372b975e_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./subscribeToProgram.vue?vue&type=style&index=0&id=372b975e&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/subscribeToProgram.vue?vue&type=style&index=0&id=372b975e&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187944,7 +188423,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_summaryTable_vue_vue_type_style_index_0_id_f8469c8c_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./summaryTable.vue?vue&type=style&index=0&id=f8469c8c&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/summaryTable.vue?vue&type=style&index=0&id=f8469c8c&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -187974,7 +188453,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_filters_vue_vue_type_style_index_0_id_4013b000_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./filters.vue?vue&type=style&index=0&id=4013b000&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/filters.vue?vue&type=style&index=0&id=4013b000&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188004,7 +188483,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_group_item_vue_vue_type_style_index_0_id_7f66e801_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./group-item.vue?vue&type=style&index=0&id=7f66e801&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/group-item.vue?vue&type=style&index=0&id=7f66e801&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188034,7 +188513,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_groupMembers_vue_vue_type_style_index_0_id_d86f3d0c_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./groupMembers.vue?vue&type=style&index=0&id=d86f3d0c&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/groupMembers.vue?vue&type=style&index=0&id=d86f3d0c&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188064,7 +188543,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_msg_item_vue_vue_type_style_index_0_id_1867ab3f_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./msg-item.vue?vue&type=style&index=0&id=1867ab3f&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/msg-item.vue?vue&type=style&index=0&id=1867ab3f&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188094,7 +188573,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_loader_vue_vue_type_style_index_0_id_155ec09e_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./loader.vue?vue&type=style&index=0&id=155ec09e&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/loader.vue?vue&type=style&index=0&id=155ec09e&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188124,7 +188603,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_WorkoutBuilderLibrary_vue_vue_type_style_index_0_id_af433bb2_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./WorkoutBuilderLibrary.vue?vue&type=style&index=0&id=af433bb2&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/WorkoutBuilderLibrary.vue?vue&type=style&index=0&id=af433bb2&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188154,7 +188633,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addFoodPopup_vue_vue_type_style_index_0_id_1b6f8d93_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addFoodPopup.vue?vue&type=style&index=0&id=1b6f8d93&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/addFoodPopup.vue?vue&type=style&index=0&id=1b6f8d93&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188184,7 +188663,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addHabitFldr_vue_vue_type_style_index_0_id_08a0fd0d_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addHabitFldr.vue?vue&type=style&index=0&id=08a0fd0d&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/addHabitFldr.vue?vue&type=style&index=0&id=08a0fd0d&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188214,7 +188693,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addSubscribers_vue_vue_type_style_index_0_id_f8142c20_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addSubscribers.vue?vue&type=style&index=0&id=f8142c20&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/addSubscribers.vue?vue&type=style&index=0&id=f8142c20&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188244,7 +188723,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignAlternateExercise_vue_vue_type_style_index_0_id_0c56b96d_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./assignAlternateExercise.vue?vue&type=style&index=0&id=0c56b96d&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/assignAlternateExercise.vue?vue&type=style&index=0&id=0c56b96d&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188274,7 +188753,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_browseExerciseLibrary_vue_vue_type_style_index_0_id_1b9ed0fa_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./browseExerciseLibrary.vue?vue&type=style&index=0&id=1b9ed0fa&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/browseExerciseLibrary.vue?vue&type=style&index=0&id=1b9ed0fa&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188304,7 +188783,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createCustomMeal_vue_vue_type_style_index_0_id_17d056b6_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createCustomMeal.vue?vue&type=style&index=0&id=17d056b6&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/createCustomMeal.vue?vue&type=style&index=0&id=17d056b6&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188334,7 +188813,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createExercise_vue_vue_type_style_index_0_id_0b8e8e3a_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createExercise.vue?vue&type=style&index=0&id=0b8e8e3a&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/createExercise.vue?vue&type=style&index=0&id=0b8e8e3a&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188364,7 +188843,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createHabit_vue_vue_type_style_index_0_id_5f4d5882_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createHabit.vue?vue&type=style&index=0&id=5f4d5882&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/createHabit.vue?vue&type=style&index=0&id=5f4d5882&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188394,7 +188873,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createMealPlan_vue_vue_type_style_index_0_id_87b3e824_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createMealPlan.vue?vue&type=style&index=0&id=87b3e824&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/createMealPlan.vue?vue&type=style&index=0&id=87b3e824&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188424,7 +188903,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editExercise_vue_vue_type_style_index_0_id_2ffe09c8_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./editExercise.vue?vue&type=style&index=0&id=2ffe09c8&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/editExercise.vue?vue&type=style&index=0&id=2ffe09c8&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188454,7 +188933,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editFood_vue_vue_type_style_index_0_id_060ecd4e_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./editFood.vue?vue&type=style&index=0&id=060ecd4e&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/editFood.vue?vue&type=style&index=0&id=060ecd4e&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188484,7 +188963,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editMeal_vue_vue_type_style_index_0_id_9674cb9a_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./editMeal.vue?vue&type=style&index=0&id=9674cb9a&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/editMeal.vue?vue&type=style&index=0&id=9674cb9a&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188514,7 +188993,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editWorkout_vue_vue_type_style_index_0_id_4f745b46_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./editWorkout.vue?vue&type=style&index=0&id=4f745b46&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/editWorkout.vue?vue&type=style&index=0&id=4f745b46&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188544,7 +189023,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_foodDetails_vue_vue_type_style_index_0_id_37b70cae_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./foodDetails.vue?vue&type=style&index=0&id=37b70cae&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/foodDetails.vue?vue&type=style&index=0&id=37b70cae&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188574,7 +189053,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_habitDetails_vue_vue_type_style_index_0_id_599af018_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./habitDetails.vue?vue&type=style&index=0&id=599af018&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/habitDetails.vue?vue&type=style&index=0&id=599af018&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188604,7 +189083,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_listTags_vue_vue_type_style_index_0_id_6c260e1d_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./listTags.vue?vue&type=style&index=0&id=6c260e1d&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/listTags.vue?vue&type=style&index=0&id=6c260e1d&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188634,7 +189113,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_mealDWPedit_vue_vue_type_style_index_0_id_68c1312e_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./mealDWPedit.vue?vue&type=style&index=0&id=68c1312e&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/mealDWPedit.vue?vue&type=style&index=0&id=68c1312e&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188664,7 +189143,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newProgram_vue_vue_type_style_index_0_id_11035b0a_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./newProgram.vue?vue&type=style&index=0&id=11035b0a&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/newProgram.vue?vue&type=style&index=0&id=11035b0a&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188694,7 +189173,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newWorkout_vue_vue_type_style_index_0_id_268acaa3_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./newWorkout.vue?vue&type=style&index=0&id=268acaa3&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/newWorkout.vue?vue&type=style&index=0&id=268acaa3&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188724,7 +189203,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_programPhaseRoutineBuilder_vue_vue_type_style_index_0_id_369e0e98_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./programPhaseRoutineBuilder.vue?vue&type=style&index=0&id=369e0e98&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/programPhaseRoutineBuilder.vue?vue&type=style&index=0&id=369e0e98&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188754,7 +189233,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_selectName_vue_vue_type_style_index_0_id_5d437e6d_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./selectName.vue?vue&type=style&index=0&id=5d437e6d&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/selectName.vue?vue&type=style&index=0&id=5d437e6d&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188784,7 +189263,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_viewExercise_vue_vue_type_style_index_0_id_3008c5e3_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./viewExercise.vue?vue&type=style&index=0&id=3008c5e3&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/viewExercise.vue?vue&type=style&index=0&id=3008c5e3&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188814,7 +189293,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_viewMealPlan_vue_vue_type_style_index_0_id_3ebf78d2_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./viewMealPlan.vue?vue&type=style&index=0&id=3ebf78d2&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/viewMealPlan.vue?vue&type=style&index=0&id=3ebf78d2&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188844,7 +189323,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_workoutBuilder_vue_vue_type_style_index_0_id_fccbcef8_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./workoutBuilder.vue?vue&type=style&index=0&id=fccbcef8&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/workoutBuilder.vue?vue&type=style&index=0&id=fccbcef8&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188874,7 +189353,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_workoutDetail_vue_vue_type_style_index_0_id_34a44078_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./workoutDetail.vue?vue&type=style&index=0&id=34a44078&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/workoutDetail.vue?vue&type=style&index=0&id=34a44078&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188904,7 +189383,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_EmojiPicker_vue_vue_type_style_index_0_id_e9820f48_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./EmojiPicker.vue?vue&type=style&index=0&id=e9820f48&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/EmojiPicker.vue?vue&type=style&index=0&id=e9820f48&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188934,7 +189413,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_chat_item_vue_vue_type_style_index_0_id_ba6a0b20_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./chat-item.vue?vue&type=style&index=0&id=ba6a0b20&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/chat-item.vue?vue&type=style&index=0&id=ba6a0b20&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188964,7 +189443,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_msg_item_vue_vue_type_style_index_0_id_91bcc0f2_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./msg-item.vue?vue&type=style&index=0&id=91bcc0f2&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/msg-item.vue?vue&type=style&index=0&id=91bcc0f2&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -188994,7 +189473,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newChat_vue_vue_type_style_index_0_id_6e63bf20_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./newChat.vue?vue&type=style&index=0&id=6e63bf20&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/newChat.vue?vue&type=style&index=0&id=6e63bf20&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189024,7 +189503,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_preview_vue_vue_type_style_index_0_id_fe502c60_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./preview.vue?vue&type=style&index=0&id=fe502c60&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/preview.vue?vue&type=style&index=0&id=fe502c60&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189054,7 +189533,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_navbar_vue_vue_type_style_index_0_id_11e733ca_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./navbar.vue?vue&type=style&index=0&id=11e733ca&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/navbar.vue?vue&type=style&index=0&id=11e733ca&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189084,7 +189563,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_activityPopup_vue_vue_type_style_index_0_id_66c25952_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./activityPopup.vue?vue&type=style&index=0&id=66c25952&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/activityPopup.vue?vue&type=style&index=0&id=66c25952&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189114,7 +189593,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_chart_box_vue_vue_type_style_index_0_id_6d5044d1_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./chart-box.vue?vue&type=style&index=0&id=6d5044d1&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/chart-box.vue?vue&type=style&index=0&id=6d5044d1&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189144,7 +189623,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_client_profile_vue_vue_type_style_index_0_id_6e947a02_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./client-profile.vue?vue&type=style&index=0&id=6e947a02&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/client-profile.vue?vue&type=style&index=0&id=6e947a02&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189174,7 +189653,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_customizeAutomatedMessage_vue_vue_type_style_index_0_id_509109e2_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./customizeAutomatedMessage.vue?vue&type=style&index=0&id=509109e2&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/customizeAutomatedMessage.vue?vue&type=style&index=0&id=509109e2&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189204,7 +189683,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addProduct_vue_vue_type_style_index_0_id_66fc0735_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addProduct.vue?vue&type=style&index=0&id=66fc0735&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/payments/addProduct.vue?vue&type=style&index=0&id=66fc0735&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189234,7 +189713,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_sales_vue_vue_type_style_index_0_id_1413dc96_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./sales.vue?vue&type=style&index=0&id=1413dc96&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/payments/sales.vue?vue&type=style&index=0&id=1413dc96&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189264,7 +189743,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_store_orders_panel_vue_vue_type_style_index_0_id_87472622_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./store_orders_panel.vue?vue&type=style&index=0&id=87472622&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/payments/store_orders_panel.vue?vue&type=style&index=0&id=87472622&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189294,7 +189773,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newTeamMember_vue_vue_type_style_index_0_id_5a074020_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./newTeamMember.vue?vue&type=style&index=0&id=5a074020&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/team/newTeamMember.vue?vue&type=style&index=0&id=5a074020&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189324,7 +189803,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_teamPopup_vue_vue_type_style_index_0_id_a50100b0_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./teamPopup.vue?vue&type=style&index=0&id=a50100b0&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/team/teamPopup.vue?vue&type=style&index=0&id=a50100b0&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189354,7 +189833,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_topbar_vue_vue_type_style_index_0_id_5d3c11a9_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./topbar.vue?vue&type=style&index=0&id=5d3c11a9&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/topbar.vue?vue&type=style&index=0&id=5d3c11a9&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189384,7 +189863,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Groups_vue_vue_type_style_index_0_id_2b8fbac6_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Groups.vue?vue&type=style&index=0&id=2b8fbac6&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/Groups.vue?vue&type=style&index=0&id=2b8fbac6&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189414,7 +189893,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_clients_vue_vue_type_style_index_0_id_e0049aa2_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./clients.vue?vue&type=style&index=0&id=e0049aa2&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/clients.vue?vue&type=style&index=0&id=e0049aa2&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189444,7 +189923,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_forgot_vue_vue_type_style_index_0_id_13b5104c_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./forgot.vue?vue&type=style&index=0&id=13b5104c&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/forgot.vue?vue&type=style&index=0&id=13b5104c&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189474,7 +189953,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_login_vue_vue_type_style_index_0_id_780e8960_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./login.vue?vue&type=style&index=0&id=780e8960&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/login.vue?vue&type=style&index=0&id=780e8960&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189486,6 +189965,36 @@ var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_login_vue_vue_type_style_index_0_id_780e8960_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
+
+/***/ },
+
+/***/ "./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css"
+/*!**********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css ***!
+  \**********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../../../../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_AiVideoTags_vue_vue_type_style_index_0_id_11569a94_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css");
+
+
+
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_AiVideoTags_vue_vue_type_style_index_0_id_11569a94_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__["default"], options);
+
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_AiVideoTags_vue_vue_type_style_index_0_id_11569a94_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
 
 /***/ },
 
@@ -189504,7 +190013,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Exercises_vue_vue_type_style_index_0_id_0dfd3e7a_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Exercises.vue?vue&type=style&index=0&id=0dfd3e7a&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Exercises.vue?vue&type=style&index=0&id=0dfd3e7a&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189534,7 +190043,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Food_vue_vue_type_style_index_0_id_04ed9be6_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Food.vue?vue&type=style&index=0&id=04ed9be6&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Food.vue?vue&type=style&index=0&id=04ed9be6&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189564,7 +190073,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Habit_vue_vue_type_style_index_0_id_6f8f3c1c_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Habit.vue?vue&type=style&index=0&id=6f8f3c1c&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Habit.vue?vue&type=style&index=0&id=6f8f3c1c&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189594,7 +190103,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_HabitLists_vue_vue_type_style_index_0_id_542b2c89_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./HabitLists.vue?vue&type=style&index=0&id=542b2c89&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/HabitLists.vue?vue&type=style&index=0&id=542b2c89&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189624,7 +190133,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_MealPlan_vue_vue_type_style_index_0_id_c0896bd8_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./MealPlan.vue?vue&type=style&index=0&id=c0896bd8&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/MealPlan.vue?vue&type=style&index=0&id=c0896bd8&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189654,7 +190163,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Meals_vue_vue_type_style_index_0_id_76d75c90_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Meals.vue?vue&type=style&index=0&id=76d75c90&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Meals.vue?vue&type=style&index=0&id=76d75c90&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189684,7 +190193,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_RecipeImport_vue_vue_type_style_index_0_id_78862fdb_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./RecipeImport.vue?vue&type=style&index=0&id=78862fdb&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/RecipeImport.vue?vue&type=style&index=0&id=78862fdb&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189714,7 +190223,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_RoutineLibrary_vue_vue_type_style_index_0_id_7c0af65f_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./RoutineLibrary.vue?vue&type=style&index=0&id=7c0af65f&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/RoutineLibrary.vue?vue&type=style&index=0&id=7c0af65f&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189744,7 +190253,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Workout_vue_vue_type_style_index_0_id_62915cc5_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Workout.vue?vue&type=style&index=0&id=62915cc5&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Workout.vue?vue&type=style&index=0&id=62915cc5&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189774,7 +190283,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_program_vue_vue_type_style_index_0_id_2cbf7568_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./program.vue?vue&type=style&index=0&id=2cbf7568&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/program.vue?vue&type=style&index=0&id=2cbf7568&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189804,7 +190313,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_messages_vue_vue_type_style_index_0_id_46ac31b5_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./messages.vue?vue&type=style&index=0&id=46ac31b5&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/messages.vue?vue&type=style&index=0&id=46ac31b5&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189834,7 +190343,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_overview_vue_vue_type_style_index_0_id_38743f62_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./overview.vue?vue&type=style&index=0&id=38743f62&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/overview.vue?vue&type=style&index=0&id=38743f62&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189864,7 +190373,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_payments_vue_vue_type_style_index_0_id_75b56716_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./payments.vue?vue&type=style&index=0&id=75b56716&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/payments.vue?vue&type=style&index=0&id=75b56716&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189894,7 +190403,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_podcastCMS_vue_vue_type_style_index_0_id_5b01c164_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./podcastCMS.vue?vue&type=style&index=0&id=5b01c164&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/podcastCMS.vue?vue&type=style&index=0&id=5b01c164&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189924,7 +190433,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_profile_vue_vue_type_style_index_0_id_b8380460_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./profile.vue?vue&type=style&index=0&id=b8380460&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/profile.vue?vue&type=style&index=0&id=b8380460&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189954,7 +190463,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_store_subscriptions_vue_vue_type_style_index_0_id_1ac20382_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./store_subscriptions.vue?vue&type=style&index=0&id=1ac20382&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/store_subscriptions.vue?vue&type=style&index=0&id=1ac20382&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -189984,7 +190493,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_tags_vue_vue_type_style_index_0_id_da7c72fc_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./tags.vue?vue&type=style&index=0&id=da7c72fc&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/tags.vue?vue&type=style&index=0&id=da7c72fc&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -190014,7 +190523,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_teams_vue_vue_type_style_index_0_id_2104e71d_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./teams.vue?vue&type=style&index=0&id=2104e71d&scoped=true&lang=css */ "./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/teams.vue?vue&type=style&index=0&id=2104e71d&scoped=true&lang=css");
 
-            
+
 
 var options = {};
 
@@ -195583,6 +196092,38 @@ if (false) // removed by dead control flow
 
 /***/ },
 
+/***/ "./resources/js/pages/master-libraries/AiVideoTags.vue"
+/*!*************************************************************!*\
+  !*** ./resources/js/pages/master-libraries/AiVideoTags.vue ***!
+  \*************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _AiVideoTags_vue_vue_type_template_id_11569a94_scoped_true__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./AiVideoTags.vue?vue&type=template&id=11569a94&scoped=true */ "./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=template&id=11569a94&scoped=true");
+/* harmony import */ var _AiVideoTags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AiVideoTags.vue?vue&type=script&lang=js */ "./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=script&lang=js");
+/* harmony import */ var _AiVideoTags_vue_vue_type_style_index_0_id_11569a94_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css */ "./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css");
+/* harmony import */ var D_XAMPP_htdocs_dinafitness_admin_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./node_modules/vue-loader/dist/exportHelper.js */ "./node_modules/vue-loader/dist/exportHelper.js");
+
+
+
+
+;
+
+
+const __exports__ = /*#__PURE__*/(0,D_XAMPP_htdocs_dinafitness_admin_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_3__["default"])(_AiVideoTags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_AiVideoTags_vue_vue_type_template_id_11569a94_scoped_true__WEBPACK_IMPORTED_MODULE_0__.render],['__scopeId',"data-v-11569a94"],['__file',"resources/js/pages/master-libraries/AiVideoTags.vue"]])
+/* hot reload */
+if (false) // removed by dead control flow
+{}
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__exports__);
+
+/***/ },
+
 /***/ "./resources/js/pages/master-libraries/Exercises.vue"
 /*!***********************************************************!*\
   !*** ./resources/js/pages/master-libraries/Exercises.vue ***!
@@ -196229,7 +196770,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_App_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_App_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./App.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/App.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196245,7 +196786,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Homepage_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Homepage_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Homepage.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/Homepage.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196261,7 +196802,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_aboutMe_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_aboutMe_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./aboutMe.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/aboutMe.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196277,7 +196818,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_calculateBMR_TDE_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_calculateBMR_TDE_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./calculateBMR&TDE.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/calculateBMR&TDE.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196293,7 +196834,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_footer_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_footer_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./footer.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/components/footer.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196309,7 +196850,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_header_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_header_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./header.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/components/header.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196325,7 +196866,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_contactUS_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_contactUS_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./contactUS.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/contactUS.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196341,7 +196882,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_listOfFoods_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_listOfFoods_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./listOfFoods.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/listOfFoods.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196357,7 +196898,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_podcast_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_podcast_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./podcast.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/podcast.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196373,7 +196914,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_userLogin_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_userLogin_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./userLogin.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/Website/userLogin.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196389,7 +196930,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addHabit_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addHabit_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addHabit.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/addHabit.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196405,7 +196946,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addToGroup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addToGroup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addToGroup.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/addToGroup.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196421,7 +196962,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignTags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignTags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./assignTags.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/assignTags.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196437,7 +196978,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignToTrainer_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignToTrainer_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./assignToTrainer.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/assignToTrainer.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196453,7 +196994,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_clientPopup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_clientPopup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./clientPopup.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/clientPopup.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196469,7 +197010,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_engagementTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_engagementTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./engagementTable.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/engagementTable.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196485,7 +197026,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_exerciseTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_exerciseTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./exerciseTable.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/exerciseTable.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196501,7 +197042,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_nutritionTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_nutritionTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./nutritionTable.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/nutritionTable.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196517,7 +197058,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_paymentTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_paymentTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./paymentTable.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/paymentTable.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196533,7 +197074,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_subscribeToProgram_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_subscribeToProgram_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./subscribeToProgram.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/subscribeToProgram.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196549,7 +197090,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_summaryTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_summaryTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./summaryTable.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/summaryTable.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196565,7 +197106,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_weightTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_weightTable_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./weightTable.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/clients/weightTable.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196581,7 +197122,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_confirm_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_confirm_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./confirm.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/confirm.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196597,7 +197138,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addNewQuestion_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addNewQuestion_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addNewQuestion.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/consultation/addNewQuestion.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196613,7 +197154,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_consultationDetail_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_consultationDetail_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./consultationDetail.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/consultation/consultationDetail.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196629,7 +197170,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_filters_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_filters_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./filters.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/filters.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196645,7 +197186,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_getInput_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_getInput_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./getInput.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/getInput.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196661,7 +197202,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addGroupMember_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addGroupMember_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addGroupMember.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/addGroupMember.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196677,7 +197218,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createGroup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createGroup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createGroup.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/createGroup.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196693,7 +197234,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_group_item_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_group_item_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./group-item.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/group-item.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196709,7 +197250,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_groupMembers_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_groupMembers_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./groupMembers.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/groupMembers.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196725,7 +197266,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_groupSettings_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_groupSettings_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./groupSettings.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/groupSettings.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196741,7 +197282,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_msg_item_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_msg_item_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./msg-item.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/msg-item.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196757,7 +197298,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_removeGroup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_removeGroup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./removeGroup.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/removeGroup.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196773,7 +197314,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_renameGroup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_renameGroup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./renameGroup.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/groups/renameGroup.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196789,7 +197330,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_inform_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_inform_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./inform.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/inform.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196805,7 +197346,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_loader_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_loader_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./loader.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/loader.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196821,7 +197362,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_RoutineSectionTagModal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_RoutineSectionTagModal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./RoutineSectionTagModal.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/RoutineSectionTagModal.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196837,7 +197378,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_WorkoutBuilderLibrary_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_WorkoutBuilderLibrary_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./WorkoutBuilderLibrary.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/WorkoutBuilderLibrary.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196853,7 +197394,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addFoodPopup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addFoodPopup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addFoodPopup.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/addFoodPopup.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196869,7 +197410,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addHabitFldr_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addHabitFldr_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addHabitFldr.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/addHabitFldr.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196885,7 +197426,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addSubscribers_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addSubscribers_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addSubscribers.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/addSubscribers.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196901,7 +197442,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignAlternateExercise_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_assignAlternateExercise_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./assignAlternateExercise.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/assignAlternateExercise.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196917,7 +197458,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_browseExerciseLibrary_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_browseExerciseLibrary_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./browseExerciseLibrary.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/browseExerciseLibrary.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196933,7 +197474,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createCustomMeal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createCustomMeal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createCustomMeal.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/createCustomMeal.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196949,7 +197490,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createExercise_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createExercise_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createExercise.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/createExercise.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196965,7 +197506,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createHabit_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createHabit_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createHabit.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/createHabit.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196981,7 +197522,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createMealPlan_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_createMealPlan_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./createMealPlan.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/createMealPlan.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -196997,7 +197538,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editExercise_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editExercise_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./editExercise.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/editExercise.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197013,7 +197554,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editFood_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editFood_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./editFood.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/editFood.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197029,7 +197570,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editMeal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editMeal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./editMeal.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/editMeal.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197045,7 +197586,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editWorkout_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_editWorkout_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./editWorkout.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/editWorkout.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197061,7 +197602,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_foodDetails_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_foodDetails_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./foodDetails.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/foodDetails.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197077,7 +197618,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_habitDetails_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_habitDetails_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./habitDetails.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/habitDetails.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197093,7 +197634,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_importWorkout_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_importWorkout_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./importWorkout.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/importWorkout.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197109,7 +197650,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_listTags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_listTags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./listTags.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/listTags.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197125,7 +197666,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_mealDWPedit_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_mealDWPedit_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./mealDWPedit.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/mealDWPedit.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197141,7 +197682,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newProgram_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newProgram_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./newProgram.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/newProgram.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197157,7 +197698,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newWorkout_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newWorkout_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./newWorkout.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/newWorkout.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197173,7 +197714,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_programPhaseRoutineBuilder_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_programPhaseRoutineBuilder_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./programPhaseRoutineBuilder.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/programPhaseRoutineBuilder.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197189,7 +197730,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_selectName_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_selectName_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./selectName.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/selectName.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197205,7 +197746,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_viewExercise_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_viewExercise_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./viewExercise.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/viewExercise.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197221,7 +197762,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_viewMealPlan_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_viewMealPlan_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./viewMealPlan.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/viewMealPlan.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197237,7 +197778,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_workoutBuilder_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_workoutBuilder_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./workoutBuilder.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/workoutBuilder.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197253,7 +197794,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_workoutDetail_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_workoutDetail_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./workoutDetail.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/master-libraries/workoutDetail.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197269,7 +197810,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_EmojiPicker_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_EmojiPicker_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./EmojiPicker.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/EmojiPicker.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197285,7 +197826,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_ForwardMessageModal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_ForwardMessageModal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./ForwardMessageModal.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/ForwardMessageModal.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197301,7 +197842,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_VoiceSendTargetModal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_VoiceSendTargetModal_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./VoiceSendTargetModal.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/VoiceSendTargetModal.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197317,7 +197858,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_chat_item_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_chat_item_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./chat-item.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/chat-item.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197333,7 +197874,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_msg_item_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_msg_item_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./msg-item.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/msg-item.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197349,7 +197890,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newChat_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newChat_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./newChat.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/newChat.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197365,7 +197906,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_preview_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_preview_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./preview.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/messages/preview.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197381,7 +197922,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_navbar_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_navbar_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./navbar.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/navbar.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197397,7 +197938,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_activity_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_activity_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./activity.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/activity.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197413,7 +197954,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_activityPopup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_activityPopup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./activityPopup.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/activityPopup.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197429,7 +197970,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_automatedMessages_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_automatedMessages_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./automatedMessages.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/automatedMessages.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197445,7 +197986,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_chart_box_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_chart_box_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./chart-box.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/chart-box.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197461,7 +198002,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_client_profile_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_client_profile_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./client-profile.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/client-profile.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197477,7 +198018,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_clients_group_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_clients_group_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./clients-group.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/clients-group.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197493,7 +198034,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_customizeAutomatedMessage_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_customizeAutomatedMessage_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./customizeAutomatedMessage.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/customizeAutomatedMessage.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197509,7 +198050,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_line_chart_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_line_chart_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./line-chart.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/overview/line-chart.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197525,7 +198066,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addProduct_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_addProduct_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./addProduct.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/payments/addProduct.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197541,7 +198082,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_graph_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_graph_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./graph.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/payments/graph.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197557,7 +198098,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_refund_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_refund_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./refund.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/payments/refund.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197573,7 +198114,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_sales_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_sales_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./sales.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/payments/sales.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197589,7 +198130,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_store_orders_panel_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_store_orders_panel_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./store_orders_panel.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/payments/store_orders_panel.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197605,7 +198146,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newTeamMember_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_newTeamMember_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./newTeamMember.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/team/newTeamMember.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197621,7 +198162,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_teamPopup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_teamPopup_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./teamPopup.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/team/teamPopup.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197637,7 +198178,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_topbar_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_topbar_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./topbar.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/components/topbar.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197653,7 +198194,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Groups_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Groups_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Groups.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/Groups.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197669,7 +198210,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Poc_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Poc_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Poc.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/Poc.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197685,7 +198226,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_clients_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_clients_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./clients.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/clients.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197701,7 +198242,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_consultation_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_consultation_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./consultation.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/consultation.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197717,7 +198258,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_forgot_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_forgot_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./forgot.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/forgot.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197733,7 +198274,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_localization_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_localization_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./localization.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/localization.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197749,7 +198290,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_login_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_login_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./login.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/login.vue?vue&type=script&lang=js");
- 
+
+
+/***/ },
+
+/***/ "./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=script&lang=js"
+/*!*************************************************************************************!*\
+  !*** ./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=script&lang=js ***!
+  \*************************************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_AiVideoTags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
+/* harmony export */ });
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_AiVideoTags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./AiVideoTags.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=script&lang=js");
+
 
 /***/ },
 
@@ -197765,7 +198322,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Exercises_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Exercises_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Exercises.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Exercises.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197781,7 +198338,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Food_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Food_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Food.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Food.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197797,7 +198354,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Habit_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Habit_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Habit.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Habit.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197813,7 +198370,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_HabitLists_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_HabitLists_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./HabitLists.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/HabitLists.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197829,7 +198386,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_MealPlan_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_MealPlan_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./MealPlan.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/MealPlan.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197845,7 +198402,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Meals_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Meals_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Meals.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Meals.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197861,7 +198418,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_RecipeImport_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_RecipeImport_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./RecipeImport.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/RecipeImport.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197877,7 +198434,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_RoutineLibrary_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_RoutineLibrary_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./RoutineLibrary.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/RoutineLibrary.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197893,7 +198450,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Workout_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_Workout_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./Workout.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/Workout.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197909,7 +198466,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_program_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_program_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./program.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/program.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197925,7 +198482,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_messages_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_messages_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./messages.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/messages.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197941,7 +198498,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_overview_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_overview_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./overview.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/overview.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197957,7 +198514,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_payments_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_payments_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./payments.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/payments.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197973,7 +198530,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_podcastCMS_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_podcastCMS_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./podcastCMS.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/podcastCMS.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -197989,7 +198546,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_profile_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_profile_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./profile.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/profile.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -198005,7 +198562,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_settings_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_settings_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./settings.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/settings.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -198021,7 +198578,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_store_subscriptions_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_store_subscriptions_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./store_subscriptions.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/store_subscriptions.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -198037,7 +198594,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_tags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_tags_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./tags.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/tags.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -198053,7 +198610,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_teams_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_teams_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./teams.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/teams.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -198069,7 +198626,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_ui_strings_translation_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__["default"])
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_ui_strings_translation_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./ui_strings_translation.vue?vue&type=script&lang=js */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/ui_strings_translation.vue?vue&type=script&lang=js");
- 
+
 
 /***/ },
 
@@ -199609,6 +200166,22 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
+/***/ "./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=template&id=11569a94&scoped=true"
+/*!*******************************************************************************************************!*\
+  !*** ./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=template&id=11569a94&scoped=true ***!
+  \*******************************************************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   render: () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_templateLoader_js_ruleSet_1_rules_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_AiVideoTags_vue_vue_type_template_id_11569a94_scoped_true__WEBPACK_IMPORTED_MODULE_0__.render)
+/* harmony export */ });
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_dist_templateLoader_js_ruleSet_1_rules_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_AiVideoTags_vue_vue_type_template_id_11569a94_scoped_true__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/dist/templateLoader.js??ruleSet[1].rules[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./AiVideoTags.vue?vue&type=template&id=11569a94&scoped=true */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/dist/templateLoader.js??ruleSet[1].rules[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=template&id=11569a94&scoped=true");
+
+
+/***/ },
+
 /***/ "./resources/js/pages/master-libraries/Exercises.vue?vue&type=template&id=0dfd3e7a&scoped=true&lang=true"
 /*!***************************************************************************************************************!*\
   !*** ./resources/js/pages/master-libraries/Exercises.vue?vue&type=template&id=0dfd3e7a&scoped=true&lang=true ***!
@@ -200800,6 +201373,19 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ },
 
+/***/ "./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css"
+/*!*********************************************************************************************************************!*\
+  !*** ./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css ***!
+  \*********************************************************************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_dist_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_dist_index_js_ruleSet_0_use_0_AiVideoTags_vue_vue_type_style_index_0_id_11569a94_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/style-loader/dist/cjs.js!../../../../node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../../node_modules/vue-loader/dist/stylePostLoader.js!../../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../../node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css */ "./node_modules/style-loader/dist/cjs.js!./node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/dist/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/dist/index.js??ruleSet[0].use[0]!./resources/js/pages/master-libraries/AiVideoTags.vue?vue&type=style&index=0&id=11569a94&scoped=true&lang=css");
+
+
+/***/ },
+
 /***/ "./resources/js/pages/master-libraries/Exercises.vue?vue&type=style&index=0&id=0dfd3e7a&scoped=true&lang=css"
 /*!*******************************************************************************************************************!*\
   !*** ./resources/js/pages/master-libraries/Exercises.vue?vue&type=style&index=0&id=0dfd3e7a&scoped=true&lang=css ***!
@@ -201077,7 +201663,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const hasSymbol = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
-const PolySymbol = (name) => 
+const PolySymbol = (name) =>
 // vr = vue router
 hasSymbol
     ? Symbol(( true) ? '[vue-router]: ' + name : 0)
@@ -201622,7 +202208,7 @@ function useHistoryStateNavigation(base) {
         }
     }
     function replace(to, data) {
-        const state = assign({}, history.state, buildState(historyState.value.back, 
+        const state = assign({}, history.state, buildState(historyState.value.back,
         // keep back and forward entries but override current position
         to, historyState.value.forward, true), data, { position: historyState.value.position });
         changeLocation(to, state, true);
@@ -201631,7 +202217,7 @@ function useHistoryStateNavigation(base) {
     function push(to, data) {
         // Add to current entry the information of where we are going
         // as well as saving the current position
-        const currentState = assign({}, 
+        const currentState = assign({},
         // use current history state to gracefully handle a wrong call to
         // history.replaceState
         // https://github.com/vuejs/router/issues/366
@@ -201752,7 +202338,7 @@ function createMemoryHistory(base = '') {
         },
         go(delta, shouldTrigger = true) {
             const from = this.location;
-            const direction = 
+            const direction =
             // we are considering delta === 0 going forward, but in abstract mode
             // using 0 for the delta doesn't make sense like it does in html5 where
             // it reloads the page
@@ -202498,7 +203084,7 @@ function createRouterMatcher(routes, globalOptions) {
             name = matcher.record.name;
             params = assign(
             // paramsFromLocation is a new object
-            paramsFromLocation(currentLocation.params, 
+            paramsFromLocation(currentLocation.params,
             // only keep params that exist in the resolved location
             // TODO: only keep optional params coming from a parent record
             matcher.keys.filter(k => !k.optional).map(k => k.name)), location.params);
@@ -202949,7 +203535,7 @@ function onBeforeRouteLeave(leaveGuard) {
         warn('getCurrentInstance() returned null. onBeforeRouteLeave() must be called at the top of a setup function');
         return;
     }
-    const activeRecord = (0,vue__WEBPACK_IMPORTED_MODULE_0__.inject)(matchedRouteKey, 
+    const activeRecord = (0,vue__WEBPACK_IMPORTED_MODULE_0__.inject)(matchedRouteKey,
     // to avoid warning
     {}).value;
     if (!activeRecord) {
@@ -202971,7 +203557,7 @@ function onBeforeRouteUpdate(updateGuard) {
         warn('getCurrentInstance() returned null. onBeforeRouteUpdate() must be called at the top of a setup function');
         return;
     }
-    const activeRecord = (0,vue__WEBPACK_IMPORTED_MODULE_0__.inject)(matchedRouteKey, 
+    const activeRecord = (0,vue__WEBPACK_IMPORTED_MODULE_0__.inject)(matchedRouteKey,
     // to avoid warning
     {}).value;
     if (!activeRecord) {
@@ -203655,7 +204241,7 @@ function addDevtools(app, router, matcher) {
             routes.forEach(resetMatchStateOnRouteRecord);
             // apply a match state if there is a payload
             if (payload.filter) {
-                routes = routes.filter(route => 
+                routes = routes.filter(route =>
                 // save matches state based on the payload
                 isRouteMatching(route, payload.filter.toLowerCase()));
             }
@@ -203909,7 +204495,7 @@ function createRouter(options) {
     }
     const normalizeParams = applyToParams.bind(null, paramValue => '' + paramValue);
     const encodeParams = applyToParams.bind(null, encodeParam);
-    const decodeParams = 
+    const decodeParams =
     // @ts-expect-error: intentionally avoid the type check
     applyToParams.bind(null, decode);
     function addRoute(parentOrRoute, route) {
@@ -204020,7 +204606,7 @@ function createRouter(options) {
             // keep the hash encoded so fullPath is effectively path + encodedQuery +
             // hash
             hash,
-            query: 
+            query:
             // if the user is using a custom query lib like qs, we might have
             // nested objects, so we keep the query as is, meaning it can contain
             // numbers at `$route.query`, but at the point, the user will have to
@@ -204094,7 +204680,7 @@ function createRouter(options) {
                 state: data,
                 force,
                 replace,
-            }), 
+            }),
             // keep original redirectedFrom if it exists
             redirectedFrom || targetLocation);
         // if it was a redirect we already called `pushWithRedirect` above
@@ -204104,10 +204690,10 @@ function createRouter(options) {
         if (!force && isSameRouteLocation(stringifyQuery$1, from, targetLocation)) {
             failure = createRouterError(16 /* NAVIGATION_DUPLICATED */, { to: toLocation, from });
             // trigger scroll to allow scrolling to the same anchor
-            handleScroll(from, from, 
+            handleScroll(from, from,
             // this is a push, the only way for it to be triggered from a
             // history.listen is with a redirect, which makes it become a push
-            true, 
+            true,
             // This cannot be the first navigation because the initial location
             // cannot be manually navigated to
             false);
@@ -204142,7 +204728,7 @@ function createRouter(options) {
                         state: data,
                         force,
                         replace,
-                    }), 
+                    }),
                     // preserve the original redirectedFrom if any
                     redirectedFrom || toLocation);
                 }
@@ -208906,7 +209492,7 @@ var resolveConfig = (config) => {
         }
       });
     }
-  }  
+  }
 
   // Add xsrf header
   // This is only done if running in a standard browser environment.
@@ -209034,7 +209620,7 @@ var xhrAdapter = isXHRAdapterSupported && function (config) {
        reject(err);
        request = null;
     };
-    
+
     // Handle timeout
     request.ontimeout = function handleTimeout() {
       let timeoutErrorMessage = _config.timeout ? 'timeout of ' + _config.timeout + 'ms exceeded' : 'timeout exceeded';
@@ -209533,7 +210119,7 @@ getFetch();
  * - `http` for Node.js
  * - `xhr` for browsers
  * - `fetch` for fetch API-based requests
- * 
+ *
  * @type {Object<string, Function|Object>}
  */
 const knownAdapters = {
@@ -209558,7 +210144,7 @@ utils$1.forEach(knownAdapters, (fn, value) => {
 
 /**
  * Render a rejection reason string for unknown or unsupported adapters
- * 
+ *
  * @param {string} reason
  * @returns {string}
  */
@@ -209566,7 +210152,7 @@ const renderReason = (reason) => `- ${reason}`;
 
 /**
  * Check if the adapter is resolved (function, null, or false)
- * 
+ *
  * @param {Function|null|false} adapter
  * @returns {boolean}
  */
@@ -209576,7 +210162,7 @@ const isResolvedHandle = (adapter) => utils$1.isFunction(adapter) || adapter ===
  * Get the first suitable adapter from the provided list.
  * Tries each adapter in order until a supported one is found.
  * Throws an AxiosError if no adapter is suitable.
- * 
+ *
  * @param {Array<string|Function>|string|Function} adapters - Adapter(s) by name or function.
  * @param {Object} config - Axios request configuration
  * @throws {AxiosError} If no suitable adapter is available
@@ -216274,7 +216860,7 @@ __webpack_require__.r(__webpack_exports__);
  * - `http` for Node.js
  * - `xhr` for browsers
  * - `fetch` for fetch API-based requests
- * 
+ *
  * @type {Object<string, Function|Object>}
  */
 const knownAdapters = {
@@ -216299,7 +216885,7 @@ _utils_js__WEBPACK_IMPORTED_MODULE_0__["default"].forEach(knownAdapters, (fn, va
 
 /**
  * Render a rejection reason string for unknown or unsupported adapters
- * 
+ *
  * @param {string} reason
  * @returns {string}
  */
@@ -216307,7 +216893,7 @@ const renderReason = (reason) => `- ${reason}`;
 
 /**
  * Check if the adapter is resolved (function, null, or false)
- * 
+ *
  * @param {Function|null|false} adapter
  * @returns {boolean}
  */
@@ -216317,7 +216903,7 @@ const isResolvedHandle = (adapter) => _utils_js__WEBPACK_IMPORTED_MODULE_0__["de
  * Get the first suitable adapter from the provided list.
  * Tries each adapter in order until a supported one is found.
  * Throws an AxiosError if no adapter is suitable.
- * 
+ *
  * @param {Array<string|Function>|string|Function} adapters - Adapter(s) by name or function.
  * @param {Object} config - Axios request configuration
  * @throws {AxiosError} If no suitable adapter is available
@@ -216843,7 +217429,7 @@ const isXHRAdapterSupported = typeof XMLHttpRequest !== 'undefined';
        reject(err);
        request = null;
     };
-    
+
     // Handle timeout
     request.ontimeout = function handleTimeout() {
       let timeoutErrorMessage = _config.timeout ? 'timeout of ' + _config.timeout + 'ms exceeded' : 'timeout exceeded';
@@ -219507,7 +220093,7 @@ __webpack_require__.r(__webpack_exports__);
         }
       });
     }
-  }  
+  }
 
   // Add xsrf header
   // This is only done if running in a standard browser environment.
@@ -235226,7 +235812,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -235246,20 +235832,20 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			loaded: false,
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/ 	
+/******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.loaded = true;
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = __webpack_modules__;
-/******/ 	
+/******/
 /************************************************************************/
 /******/ 	/* webpack/runtime/chunk loaded */
 /******/ 	(() => {
@@ -235292,7 +235878,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			return result;
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
@@ -235304,7 +235890,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			return getter;
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -235316,7 +235902,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			}
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/global */
 /******/ 	(() => {
 /******/ 		__webpack_require__.g = (function() {
@@ -235328,12 +235914,12 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			}
 /******/ 		})();
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -235344,7 +235930,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/node module decorator */
 /******/ 	(() => {
 /******/ 		__webpack_require__.nmd = (module) => {
@@ -235353,11 +235939,11 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			return module;
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/jsonp chunk loading */
 /******/ 	(() => {
 /******/ 		// no baseURI
-/******/ 		
+/******/
 /******/ 		// object to store loaded and loading chunks
 /******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
 /******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
@@ -235365,19 +235951,19 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			"/js/app": 0,
 /******/ 			"css/app": 0
 /******/ 		};
-/******/ 		
+/******/
 /******/ 		// no chunk on demand loading
-/******/ 		
+/******/
 /******/ 		// no prefetching
-/******/ 		
+/******/
 /******/ 		// no preloaded
-/******/ 		
+/******/
 /******/ 		// no HMR
-/******/ 		
+/******/
 /******/ 		// no HMR manifest
-/******/ 		
+/******/
 /******/ 		__webpack_require__.O.j = (chunkId) => (installedChunks[chunkId] === 0);
-/******/ 		
+/******/
 /******/ 		// install a JSONP callback for chunk loading
 /******/ 		var webpackJsonpCallback = (parentChunkLoadingFunction, data) => {
 /******/ 			var [chunkIds, moreModules, runtime] = data;
@@ -235402,25 +235988,25 @@ module.exports = /*#__PURE__*/JSON.parse('{"Frequently used":{"thumbs_up":"👍"
 /******/ 			}
 /******/ 			return __webpack_require__.O(result);
 /******/ 		}
-/******/ 		
+/******/
 /******/ 		var chunkLoadingGlobal = self["webpackChunk"] = self["webpackChunk"] || [];
 /******/ 		chunkLoadingGlobal.forEach(webpackJsonpCallback.bind(null, 0));
 /******/ 		chunkLoadingGlobal.push = webpackJsonpCallback.bind(null, chunkLoadingGlobal.push.bind(chunkLoadingGlobal));
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/nonce */
 /******/ 	(() => {
 /******/ 		__webpack_require__.nc = undefined;
 /******/ 	})();
-/******/ 	
+/******/
 /************************************************************************/
-/******/ 	
+/******/
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
 /******/ 	__webpack_require__.O(undefined, ["css/app"], () => (__webpack_require__("./resources/js/app.js")))
 /******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/app"], () => (__webpack_require__("./resources/sass/app.scss")))
 /******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
-/******/ 	
+/******/
 /******/ })()
 ;

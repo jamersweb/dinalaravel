@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClientRoutineAssignment;
+use App\Models\AiExerciseTagProposal;
 use App\Models\ConsultationRecommendation;
 use App\Models\Exercise;
 use App\Models\ExerciseLibraryTag;
@@ -23,6 +24,7 @@ use App\Services\RoutineExerciseAutoTaggerService;
 use App\Services\RoutineGeneratorService;
 use App\Services\RoutineLibraryRules;
 use App\Services\RoutineValidatorService;
+use App\Services\OllamaExerciseTaggerService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +34,158 @@ use Illuminate\Validation\Rule;
 
 class RoutineLibraryController extends Controller
 {
+    public function aiVideoTagProposals(Request $request)
+    {
+        $query = AiExerciseTagProposal::query()
+            ->with(['exercise' => function ($q) {
+                $q->select([
+                    'id',
+                    'title',
+                    'type',
+                    'language',
+                    'video_type',
+                    'video_url',
+                    'image',
+                    'custom_thumbnail',
+                    'content_code',
+                    'tags',
+                ]);
+            }])
+            ->when($request->status, fn ($q, $status) => $q->where('status', $status))
+            ->when($request->language, function ($q, $language) {
+                $q->whereHas('exercise', fn ($exerciseQuery) => $exerciseQuery->where('language', $language));
+            })
+            ->when($request->search, function ($q, $search) {
+                $q->whereHas('exercise', function ($exerciseQuery) use ($search) {
+                    $exerciseQuery->where('title', 'like', '%' . $search . '%')
+                        ->orWhere('content_code', 'like', '%' . $search . '%');
+                });
+            });
+
+        return response()->json([
+            'status' => true,
+            'data' => $query
+                ->latest('created_at')
+                ->paginate(max(10, min(100, (int) $request->get('per_page', 20)))),
+            'summary' => [
+                'total' => AiExerciseTagProposal::count(),
+                'proposed' => AiExerciseTagProposal::where('status', 'proposed')->count(),
+                'applied' => AiExerciseTagProposal::where('status', 'applied')->count(),
+                'rejected' => AiExerciseTagProposal::where('status', 'rejected')->count(),
+                'failed' => AiExerciseTagProposal::where('status', 'failed')->count(),
+            ],
+            'options' => [
+                'languages' => RoutineLibraryRules::CONTENT_LANGUAGES,
+                'equipment_categories' => RoutineLibraryRules::EQUIPMENT_CATEGORIES,
+                'levels' => RoutineLibraryRules::LEVELS,
+                'proposal_statuses' => ['proposed', 'applied', 'rejected', 'failed'],
+                'default_model' => config('services.ollama.model', 'qwen3:latest'),
+            ],
+        ]);
+    }
+
+    public function generateAiVideoTagProposals(Request $request, OllamaExerciseTaggerService $service)
+    {
+        $validator = Validator::make($request->all(), [
+            'language' => ['nullable', Rule::in(RoutineLibraryRules::CONTENT_LANGUAGES)],
+            'equipment_category' => ['nullable', Rule::in(RoutineLibraryRules::EQUIPMENT_CATEGORIES)],
+            'scope' => ['nullable', Rule::in(['all', 'tagged', 'untagged'])],
+            'search' => 'nullable|string|max:255',
+            'limit' => 'nullable|integer|min:1|max:50',
+            'model' => 'nullable|string|max:128',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        try {
+            $summary = $service->generateProposals($validator->validated());
+
+            return response()->json([
+                'status' => true,
+                'message' => sprintf(
+                    'AI video tag proposals complete. Created %d, failed %d.',
+                    $summary['created'] ?? 0,
+                    $summary['failed'] ?? 0
+                ),
+                'data' => $summary,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function applyAiVideoTagProposal(Request $request, int $id, OllamaExerciseTaggerService $service)
+    {
+        $proposal = AiExerciseTagProposal::find($id);
+        if (! $proposal) {
+            return response()->json([
+                'status' => false,
+                'message' => 'AI tag proposal not found.',
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'approve' => 'sometimes|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        try {
+            $tag = $service->applyProposal($proposal, $request->boolean('approve'));
+
+            return response()->json([
+                'status' => true,
+                'message' => $request->boolean('approve')
+                    ? 'AI proposal applied and approved for generation.'
+                    : 'AI proposal applied for manual review.',
+                'data' => $tag,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function rejectAiVideoTagProposal(int $id, OllamaExerciseTaggerService $service)
+    {
+        $proposal = AiExerciseTagProposal::find($id);
+        if (! $proposal) {
+            return response()->json([
+                'status' => false,
+                'message' => 'AI tag proposal not found.',
+            ], 404);
+        }
+
+        try {
+            $service->rejectProposal($proposal);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'AI proposal rejected.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
     public function audit(Request $request, RoutineContentAuditService $auditService)
     {
         return response()->json([

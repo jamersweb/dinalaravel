@@ -92,6 +92,10 @@ Route::group(['prefix' => 'cms'], function(){
         Route::get('all-workouts-list',[WorkoutController::class,'allWorkoutsList']);
 
         // Routine Library + Consultation Recommendations
+        Route::get('routine-library/ai-video-tags', [RoutineLibraryController::class, 'aiVideoTagProposals']);
+        Route::post('routine-library/ai-video-tags/generate', [RoutineLibraryController::class, 'generateAiVideoTagProposals']);
+        Route::post('routine-library/ai-video-tags/{id}/apply', [RoutineLibraryController::class, 'applyAiVideoTagProposal']);
+        Route::post('routine-library/ai-video-tags/{id}/reject', [RoutineLibraryController::class, 'rejectAiVideoTagProposal']);
         Route::get('routine-library/audit', [RoutineLibraryController::class, 'audit']);
         Route::post('routine-library/sync-exercise-tags', [RoutineLibraryController::class, 'syncExerciseTags']);
         Route::get('routine-library/exercise-tags', [RoutineLibraryController::class, 'exerciseTags']);

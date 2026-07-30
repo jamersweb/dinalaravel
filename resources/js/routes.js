@@ -17,6 +17,7 @@ import Meals from "./pages/master-libraries/Meals";
 import Food from "./pages/master-libraries/Food";
 import RecipeImport from "./pages/master-libraries/RecipeImport.vue";
 import RoutineLibrary from "./pages/master-libraries/RoutineLibrary.vue";
+import AiVideoTags from "./pages/master-libraries/AiVideoTags.vue";
 import Payments from "./pages/payments.vue";
 import StoreSubscriptions from "./pages/store_subscriptions.vue";
 import PodcastCMS from "./pages/podcastCMS.vue";
@@ -53,6 +54,7 @@ const routes = [
     { path: '/cms/meals', component: Meals, name: 'Meals' },
     { path: '/cms/recipe-import', component: RecipeImport, name: 'RecipeImport' },
     { path: '/cms/routine-library', component: RoutineLibrary, name: 'RoutineLibrary' },
+    { path: '/cms/ai-video-tags', component: AiVideoTags, name: 'AiVideoTags' },
     { path: '/cms/food', component: Food, name: 'Food' },
     { path: '/cms/payments', component: Payments, name: 'Payments' },
     { path: '/cms/store-subscriptions', component: StoreSubscriptions, name: 'StoreSubscriptions' },
