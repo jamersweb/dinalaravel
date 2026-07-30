@@ -116,7 +116,7 @@ class RoutineExerciseAutoTaggerService
             'skipped_examples' => [],
         ];
 
-        $query->chunkById(100, function ($exercises) use ($approve, $dryRun, $replace, &$summary) {
+        $query->chunkById(100, function ($exercises) use ($approve, $dryRun, $replace, $preserveReviewStatus, &$summary) {
             foreach ($exercises as $exercise) {
                 $summary['scanned']++;
                 $classification = $this->classify($exercise, $approve);
