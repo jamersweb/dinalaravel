@@ -168,6 +168,7 @@ class RoutineLibraryRules
         'core_lower_back_preparation',
         'main_workout',
         'core_obliques',
+        'lower_back_strengthening',
         'cool_down_stretching',
     ];
 
@@ -182,8 +183,83 @@ class RoutineLibraryRules
         'core_lower_back_preparation' => 'Core and Lower-Back Preparation',
         'main_workout' => 'Main Training Workout',
         'core_obliques' => 'Core and Obliques',
+        'lower_back_strengthening' => 'Lower-Back Strengthening',
         'optional_additional_cardio' => 'Optional Additional Cardio',
         'cool_down_stretching' => 'Cool-Down and Stretching',
+    ];
+
+    public const DINA_MANDATORY_USAGE = [
+        'abs',
+        'obliques',
+        'lower_back_activation',
+        'lower_back_strength',
+        'stretching',
+        'mobility',
+    ];
+
+    public const MOBILITY_FOCUS_ROTATION = [
+        'hip_mobility',
+        'thoracic_mobility',
+        'shoulder_mobility',
+        'ankle_mobility',
+    ];
+
+    public const DELOAD_WEEKS = [4, 8, 12];
+
+    public const HORMONAL_CONDITION_RULES = [
+        'hashimotos' => [
+            'signals' => ['hashimoto', 'thyroid', 'hypothyroid'],
+            'training_adjustments' => ['reduce excessive HIIT', 'prioritize strength with longer rest', 'add walking or low-intensity cardio', 'protect recovery'],
+            'habit_suggestions' => ['daily steps', 'sleep routine', 'stress reduction', 'hydration'],
+            'nutrition_suggestions' => ['consistent protein', 'anti-inflammatory meal choices', 'coach-reviewed calorie deficit only'],
+        ],
+        'pcos' => [
+            'signals' => ['pcos', 'polycystic', 'insulin resistance', 'insulin resistant'],
+            'training_adjustments' => ['prioritize strength training', 'use intervals sparingly', 'avoid chronic high-volume cardio', 'keep recovery predictable'],
+            'habit_suggestions' => ['steps', 'water', 'protein habit', 'sleep consistency'],
+            'nutrition_suggestions' => ['higher protein meals', 'fiber-rich carbohydrates', 'steady meal timing'],
+        ],
+        'endometriosis' => [
+            'signals' => ['endometriosis', 'endo flare', 'pelvic pain'],
+            'training_adjustments' => ['reduce intensity during flare-ups', 'use mobility and walking options', 'avoid painful bracing', 'extend warm-up and cooldown'],
+            'habit_suggestions' => ['pain log', 'breathing', 'gentle walking', 'sleep support'],
+            'nutrition_suggestions' => ['hydration', 'anti-inflammatory meal choices', 'coach-reviewed supplementation'],
+        ],
+        'menopause' => [
+            'signals' => ['menopause', 'perimenopause', 'hot flash', 'hot flashes'],
+            'training_adjustments' => ['prioritize progressive strength', 'manage impact', 'include balance and mobility', 'protect sleep recovery'],
+            'habit_suggestions' => ['strength consistency', 'walking', 'sleep routine', 'stress reduction'],
+            'nutrition_suggestions' => ['protein target', 'bone-supportive nutrition', 'hydration'],
+        ],
+        'high_stress' => [
+            'signals' => ['adrenal fatigue', 'burnout', 'high stress', 'very stressed', 'poor sleep', 'insomnia'],
+            'training_adjustments' => ['reduce density', 'avoid max-effort conditioning', 'add active recovery', 'use longer rest'],
+            'habit_suggestions' => ['breathing', 'sleep routine', 'walks', 'screen cutoff'],
+            'nutrition_suggestions' => ['regular meals', 'hydration', 'limit aggressive deficits'],
+        ],
+    ];
+
+    public const PAIN_SUBSTITUTION_RULES = [
+        'shoulder' => [
+            'avoid' => ['overhead press', 'upright row', 'dip', 'behind neck', 'kipping'],
+            'substitute' => ['landmine press', 'incline press', 'neutral-grip row', 'scaption raise'],
+        ],
+        'knee' => [
+            'avoid' => ['jump squat', 'deep lunge', 'high-impact plyometric', 'sissy squat'],
+            'substitute' => ['box squat', 'glute bridge', 'step-up to comfortable height', 'hip hinge'],
+        ],
+        'lower back' => [
+            'avoid' => ['heavy deadlift', 'loaded good morning', 'high-impact flexion', 'unsupported bent-over row'],
+            'substitute' => ['bird dog', 'dead bug', 'hip thrust', 'supported row'],
+        ],
+        'neck' => [
+            'avoid' => ['loaded shrug', 'behind neck press', 'neck strain core work'],
+            'substitute' => ['chest-supported row', 'dead bug', 'wall slide'],
+        ],
+        'wrist' => [
+            'avoid' => ['push-up on flat palms', 'front rack', 'loaded wrist extension'],
+            'substitute' => ['neutral-grip dumbbell press', 'push-up handles', 'forearm plank'],
+        ],
     ];
 
     public const REQUIRED_AUDIT_USAGE = [

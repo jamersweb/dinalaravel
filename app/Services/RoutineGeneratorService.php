@@ -99,6 +99,10 @@ class RoutineGeneratorService
         string $routineId
     ): Workout {
         $title = $this->routineTitle($filters, $typeCode, $variation);
+        $routineFilters = array_merge($filters, [
+            'workout_type' => $typeCode,
+            'variation' => $variation,
+        ]);
         $mainExerciseCount = $this->mainExerciseCount($filters);
         $sections = [
             'warm_up_cardio' => $this->pick($filters, 'cardio_warm_up', 1, $variation),
@@ -113,6 +117,7 @@ class RoutineGeneratorService
                 $this->pick($filters, 'abs', 1, $variation),
                 $this->pick($filters, 'obliques', 1, $variation + 1)
             ),
+            'lower_back_strengthening' => $this->pick($filters, 'lower_back_strength', 1, $variation),
             'optional_additional_cardio' => $this->pick($filters, 'cardio_warm_up', 1, $variation + 3),
             'cool_down_stretching' => $this->pick($filters, 'stretching', 1, $variation),
         ];
@@ -133,7 +138,7 @@ class RoutineGeneratorService
             'image' => $this->coverImage($sections),
             'instructions' => $this->description($filters, $typeCode),
             'daily_summary' => "{$estimatedMinutes} min estimated " . (RoutineLibraryRules::WORKOUT_TYPES[$typeCode] ?? strtoupper($typeCode)) . ' workout.',
-            'routine_sections' => $this->sectionSummary($sections, $filters, $estimatedMinutes),
+            'routine_sections' => $this->sectionSummary($sections, $routineFilters, $estimatedMinutes),
         ]);
 
         foreach ($sections as $section => $tags) {
@@ -271,6 +276,16 @@ class RoutineGeneratorService
                 'estimated_minutes' => $estimatedMinutes,
                 'duration_delta_minutes' => $estimatedMinutes - $filters['target_minutes'],
                 'section_contract' => 'ai_program_builder_phase_3',
+                'dina_methodology' => [
+                    'mandatory_usage' => RoutineLibraryRules::DINA_MANDATORY_USAGE,
+                    'mobility_focus' => $this->mobilityFocus($filters),
+                    'coaching_cue' => $this->dinaCoachingCue($filters),
+                    'rules' => [
+                        'abs_obliques_lower_back_every_session',
+                        'movement_quality_first',
+                        'coach_approval_required',
+                    ],
+                ],
             ],
         ];
         foreach ($sections as $section => $tags) {
@@ -305,6 +320,7 @@ class RoutineGeneratorService
             'core_lower_back_preparation' => 'Brace gently and prepare the core and lower back without fatigue.',
             'main_workout' => 'Use clean form and leave 1-2 reps in reserve unless the program states otherwise.',
             'core_obliques' => 'Brace and avoid pulling through the neck or lower back.',
+            'lower_back_strengthening' => 'Strengthen the posterior core with controlled tempo and no painful range.',
             'optional_additional_cardio' => 'Optional calorie-expenditure support; skip when recovery, pain, or time is a concern.',
             'cool_down_stretching' => 'Hold each stretch without bouncing and breathe slowly.',
             default => '',
@@ -320,6 +336,7 @@ class RoutineGeneratorService
             'core_lower_back_preparation',
             'main_workout',
             'core_obliques',
+            'lower_back_strengthening',
             'optional_additional_cardio',
             'cool_down_stretching',
         ], true) * 10;
@@ -392,6 +409,7 @@ class RoutineGeneratorService
                 'core_lower_back_preparation' => 1,
                 'main_workout' => 5,
                 'core_obliques' => 2,
+                'lower_back_strengthening' => 1,
                 'cool_down_stretching' => 2,
                 'optional_additional_cardio' => 5,
                 default => 1,
@@ -406,6 +424,7 @@ class RoutineGeneratorService
                 'core_lower_back_preparation' => 2,
                 'main_workout' => 12,
                 'core_obliques' => 4,
+                'lower_back_strengthening' => 2,
                 'cool_down_stretching' => 3,
                 'optional_additional_cardio' => 8,
                 default => 1,
@@ -445,7 +464,7 @@ class RoutineGeneratorService
             return '3';
         }
 
-        if (in_array($section, ['muscle_activation', 'core_lower_back_preparation', 'core_obliques'], true)) {
+        if (in_array($section, ['muscle_activation', 'core_lower_back_preparation', 'core_obliques', 'lower_back_strengthening'], true)) {
             return '2';
         }
 
@@ -457,7 +476,7 @@ class RoutineGeneratorService
         if ($section === 'main_workout') {
             return (int) $filters['target_minutes'] <= 20 ? 2 : 3;
         }
-        if (in_array($section, ['muscle_activation', 'core_lower_back_preparation', 'core_obliques'], true)) {
+        if (in_array($section, ['muscle_activation', 'core_lower_back_preparation', 'core_obliques', 'lower_back_strengthening'], true)) {
             return 2;
         }
 
@@ -491,6 +510,33 @@ class RoutineGeneratorService
         }
 
         return 'Progress by increasing duration gradually while keeping intensity appropriate.';
+    }
+
+    private function mobilityFocus(array $filters): string
+    {
+        $seed = crc32(implode('|', [
+            $filters['equipment_category'] ?? '',
+            $filters['fitness_level'] ?? '',
+            $filters['target_minutes'] ?? '',
+            $filters['workout_type'] ?? '',
+            $filters['variation'] ?? '',
+        ]));
+        $rotation = RoutineLibraryRules::MOBILITY_FOCUS_ROTATION;
+
+        return $rotation[$seed % count($rotation)];
+    }
+
+    private function dinaCoachingCue(array $filters): string
+    {
+        $cues = [
+            'Keep your ribs down and brace before every rep.',
+            'Move with control before adding speed or load.',
+            'Own the lowering phase and avoid rushing transitions.',
+            'Push through the whole foot and keep the core connected.',
+        ];
+        $seed = crc32(($filters['fitness_level'] ?? '') . '|' . ($filters['equipment_category'] ?? ''));
+
+        return $cues[$seed % count($cues)];
     }
 
     private function levelCanServeRoutine(string $exerciseLevel, string $routineLevel): bool

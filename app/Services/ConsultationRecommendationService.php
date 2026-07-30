@@ -30,9 +30,10 @@ class ConsultationRecommendationService
         $equipment = $this->equipment($text);
         $level = $this->level($text);
         $injuries = $this->injuries($text);
+        $conditions = $this->hormonalConditions($text);
         $calories = $this->calories($profile, $goal, $text);
-        $frequency = $this->weeklyFrequency($text, $level, $injuries);
-        $duration = $this->preferredDuration($text, $level);
+        $frequency = $this->adaptedWeeklyFrequency($this->weeklyFrequency($text, $level, $injuries), $conditions, $injuries, $text);
+        $duration = $this->adaptedPreferredDuration($this->preferredDuration($text, $level), $conditions, $injuries, $text);
 
         $overridePayload = $this->normalizeOverrides($overrides);
         $language = $overridePayload['language'] ?? $language;
@@ -40,6 +41,7 @@ class ConsultationRecommendationService
         $level = $overridePayload['training_level'] ?? $level;
         $frequency = $overridePayload['weekly_workout_frequency'] ?? $frequency;
         $duration = $overridePayload['preferred_duration_minutes'] ?? $duration;
+        $methodology = $this->dinaMethodologyPayload($text, $conditions, $injuries, $goal);
 
         $routineResult = $this->routineIds($language, $equipment, $level, $injuries);
         $programResult = $this->programIds($language, $equipment, $level, $frequency, $duration, $injuries, $text);
@@ -66,7 +68,8 @@ class ConsultationRecommendationService
                 'program_source_status' => $programResult['status'],
                 'coach_overrides' => $overridePayload,
                 'profile' => $profile,
-                'notes' => array_values(array_merge($programResult['notes'], $routineResult['notes'])),
+                'dina_methodology' => $methodology,
+                'notes' => array_values(array_merge($programResult['notes'], $routineResult['notes'], $methodology['coach_notes'])),
             ],
         ]);
     }
@@ -332,6 +335,128 @@ class ConsultationRecommendationService
                 ? array_merge($notes, ['No matching launch program exists for the consultation filters.'])
                 : $notes,
         ];
+    }
+
+    private function hormonalConditions(string $text): array
+    {
+        $conditions = [];
+        foreach (RoutineLibraryRules::HORMONAL_CONDITION_RULES as $condition => $rule) {
+            foreach ($rule['signals'] as $signal) {
+                if (str_contains($text, $signal)) {
+                    $conditions[] = $condition;
+                    break;
+                }
+            }
+        }
+
+        return array_values(array_unique($conditions));
+    }
+
+    private function adaptedWeeklyFrequency(int $frequency, array $conditions, array $injuries, string $text): int
+    {
+        if ($injuries !== [] || $this->hasLowReadinessSignals($text)) {
+            $frequency = min($frequency, 3);
+        }
+
+        if (array_intersect($conditions, ['hashimotos', 'endometriosis', 'high_stress'])) {
+            $frequency = min($frequency, 3);
+        }
+
+        if (in_array('pcos', $conditions, true) && $injuries === [] && ! $this->hasLowReadinessSignals($text)) {
+            $frequency = max($frequency, 4);
+        }
+
+        return max(3, min(6, $frequency));
+    }
+
+    private function adaptedPreferredDuration(int $duration, array $conditions, array $injuries, string $text): int
+    {
+        if ($injuries !== [] || $this->hasLowReadinessSignals($text)) {
+            $duration = min($duration, 30);
+        }
+
+        if (array_intersect($conditions, ['hashimotos', 'endometriosis', 'high_stress'])) {
+            $duration = min($duration, 30);
+        }
+
+        if (in_array('menopause', $conditions, true) && ! $this->hasLowReadinessSignals($text)) {
+            $duration = max($duration, 30);
+        }
+
+        return in_array($duration, [15, 20, 30, 45, 60], true) ? $duration : 30;
+    }
+
+    private function dinaMethodologyPayload(string $text, array $conditions, array $injuries, string $goal): array
+    {
+        $trainingAdjustments = [
+            'Every generated session must include abs, obliques, lower-back activation, lower-back strengthening, mobility, and stretching.',
+            'Movement quality comes before load, speed, or density.',
+        ];
+        $habitSuggestions = ['hydration', 'steps', 'sleep routine'];
+        $nutritionSuggestions = $goal === 'fat_loss'
+            ? ['protein at each meal', 'hydration', 'coach-reviewed calorie target']
+            : ['protein target', 'consistent meals', 'hydration'];
+        $coachNotes = [];
+
+        foreach ($conditions as $condition) {
+            $rule = RoutineLibraryRules::HORMONAL_CONDITION_RULES[$condition] ?? null;
+            if (! $rule) {
+                continue;
+            }
+            $trainingAdjustments = array_merge($trainingAdjustments, $rule['training_adjustments']);
+            $habitSuggestions = array_merge($habitSuggestions, $rule['habit_suggestions']);
+            $nutritionSuggestions = array_merge($nutritionSuggestions, $rule['nutrition_suggestions']);
+            $coachNotes[] = ucfirst(str_replace('_', ' ', $condition)) . ' signals detected; apply condition-specific training and recovery rules.';
+        }
+
+        if ($this->hasLowReadinessSignals($text)) {
+            $trainingAdjustments[] = 'Use readiness-based reduction: fewer sets, lower intensity, longer rest, or active recovery.';
+            $habitSuggestions[] = 'readiness check';
+            $coachNotes[] = 'Low readiness signals detected from consultation text.';
+        }
+
+        return [
+            'conditions' => $conditions,
+            'training_adjustments' => array_values(array_unique($trainingAdjustments)),
+            'habit_suggestions' => array_values(array_unique($habitSuggestions)),
+            'nutrition_suggestions' => array_values(array_unique($nutritionSuggestions)),
+            'substitution_policy' => $this->substitutionPolicy($injuries),
+            'readiness_policy' => $this->readinessPolicy(),
+            'coach_notes' => array_values(array_unique($coachNotes)),
+        ];
+    }
+
+    private function substitutionPolicy(array $injuries): array
+    {
+        $policy = [];
+        foreach ($injuries as $injury) {
+            if (isset(RoutineLibraryRules::PAIN_SUBSTITUTION_RULES[$injury])) {
+                $policy[$injury] = RoutineLibraryRules::PAIN_SUBSTITUTION_RULES[$injury];
+            }
+        }
+
+        return $policy;
+    }
+
+    private function readinessPolicy(): array
+    {
+        return [
+            'inputs' => ['energy_1_10', 'sleep_quality', 'stress_1_10', 'soreness_1_10', 'pain', 'illness', 'menstrual_symptoms'],
+            'green' => 'Proceed as planned.',
+            'yellow' => 'Reduce one set per strength section or skip optional cardio.',
+            'red' => 'Use mobility, walking, breathing, or rest instead of full training.',
+        ];
+    }
+
+    private function hasLowReadinessSignals(string $text): bool
+    {
+        foreach (['poor sleep', 'bad sleep', 'insomnia', 'exhausted', 'fatigue', 'very tired', 'sore', 'illness', 'sick', 'flare', 'period pain', 'menstrual symptoms'] as $signal) {
+            if (str_contains($text, $signal)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function programScore(array $definition, string $equipment, int $frequency, int $duration): int

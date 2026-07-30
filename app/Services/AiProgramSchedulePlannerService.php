@@ -59,10 +59,25 @@ class AiProgramSchedulePlannerService
 
     public function progressionForWeek(int $weekNo): array
     {
+        if (in_array($weekNo, RoutineLibraryRules::DELOAD_WEEKS, true)) {
+            return [
+                'focus' => $weekNo === 12 ? 'Deload, testing, and transition' : 'Deload and recovery consolidation',
+                'rules' => [
+                    'reduce total volume by 25-40 percent',
+                    'avoid max-effort conditioning',
+                    'keep technique clean',
+                    'prioritize sleep, walking, mobility, and hydration',
+                ],
+                'deload' => true,
+                'readiness_adjustment' => 'If fatigue, soreness, illness, or menstrual symptoms are high, use active recovery instead of pushing intensity.',
+            ];
+        }
+
         if ($weekNo <= 2) {
             return [
                 'focus' => 'Technique and base volume',
                 'rules' => ['simple exercises', 'longer rest periods', 'controlled tempo'],
+                'deload' => false,
             ];
         }
 
@@ -70,6 +85,7 @@ class AiProgramSchedulePlannerService
             return [
                 'focus' => 'Volume build',
                 'rules' => ['slightly more repetitions', 'small resistance increase where appropriate'],
+                'deload' => false,
             ];
         }
 
@@ -77,12 +93,14 @@ class AiProgramSchedulePlannerService
             return [
                 'focus' => 'Exercise progression',
                 'rules' => ['harder variations', 'moderate rest reduction', 'accessory rotation'],
+                'deload' => false,
             ];
         }
 
         return [
             'focus' => 'Training density and performance',
             'rules' => ['higher resistance or density', 'advanced grouping only when level-appropriate'],
+            'deload' => false,
         ];
     }
 

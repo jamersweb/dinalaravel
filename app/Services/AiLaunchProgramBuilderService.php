@@ -285,12 +285,12 @@ class AiLaunchProgramBuilderService
                     'day_no' => $day['day_no'],
                     'day_type' => $day['day_type'],
                     'display_name' => $this->displayName($day, $routine),
-                    'estimated_minutes' => $routine ? $this->estimatedMinutes($routine, $definition) : null,
+                    'estimated_minutes' => $routine ? $this->adjustedEstimatedMinutes($routine, $definition, $progression) : null,
                     'training_style' => $day['training_focus'],
                     'muscle_groups' => $routine ? $this->routineMuscleGroups($routine) : [],
                     'progression_notes' => $progression,
                     'recovery_guidance' => $day['day_type'] === AiProgramWeekDay::TYPE_WORKOUT
-                        ? []
+                        ? $this->workoutRecoveryGuidance($progression)
                         : $this->recoveryGuidance($day['day_type']),
                 ]);
             }
@@ -306,6 +306,20 @@ class AiLaunchProgramBuilderService
         return $day['day_type'] === AiProgramWeekDay::TYPE_ACTIVE_RECOVERY
             ? 'Active Recovery Day'
             : 'Rest Day';
+    }
+
+    private function adjustedEstimatedMinutes(Workout $routine, array $definition, array $progression): ?int
+    {
+        $minutes = $this->estimatedMinutes($routine, $definition);
+        if ($minutes === null) {
+            return null;
+        }
+
+        if (($progression['deload'] ?? false) === true) {
+            return max(10, (int) round($minutes * 0.75));
+        }
+
+        return $minutes;
     }
 
     private function estimatedMinutes(Workout $routine, array $definition): ?int
@@ -350,5 +364,20 @@ class AiLaunchProgramBuilderService
             'Avoid intense training.',
             'Take a light walk only if comfortable.',
         ];
+    }
+
+    private function workoutRecoveryGuidance(array $progression): array
+    {
+        $guidance = [
+            'Use readiness check before training: energy, sleep, soreness, stress, and pain.',
+            'Reduce sets or skip optional cardio if readiness is low.',
+        ];
+
+        if (($progression['deload'] ?? false) === true) {
+            $guidance[] = 'Deload week: reduce load, sets, or intensity and leave extra reps in reserve.';
+            $guidance[] = 'Swap to mobility, walking, or active recovery if fatigue or symptoms are elevated.';
+        }
+
+        return $guidance;
     }
 }
