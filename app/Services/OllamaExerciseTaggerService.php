@@ -6,12 +6,15 @@ use App\Jobs\ProcessAiExerciseTagProposalJob;
 use App\Models\AiExerciseTagProposal;
 use App\Models\Exercise;
 use App\Models\ExerciseLibraryTag;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class OllamaExerciseTaggerService
 {
+    private $legacyExerciseTags = null;
+
     public function generateProposals(array $filters = []): array
     {
         $limit = max(1, min(50, (int) ($filters['limit'] ?? 10)));
@@ -140,6 +143,8 @@ class OllamaExerciseTaggerService
             $payload
         );
 
+        $this->syncExerciseTagsFromPayload($proposal->exercise_id, $payload);
+
         $proposal->fill([
             'status' => 'applied',
             'reviewed_by' => Auth::id(),
@@ -147,6 +152,31 @@ class OllamaExerciseTaggerService
         ])->save();
 
         return $tag;
+    }
+
+    public function syncExerciseTagsFromPayload(int $exerciseId, array $payload): array
+    {
+        $exercise = Exercise::query()->select(['id', 'tags'])->find($exerciseId);
+        if (! $exercise) {
+            return [];
+        }
+
+        $existingIds = $this->parseLegacyTagIds($exercise->getRawOriginal('tags'));
+        $aiTagIds = $this->legacyTagIdsFromPayload($payload);
+        if ($aiTagIds === []) {
+            return [];
+        }
+
+        $mergedIds = array_values(array_unique(array_merge($existingIds, $aiTagIds)));
+        sort($mergedIds);
+
+        $sortedExisting = $existingIds;
+        sort($sortedExisting);
+        if ($mergedIds !== $sortedExisting) {
+            Exercise::where('id', $exerciseId)->update(['tags' => json_encode($mergedIds)]);
+        }
+
+        return array_values(array_diff($mergedIds, $existingIds));
     }
 
     public function rejectProposal(AiExerciseTagProposal $proposal): void
@@ -385,6 +415,244 @@ class OllamaExerciseTaggerService
             ->only((new ExerciseLibraryTag())->getFillable())
             ->except(['exercise_id'])
             ->all();
+    }
+
+    private function legacyTagIdsFromPayload(array $payload): array
+    {
+        $ids = [];
+
+        $language = RoutineLibraryRules::normalizeLanguage($this->scalarString($payload['language'] ?? null, 'en'));
+        $this->appendLegacyTagId($ids, [
+            'en' => ['English'],
+            'ar' => ['Arabic'],
+            'no_audio' => ['No audio', 'No Audio'],
+        ][$language] ?? [], ['Language']);
+
+        $difficulty = RoutineLibraryRules::normalizeLevel($this->scalarString($payload['difficulty'] ?? null, 'beginner'));
+        $this->appendLegacyTagId($ids, [ucfirst($difficulty)], ['Level']);
+
+        $equipment = RoutineLibraryRules::normalizeEquipment($this->scalarString($payload['equipment_category'] ?? null, 'bodyweight'));
+        $equipmentNames = [
+            'bodyweight' => ['Body weight', 'Bodyweight'],
+            'home_dumbbell' => ['Dumbbell', 'Dumbbells'],
+            'gym' => ['Gym', 'Machine'],
+            'full_gym' => ['Gym', 'Barbell', 'Bench', 'Machine'],
+        ][$equipment] ?? [];
+        foreach ($equipmentNames as $name) {
+            $this->appendLegacyTagId($ids, [$name], ['Equipment', 'Gym Machines']);
+        }
+
+        foreach ($this->stringArray($payload['equipment_tags'] ?? []) as $equipmentTag) {
+            $this->appendLegacyTagId($ids, $this->equipmentTagCandidates($equipmentTag), ['Equipment', 'Gym Machines']);
+        }
+
+        foreach ($this->muscleCandidates($this->scalarString($payload['muscle_group'] ?? null)) as $candidate) {
+            $this->appendLegacyTagId($ids, [$candidate], ['Main muscle', 'Muscles']);
+        }
+
+        foreach ($this->stringArray($payload['secondary_muscle_groups'] ?? []) as $muscle) {
+            foreach ($this->muscleCandidates($muscle) as $candidate) {
+                $this->appendLegacyTagId($ids, [$candidate], ['Main muscle', 'Muscles']);
+            }
+        }
+
+        foreach ($this->legacyUsageCandidates($payload) as $candidate) {
+            $this->appendLegacyTagId($ids, [$candidate], ['Purpose', 'Training category', 'Training specialty', 'Training speciality']);
+        }
+
+        return array_values(array_unique(array_filter($ids)));
+    }
+
+    private function equipmentTagCandidates(string $equipmentTag): array
+    {
+        $key = str_replace([' ', '-'], '_', strtolower($equipmentTag));
+
+        return [
+            'bodyweight' => ['Body weight', 'Bodyweight'],
+            'body_weight' => ['Body weight', 'Bodyweight'],
+            'dumbbell' => ['Dumbbell', 'Dumbbells'],
+            'dumbbells' => ['Dumbbell', 'Dumbbells'],
+            'machine' => ['Machine'],
+            'cable' => ['Cable'],
+            'cables' => ['Cable'],
+            'barbell' => ['Barbell'],
+            'cardio_machine' => ['Cardio Machine'],
+            'bench' => ['Bench'],
+            'mat' => ['Mat'],
+            'band' => ['Bands (handles)', 'Bands (loops)'],
+            'bands' => ['Bands (handles)', 'Bands (loops)'],
+            'kettlebell' => ['Kettlebell'],
+        ][$key] ?? [ucwords(str_replace('_', ' ', $key))];
+    }
+
+    private function muscleCandidates(string $muscle): array
+    {
+        $key = preg_replace('/[^a-z0-9]+/', ' ', strtolower($muscle)) ?? '';
+        $key = trim($key);
+        if ($key === '' || $key === '-') {
+            return [];
+        }
+
+        $map = [
+            'abs' => ['Abs/Stomach'],
+            'core' => ['Abs/Stomach'],
+            'stomach' => ['Abs/Stomach'],
+            'obliques' => ['Obliques/Side stomach'],
+            'side stomach' => ['Obliques/Side stomach'],
+            'lower back' => ['Back (lower)', 'Lower back'],
+            'upper back' => ['Back (middle)', 'Lats/wider part of the back'],
+            'mid back' => ['Back (middle)'],
+            'middle back' => ['Back (middle)'],
+            'back' => ['Back (middle)', 'Back (lower)'],
+            'lats' => ['Lats/wider part of the back'],
+            'bicep' => ['Bicep/Upper inner arm'],
+            'biceps' => ['Bicep/Upper inner arm'],
+            'tricep' => ['Triceps/back part of your upper arm'],
+            'triceps' => ['Triceps/back part of your upper arm'],
+            'glute' => ['Glutes/Butt'],
+            'glutes' => ['Glutes/Butt'],
+            'butt' => ['Glutes/Butt'],
+            'hamstring' => ['Hamstrings/Back of the legs'],
+            'hamstrings' => ['Hamstrings/Back of the legs'],
+            'quads' => ['Quads/Front thighs'],
+            'quad' => ['Quads/Front thighs'],
+            'front thighs' => ['Quads/Front thighs'],
+            'calf' => ['Calfs'],
+            'calves' => ['Calfs'],
+            'chest' => ['Chest (mid)', 'Chest (upper)', 'Chest (inner)'],
+            'shoulder' => ['Shoulder (side)', 'Shoulder (front)', 'Shoulder (rear)'],
+            'shoulders' => ['Shoulder (side)', 'Shoulder (front)', 'Shoulder (rear)'],
+            'front shoulder' => ['Shoulder (front)'],
+            'rear shoulder' => ['Shoulder (rear)'],
+            'side shoulder' => ['Shoulder (side)'],
+            'abductors' => ['Abductors/Hips'],
+            'hips' => ['Abductors/Hips'],
+            'adductors' => ['Adductors/Inner thigh'],
+            'inner thigh' => ['Adductors/Inner thigh'],
+            'forearms' => ['Forearms'],
+            'neck' => ['Neck'],
+            'traps' => ['Traps/Lower neck and upper back'],
+        ];
+
+        return $map[$key] ?? [ucwords($key)];
+    }
+
+    private function legacyUsageCandidates(array $payload): array
+    {
+        $candidates = [];
+        $exerciseType = strtolower(str_replace([' ', '-'], '_', $this->scalarString($payload['exercise_type'] ?? null)));
+        $typeMap = [
+            'strength' => 'Strength',
+            'dumbbell' => 'Strength',
+            'gym' => 'Strength',
+            'main' => 'Strength',
+            'bodyweight' => 'Body weight',
+            'cardio' => 'Cardio',
+            'cardio_warm_up' => 'Cardio',
+            'warm_up' => 'Warm-up',
+            'mobility' => 'Mobility',
+            'stretching' => 'Stretching',
+        ];
+        if (isset($typeMap[$exerciseType])) {
+            $candidates[] = $typeMap[$exerciseType];
+        }
+
+        foreach ($this->stringArray($payload['training_styles'] ?? []) as $style) {
+            $candidates[] = ucwords(str_replace('_', ' ', $style));
+        }
+
+        $flags = is_array($payload['usage_flags'] ?? null) ? $payload['usage_flags'] : [];
+        if (! empty($flags['cardio_warm_up'])) {
+            $candidates[] = 'Cardio';
+        }
+        if (! empty($flags['warm_up']) || ! empty($flags['lower_back_activation'])) {
+            $candidates[] = 'Warm-up';
+            $candidates[] = 'Activation';
+        }
+        if (! empty($flags['main_workout']) || ! empty($flags['lower_back_strength'])) {
+            $candidates[] = 'Strength';
+        }
+
+        return array_values(array_unique($candidates));
+    }
+
+    private function appendLegacyTagId(array &$ids, array $names, array $types = []): void
+    {
+        $tagId = $this->findLegacyTagId($names, $types);
+        if ($tagId !== null) {
+            $ids[] = $tagId;
+        }
+    }
+
+    private function findLegacyTagId(array $names, array $types = []): ?int
+    {
+        $tags = $this->legacyExerciseTags();
+        $normalizedNames = array_values(array_filter(array_map(fn ($name) => $this->normalizeTagLookup($name), $names)));
+        $normalizedTypes = array_values(array_filter(array_map(fn ($type) => $this->normalizeTagLookup($type), $types)));
+        if ($normalizedNames === []) {
+            return null;
+        }
+
+        foreach ($normalizedNames as $name) {
+            foreach ($tags as $tag) {
+                if ($tag['normalized_name'] === $name && ($normalizedTypes === [] || in_array($tag['normalized_type'], $normalizedTypes, true))) {
+                    return $tag['id'];
+                }
+            }
+        }
+
+        foreach ($normalizedNames as $name) {
+            foreach ($tags as $tag) {
+                if ($tag['normalized_name'] === $name) {
+                    return $tag['id'];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function legacyExerciseTags(): array
+    {
+        if ($this->legacyExerciseTags !== null) {
+            return $this->legacyExerciseTags;
+        }
+
+        $this->legacyExerciseTags = Tag::query()
+            ->where('category', 'exercise')
+            ->orderBy('id')
+            ->get(['id', 'name', 'type'])
+            ->map(fn (Tag $tag) => [
+                'id' => (int) $tag->id,
+                'normalized_name' => $this->normalizeTagLookup($tag->name),
+                'normalized_type' => $this->normalizeTagLookup($tag->type),
+            ])
+            ->all();
+
+        return $this->legacyExerciseTags;
+    }
+
+    private function normalizeTagLookup($value): string
+    {
+        return trim(preg_replace('/[^a-z0-9]+/', ' ', strtolower($this->scalarString($value))) ?? '');
+    }
+
+    private function parseLegacyTagIds($value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_array($value)) {
+            return array_values(array_unique(array_filter(array_map('intval', $value))));
+        }
+
+        $decoded = is_string($value) ? json_decode($value, true) : null;
+        if (is_array($decoded)) {
+            return array_values(array_unique(array_filter(array_map('intval', $decoded))));
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', explode(',', trim((string) $value, '[] '))))));
     }
 
     private function usageFlags(array $flags, string $exerciseType, string $muscleGroup, ?array $metadata): array
