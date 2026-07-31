@@ -285,18 +285,18 @@ class OllamaExerciseTaggerService
 
     private function normalizePayload(array $payload, ?array $metadata = null, ?array $currentTagPayload = null): array
     {
-        $language = RoutineLibraryRules::normalizeLanguage($payload['language'] ?? 'en');
+        $language = RoutineLibraryRules::normalizeLanguage($this->scalarString($payload['language'] ?? null, 'en'));
         if ($currentTagPayload && ! empty($currentTagPayload['language'])) {
-            $language = RoutineLibraryRules::normalizeLanguage($currentTagPayload['language']);
+            $language = RoutineLibraryRules::normalizeLanguage($this->scalarString($currentTagPayload['language'], $language));
         } elseif ($metadata && ! empty($metadata['language'])) {
-            $language = RoutineLibraryRules::normalizeLanguage($metadata['language']);
+            $language = RoutineLibraryRules::normalizeLanguage($this->scalarString($metadata['language'], $language));
         }
 
         $equipment = $this->inferEquipmentCategory($payload, $metadata, $currentTagPayload);
-        $difficulty = RoutineLibraryRules::normalizeLevel($payload['difficulty'] ?? 'beginner');
-        $impact = $this->allowedValue($payload['impact_level'] ?? 'low', RoutineLibraryRules::IMPACT_LEVELS, 'low');
-        $intensity = $this->allowedValue($payload['intensity_level'] ?? 'moderate', RoutineLibraryRules::INTENSITY_LEVELS, 'moderate');
-        $videoVariant = $this->allowedValue($payload['video_variant'] ?? 'explained', RoutineLibraryRules::VIDEO_VARIANTS, 'explained');
+        $difficulty = RoutineLibraryRules::normalizeLevel($this->scalarString($payload['difficulty'] ?? null, 'beginner'));
+        $impact = $this->allowedValue($this->scalarString($payload['impact_level'] ?? null, 'low'), RoutineLibraryRules::IMPACT_LEVELS, 'low');
+        $intensity = $this->allowedValue($this->scalarString($payload['intensity_level'] ?? null, 'moderate'), RoutineLibraryRules::INTENSITY_LEVELS, 'moderate');
+        $videoVariant = $this->allowedValue($this->scalarString($payload['video_variant'] ?? null, 'explained'), RoutineLibraryRules::VIDEO_VARIANTS, 'explained');
         $exerciseType = $this->inferExerciseType($payload, $metadata, $currentTagPayload, $equipment);
         $muscleGroup = $this->inferMuscleGroup($payload, $metadata, $currentTagPayload);
         $usageFlags = $this->usageFlags((array) ($payload['usage_flags'] ?? []), $exerciseType, $muscleGroup, $metadata);
@@ -453,8 +453,8 @@ class OllamaExerciseTaggerService
 
     private function inferEquipmentCategory(array $payload, ?array $metadata, ?array $currentTagPayload): string
     {
-        $title = strtolower((string) ($metadata['title'] ?? ''));
-        $raw = strtolower(str_replace([' ', '-'], '_', (string) ($payload['equipment_category'] ?? '')));
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        $raw = strtolower(str_replace([' ', '-'], '_', $this->scalarString($payload['equipment_category'] ?? null)));
 
         if (preg_match('/\b(db|dumbbell|dumbbells)\b/', $title)) {
             return 'home_dumbbell';
@@ -466,7 +466,7 @@ class OllamaExerciseTaggerService
             return 'full_gym';
         }
         if ($currentTagPayload && ! empty($currentTagPayload['equipment_category'])) {
-            $current = RoutineLibraryRules::normalizeEquipment($currentTagPayload['equipment_category']);
+            $current = RoutineLibraryRules::normalizeEquipment($this->scalarString($currentTagPayload['equipment_category']));
             if ($current !== 'bodyweight' || $raw === '' || $raw === 'bodyweight') {
                 return $current;
             }
@@ -485,8 +485,8 @@ class OllamaExerciseTaggerService
 
     private function inferExerciseType(array $payload, ?array $metadata, ?array $currentTagPayload, string $equipment): string
     {
-        $title = strtolower((string) ($metadata['title'] ?? ''));
-        $raw = strtolower(str_replace([' ', '-'], '_', (string) ($payload['exercise_type'] ?? '')));
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        $raw = strtolower(str_replace([' ', '-'], '_', $this->scalarString($payload['exercise_type'] ?? null)));
 
         if (str_contains($title, 'stretch')) {
             return 'stretching';
@@ -502,7 +502,7 @@ class OllamaExerciseTaggerService
             return $raw;
         }
         if ($currentTagPayload && ! empty($currentTagPayload['exercise_type'])) {
-            $current = strtolower(str_replace([' ', '-'], '_', (string) $currentTagPayload['exercise_type']));
+            $current = strtolower(str_replace([' ', '-'], '_', $this->scalarString($currentTagPayload['exercise_type'])));
             if (in_array($current, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'warm_up', 'mobility', 'stretching', 'lower_back', 'abs', 'obliques'], true)) {
                 return $current;
             }
@@ -519,13 +519,13 @@ class OllamaExerciseTaggerService
 
     private function inferMuscleGroup(array $payload, ?array $metadata, ?array $currentTagPayload): string
     {
-        $title = strtolower((string) ($metadata['title'] ?? ''));
-        $muscle = strtolower(trim((string) ($payload['muscle_group'] ?? '')));
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        $muscle = strtolower(trim($this->scalarString($payload['muscle_group'] ?? null)));
         if ($muscle !== '' && $muscle !== '-') {
             return $muscle;
         }
         if ($currentTagPayload && ! empty($currentTagPayload['muscle_group'])) {
-            return strtolower((string) $currentTagPayload['muscle_group']);
+            return strtolower($this->scalarString($currentTagPayload['muscle_group']));
         }
         if (preg_match('/\b(deadlift|rdl|lower back|back extension)\b/', $title)) {
             return 'lower back';
@@ -575,9 +575,28 @@ class OllamaExerciseTaggerService
 
     private function allowedValue($value, array $allowed, string $fallback): string
     {
-        $value = strtolower((string) $value);
+        $value = strtolower($this->scalarString($value));
 
         return in_array($value, $allowed, true) ? $value : $fallback;
+    }
+
+    private function scalarString($value, string $fallback = ''): string
+    {
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if (is_scalar($item) && trim((string) $item) !== '') {
+                    return trim((string) $item);
+                }
+            }
+
+            return $fallback;
+        }
+
+        if (is_scalar($value) && trim((string) $value) !== '') {
+            return trim((string) $value);
+        }
+
+        return $fallback;
     }
 
     private function stringArray($value): array
@@ -607,6 +626,6 @@ class OllamaExerciseTaggerService
             return null;
         }
 
-        return substr((string) $value, 0, $max);
+        return substr($this->scalarString($value), 0, $max);
     }
 }
