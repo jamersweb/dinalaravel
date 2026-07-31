@@ -29,7 +29,7 @@ class NoActiveSubMiddleware
             return $next($request);
         }
 
-        // RevenueCat / legacy payments may create user_subs before user_details is updated
+        // Direct IAP / legacy payments may create user_subs before user_details is updated
         $hasActiveUserSub = UserSub::where('user_id', $userId)
             ->where('status', 'active')
             ->exists();

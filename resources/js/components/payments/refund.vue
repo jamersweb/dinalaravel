@@ -3,7 +3,7 @@
     <Inform v-if="informModal" :msgTitle="modalTitle" :msgDetail="modalDetail" />
     <div style="padding:5px;height:calc(100vh - 210px);overflow:auto;">
         <div class="mx-3 mb-3 p-3 brds-2" style="background-color:#f8f8f8;border:1px solid #ececec;">
-            Refund requests are not available in the current RevenueCat store-subscription flow.
+            Refund requests are not available in the current store-subscription flow.
         </div>
         <Vue3EasyDataTable :headers="headers" :items="items"
         :search-field="searchField"
@@ -134,14 +134,14 @@ export default {
             }
             else {
                 this.modalTitle = 'Not Available';
-                this.modalDetail = 'Refund approvals are not available in the current RevenueCat store-subscription flow.';
+                this.modalDetail = 'Refund approvals are not available in the current store-subscription flow.';
                 this.informModal = true;
                 this.quitComponent();
             }
         },
         approveRequest() {
             this.modalTitle = 'Not Available';
-            this.modalDetail = 'Refund approvals are not available in the current RevenueCat store-subscription flow.';
+            this.modalDetail = 'Refund approvals are not available in the current store-subscription flow.';
             this.informModal = true;
             this.quitComponent();
         },

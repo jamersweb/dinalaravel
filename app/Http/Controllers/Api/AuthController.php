@@ -751,45 +751,6 @@ class AuthController extends Controller
             ], 500);
         }
     }
-    /**
-     * Sync subscription from RevenueCat when app has isPro but backend has not received webhook.
-     * Call when user has RevenueCat entitlement but subscribe-program returns 402.
-     */
-    public function syncRevenueCatSubscription()
-    {
-        $userId = Auth::id();
-        if (! $userId) {
-            return response()->json(['status' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $fullAccessSub = Subscription::where('access_type', 'full_access')
-            ->where('status', 1)
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        if (! $fullAccessSub) {
-            return response()->json(['status' => false, 'message' => 'No subscription plan found'], 500);
-        }
-
-        UserSub::where('user_id', $userId)->where('status', 'active')->update(['status' => 'replaced']);
-
-        $userSub = new UserSub;
-        $userSub->user_id = $userId;
-        $userSub->sub_id = $fullAccessSub->id;
-        $userSub->payment_id = null;
-        $userSub->status = 'active';
-        $userSub->sub_start_date = now();
-        $userSub->sub_expire_date = now()->addYear();
-        $userSub->save();
-
-        UserDetail::where('user_id', $userId)->update([
-            'subscription' => $fullAccessSub->id,
-            'subscription_status' => 'active',
-        ]);
-
-        return response()->json(['status' => true, 'message' => 'Subscription synced']);
-    }
-
     function isTokenValid()
     {
         return response()->json([

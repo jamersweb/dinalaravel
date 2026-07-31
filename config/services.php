@@ -30,11 +30,6 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    'revenuecat' => [
-        'webhook_auth' => env('REVENUECAT_WEBHOOK_AUTH'),
-        'webhook_debug' => env('REVENUECAT_WEBHOOK_DEBUG', false),
-    ],
-
     'store_iap' => [
         'google_package_name' => env('GOOGLE_PLAY_PACKAGE_NAME'),
         'google_service_account_json' => env('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON'),

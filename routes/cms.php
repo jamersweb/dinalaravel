@@ -260,7 +260,7 @@ Route::group(['prefix' => 'cms'], function(){
         Route::get('team-member-detail/{id}',[TeamController::class,'teamMemberDetail'])->middleware('checkNotTeam');
 
         //Payments Routes
-        // Stripe/refund removed - RevenueCat only
+        // Stripe/refund flow is not available for store subscriptions.
         Route::get('payments-summary', [CmsStoreSubscriptionController::class, 'legacySummary']);
         Route::get('payments-sales-data', [CmsStoreSubscriptionController::class, 'legacySalesData']);
         Route::get('get-all-products',[SubscriptionsController::class,'allProducts']);

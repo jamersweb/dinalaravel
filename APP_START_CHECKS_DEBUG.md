@@ -21,13 +21,10 @@ When you see `Que Answered: false` and `Subscription Active (backend): false`, t
 
 - `user_details.subscription_status` is not `'active'` (it may be `null`, `'expired'`, etc.).
 - `subscription_status` is set to `'active'` when:
-  - User purchases via RevenueCat (webhook)
-  - User purchases via traditional payment (PaymentsController)
-  - Admin syncs subscription (sync-revenuecat-subscription endpoint)
+  - User purchases via direct store IAP (`StoreSubscriptionController`)
+  - User purchases via traditional payment (`PaymentsController`)
 
-**Fix:** If the user has an active subscription in RevenueCat:
-1. Ensure the RevenueCat webhook is configured and receiving events.
-2. Call the `sync-revenuecat-subscription` endpoint after login.
+**Fix:** If the user has an active store subscription, verify the direct IAP receipt through the app and confirm the backend `store-subscription/verify` endpoint updated the subscription rows.
 
 ## Debugging
 
@@ -50,12 +47,3 @@ SELECT COUNT(*) FROM user_answers WHERE user_id = YOUR_USER_ID;
 SELECT * FROM user_subs WHERE user_id = YOUR_USER_ID AND status = 'active';
 ```
 
-## App behavior
-
-The app uses **RevenueCat as the source of truth** when the backend lags:
-
-```dart
-final subscriptionActive = appStartCheckResponse?.data?.subscriptionActive == true || rcProvider.isPro;
-```
-
-So if the user has `isPro` in RevenueCat, they get access even when `subscription_active` is false from the backend. The backend is eventually updated by the webhook.

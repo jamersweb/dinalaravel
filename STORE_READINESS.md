@@ -5,8 +5,7 @@ For full app audit (Flutter, Laravel, Google Play, App Store), see:
 
 ## Backend-Specific Checklist
 
-- [ ] Set `REVENUECAT_WEBHOOK_AUTH` in production `.env` (webhook rejects unauthenticated requests in production if not set)
 - [ ] Use HTTPS for all API URLs in production
-- [ ] Queue worker running for `ProcessRevenueCatWebhookJob` (use `database` or `redis` queue)
+- [ ] Queue worker running only for queues required by active backend jobs, such as AI tagging
 - [ ] Configure CORS for production app domain
 - [ ] Verify Passport token expiry is appropriate (currently 4 weeks)

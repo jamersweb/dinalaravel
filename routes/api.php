@@ -82,11 +82,6 @@ Route::get('media/{type}/{filename}', [MediaController::class, 'show'])
     ->name('api.media.show');
 Route::get('introduction-video', [MediaController::class, 'introductionVideoMeta']);
 
-// RevenueCat webhook - no auth, validates REVENUECAT_WEBHOOK_AUTH header
-Route::post('webhook/revenuecat', \App\Http\Controllers\Api\RevenueCatWebhookController::class)
-    ->middleware('throttle:60,1')
-    ->name('webhook.revenuecat');
-
 // Public consultation form routes (before auth)
 Route::post('submit-consultation', [ConsultationFormController::class, 'submitConsultation']);
 Route::get('check-consultation-status', [ConsultationFormController::class, 'checkConsultationStatus'])->middleware('auth:api');
@@ -153,9 +148,6 @@ Route::group(['middleware' => ['auth:api', 'checkUser'], 'json.response'], funct
 	Route::get('my-workout-detail/{id}', [WorkoutController::class, 'myworkout']);
 	Route::get('program-detail/{id}', [ProgramSubTrackingController::class, 'getProgramDetail']);
 	Route::post('getUserNotification', [NotificationsController::class, 'getUserNotifications']);
-
-	// Sync RevenueCat subscription to backend when app has isPro but webhook hasn't synced (e.g. anonymous app_user_id)
-	Route::post('sync-revenuecat-subscription', [AuthController::class, 'syncRevenueCatSubscription']);
 
 	//  Submit consultation answers
 	Route::post('submit-answers', [QuestionsController::class, 'submitAnswers']);

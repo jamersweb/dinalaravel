@@ -61757,14 +61757,14 @@ __webpack_require__.r(__webpack_exports__);
         this.refundPopup = true;
       } else {
         this.modalTitle = 'Not Available';
-        this.modalDetail = 'Refund approvals are not available in the current RevenueCat store-subscription flow.';
+        this.modalDetail = 'Refund approvals are not available in the current store-subscription flow.';
         this.informModal = true;
         this.quitComponent();
       }
     },
     approveRequest: function approveRequest() {
       this.modalTitle = 'Not Available';
-      this.modalDetail = 'Refund approvals are not available in the current RevenueCat store-subscription flow.';
+      this.modalDetail = 'Refund approvals are not available in the current store-subscription flow.';
       this.informModal = true;
       this.quitComponent();
     },
@@ -97954,7 +97954,7 @@ var _hoisted_2 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementV
     "background-color": "#f8f8f8",
     "border": "1px solid #ececec"
   }
-}, " Refund requests are not available in the current RevenueCat store-subscription flow. ", -1 /* HOISTED */);
+}, " Refund requests are not available in the current store-subscription flow. ", -1 /* HOISTED */);
 var _hoisted_3 = {
   "class": "mb-0"
 };
