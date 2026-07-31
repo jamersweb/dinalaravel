@@ -60,6 +60,10 @@ class OllamaExerciseTaggerService
             $metadata = $this->sourceMetadata($exercise);
             $currentTagPayload = $exercise->libraryTag ? $this->tagPayload($exercise->libraryTag) : null;
 
+            AiExerciseTagProposal::where('exercise_id', $exercise->id)
+                ->whereIn('status', ['rejected', 'failed'])
+                ->delete();
+
             try {
                 $result = $this->tagWithOllama($metadata, $currentTagPayload, $model);
                 $proposal = AiExerciseTagProposal::create([
@@ -131,14 +135,15 @@ class OllamaExerciseTaggerService
     public function rejectProposal(AiExerciseTagProposal $proposal): void
     {
         if (! in_array($proposal->status, ['proposed', 'failed'], true)) {
-            throw new RuntimeException('Only open AI tag proposals can be rejected.');
+            throw new RuntimeException('Only open AI tag proposals can be removed.');
         }
 
-        $proposal->fill([
-            'status' => 'rejected',
-            'reviewed_by' => Auth::id(),
-            'reviewed_at' => now(),
-        ])->save();
+        $proposal->delete();
+    }
+
+    public function clearRejectedProposals(): int
+    {
+        return AiExerciseTagProposal::whereIn('status', ['rejected', 'failed'])->delete();
     }
 
     private function tagWithOllama(array $metadata, ?array $currentTagPayload, string $model): array

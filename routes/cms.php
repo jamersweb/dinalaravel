@@ -94,6 +94,7 @@ Route::group(['prefix' => 'cms'], function(){
         // Routine Library + Consultation Recommendations
         Route::get('routine-library/ai-video-tags', [RoutineLibraryController::class, 'aiVideoTagProposals']);
         Route::post('routine-library/ai-video-tags/generate', [RoutineLibraryController::class, 'generateAiVideoTagProposals']);
+        Route::post('routine-library/ai-video-tags/clear-rejected', [RoutineLibraryController::class, 'clearRejectedAiVideoTagProposals']);
         Route::post('routine-library/ai-video-tags/{id}/apply', [RoutineLibraryController::class, 'applyAiVideoTagProposal']);
         Route::post('routine-library/ai-video-tags/{id}/reject', [RoutineLibraryController::class, 'rejectAiVideoTagProposal']);
         Route::get('routine-library/audit', [RoutineLibraryController::class, 'audit']);

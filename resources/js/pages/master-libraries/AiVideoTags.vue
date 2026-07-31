@@ -8,7 +8,10 @@
                 <h2 class="mb-1">AI Video Tags</h2>
                 <p class="mb-0 muted">Review Ollama/Qwen tag proposals before applying them to the routine library.</p>
             </div>
-            <button class="prim_btn px-4 py-2" @click="generateProposals">Generate AI Tags</button>
+            <div class="head-actions">
+                <button v-if="(summary.rejected || 0) + (summary.failed || 0) > 0" class="scnd_btn px-4 py-2" @click="clearRejectedProposals">Clear rejected/failed</button>
+                <button class="prim_btn px-4 py-2" @click="generateProposals">Generate AI Tags</button>
+            </div>
         </div>
 
         <div class="filters panel">
@@ -108,7 +111,7 @@
                         <td class="text-end">
                             <button v-if="proposal.status === 'proposed'" class="tiny-btn" @click="applyProposal(proposal.id, true)">Apply + approve</button>
                             <button v-if="proposal.status === 'proposed'" class="tiny-btn" @click="applyProposal(proposal.id, false)">Apply pending</button>
-                            <button v-if="['proposed', 'failed'].includes(proposal.status)" class="tiny-btn reject" @click="rejectProposal(proposal.id)">Reject</button>
+                            <button v-if="['proposed', 'failed'].includes(proposal.status)" class="tiny-btn reject" @click="rejectProposal(proposal.id)">Remove</button>
                         </td>
                     </tr>
                 </tbody>
@@ -214,9 +217,23 @@ export default {
             this.loading = true;
             axios.post(config.baseApiUrl + 'routine-library/ai-video-tags/' + id + '/reject', {}, this.apiConfig)
                 .then(res => {
-                    this.modalTitle = 'Rejected';
-                    this.modalDetail = res.data.message || 'AI proposal rejected.';
+                    this.modalTitle = 'Removed';
+                    this.modalDetail = res.data.message || 'AI proposal removed.';
                     this.informModal = true;
+                    this.fetchProposals();
+                }).catch(er => this.showError(er.response?.data?.message || er.message))
+                .finally(() => {
+                    this.loading = false;
+                });
+        },
+        clearRejectedProposals() {
+            this.loading = true;
+            axios.post(config.baseApiUrl + 'routine-library/ai-video-tags/clear-rejected', {}, this.apiConfig)
+                .then(res => {
+                    this.modalTitle = 'Cleared';
+                    this.modalDetail = res.data.message || 'Rejected/failed proposals removed.';
+                    this.informModal = true;
+                    this.filters.status = 'proposed';
                     this.fetchProposals();
                 }).catch(er => this.showError(er.response?.data?.message || er.message))
                 .finally(() => {
@@ -298,6 +315,12 @@ export default {
     border-radius: 6px;
     padding: 6px 10px;
     background: #fff;
+}
+.head-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 .table-panel {
     overflow-x: auto;

@@ -176,7 +176,25 @@ class RoutineLibraryController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'AI proposal rejected.',
+                'message' => 'AI proposal removed. Generate again to add a fresh proposal for this video.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function clearRejectedAiVideoTagProposals(OllamaExerciseTaggerService $service)
+    {
+        try {
+            $deleted = $service->clearRejectedProposals();
+
+            return response()->json([
+                'status' => true,
+                'message' => "Removed {$deleted} rejected/failed AI proposal(s). Generate again to add fresh proposals.",
+                'data' => ['deleted' => $deleted],
             ]);
         } catch (\Throwable $e) {
             return response()->json([
