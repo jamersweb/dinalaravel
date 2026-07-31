@@ -22,16 +22,19 @@ class TagsController extends Controller
             'status' => false,
             'message' => $validate->errors()->all()[0]
         ]);
-        $tagExists = Tag::where('name',$request->name)->where('type',$request->type)->where('category',$request->category)->first();
+        $name = $this->cleanTagValue($request->name);
+        $type = $this->cleanTagValue($request->type);
+        $category = $this->cleanTagValue($request->category);
+        $tagExists = $this->duplicateTagQuery($name, $type, $category)->first();
         if($tagExists)
         return response()->json([
             'status' => false,
             'message' => 'Tag Already Exists.'
         ]);
         $tag = new Tag();
-        $tag->name =$request->name;
-        $tag->type =$request->type;
-        $tag->category =$request->category;
+        $tag->name = $name;
+        $tag->type = $type;
+        $tag->category = $category;
         $tag->save();
         return response()->json([
             'status' => true,
@@ -104,7 +107,7 @@ class TagsController extends Controller
             'status' => false,
             'message' => $validate->errors()->all()[0]
         ]);
-        $tags = Tag::where('category',$request->category)->get();
+        $tags = Tag::where('category',$request->category)->orderBy('type')->orderBy('name')->get();
         return response()->json([
             'status' => true,
             'data' => $tags
@@ -123,11 +126,22 @@ class TagsController extends Controller
         ]);
         $tag = Tag::where('id',$request->id)->first();
         if($tag){
-            $tag->type =$request->type;
-            if(isset($request->name) && !is_null($request->name) && $request->name != '')
-            $tag->name =$request->name;
-            if(isset($request->category) && !is_null($request->category) && $request->category != '')
-            $tag->category =$request->category;
+            $name = $this->cleanTagValue($request->name ?? $tag->name);
+            $type = $this->cleanTagValue($request->type ?? null);
+            $category = $this->cleanTagValue($request->category ?? $tag->category);
+
+            $tagExists = $this->duplicateTagQuery($name, $type, $category)
+                ->where('id', '!=', $tag->id)
+                ->first();
+            if($tagExists)
+            return response()->json([
+                'status' => false,
+                'message' => 'Tag Already Exists.'
+            ]);
+
+            $tag->type = $type;
+            $tag->name = $name;
+            $tag->category = $category;
             
             $tag->update();
             return response()->json([
@@ -140,5 +154,24 @@ class TagsController extends Controller
                 'message' => 'Tag Not Found.'
             ]);
         }
+    }
+
+    private function cleanTagValue($value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim(preg_replace('/\s+/', ' ', (string) $value));
+
+        return $value === '' ? null : $value;
+    }
+
+    private function duplicateTagQuery(?string $name, ?string $type, ?string $category)
+    {
+        return Tag::query()
+            ->whereRaw('LOWER(TRIM(name)) = ?', [strtolower((string) $name)])
+            ->whereRaw('LOWER(TRIM(COALESCE(type, ""))) = ?', [strtolower((string) $type)])
+            ->whereRaw('LOWER(TRIM(COALESCE(category, ""))) = ?', [strtolower((string) $category)]);
     }
 }
