@@ -6,7 +6,7 @@
         <div class="page-head">
             <div>
                 <h2 class="mb-1">AI Video Tags</h2>
-                <p class="mb-0 muted">Review Ollama/Qwen tag proposals before applying them to the routine library.</p>
+                <p class="mb-0 muted">Review Ollama/Qwen proposals. Generation runs in the background and uses exercise metadata plus the stored thumbnail when available.</p>
             </div>
             <div class="head-actions">
                 <button v-if="(summary.rejected || 0) + (summary.failed || 0) > 0" class="scnd_btn px-4 py-2" @click="clearRejectedProposals">Clear rejected/failed</button>
@@ -35,6 +35,8 @@
             </select>
             <select v-model="filters.status" class="form-select control" @change="fetchProposals">
                 <option value="">All proposals</option>
+                <option value="queued">Queued</option>
+                <option value="processing">Processing</option>
                 <option value="proposed">Proposed</option>
                 <option value="applied">Applied</option>
                 <option value="rejected">Rejected</option>
@@ -47,6 +49,8 @@
 
         <div class="summary-row">
             <span>Total {{ summary.total || 0 }}</span>
+            <span>Queued {{ summary.queued || 0 }}</span>
+            <span>Processing {{ summary.processing || 0 }}</span>
             <span>Proposed {{ summary.proposed || 0 }}</span>
             <span>Applied {{ summary.applied || 0 }}</span>
             <span>Rejected {{ summary.rejected || 0 }}</span>
@@ -111,7 +115,7 @@
                         <td class="text-end">
                             <button v-if="proposal.status === 'proposed'" class="tiny-btn" @click="applyProposal(proposal.id, true)">Apply + approve</button>
                             <button v-if="proposal.status === 'proposed'" class="tiny-btn" @click="applyProposal(proposal.id, false)">Apply pending</button>
-                            <button v-if="['proposed', 'failed'].includes(proposal.status)" class="tiny-btn reject" @click="rejectProposal(proposal.id)">Remove</button>
+                            <button v-if="['queued', 'processing', 'proposed', 'failed'].includes(proposal.status)" class="tiny-btn reject" @click="rejectProposal(proposal.id)">Remove</button>
                         </td>
                     </tr>
                 </tbody>
@@ -150,15 +154,19 @@ export default {
                 headers: {
                     Authorization: 'Bearer ' + config.storage.getItem('fwd_session_token')
                 }
-            }
+            },
+            pollingTimer: null
         };
     },
     mounted() {
         this.fetchProposals();
     },
+    beforeUnmount() {
+        this.stopPolling();
+    },
     methods: {
         fetchProposals() {
-            this.loading = true;
+            this.loading = !this.pollingTimer;
             axios.get(config.baseApiUrl + 'routine-library/ai-video-tags', {
                 ...this.apiConfig,
                 params: {
@@ -171,8 +179,9 @@ export default {
                 this.proposals = res.data.data?.data || [];
                 this.summary = res.data.summary || {};
                 if (!this.filters.model) {
-                    this.filters.model = res.data.options?.default_model || 'qwen3:latest';
+                    this.filters.model = res.data.options?.default_model || 'qwen2.5vl:7b';
                 }
+                this.togglePolling();
             }).catch(er => this.showError(er.response?.data?.message || er.message))
                 .finally(() => {
                     this.loading = false;
@@ -189,10 +198,11 @@ export default {
                 limit: this.filters.limit,
                 model: this.filters.model || undefined
             }, this.apiConfig).then(res => {
-                this.modalTitle = 'AI tagging complete';
-                this.modalDetail = res.data.message || 'AI proposals generated.';
+                this.modalTitle = 'AI tagging queued';
+                this.modalDetail = res.data.message || 'AI proposals queued.';
                 this.informModal = true;
                 this.fetchProposals();
+                this.startPolling();
             }).catch(er => this.showError(er.response?.data?.message || er.message))
                 .finally(() => {
                     this.loading = false;
@@ -245,6 +255,31 @@ export default {
                 return [];
             }
             return Object.keys(flags).filter(key => flags[key]).map(this.readableStatus);
+        },
+        hasActiveQueue() {
+            return (Number(this.summary.queued || 0) + Number(this.summary.processing || 0)) > 0;
+        },
+        togglePolling() {
+            if (this.hasActiveQueue()) {
+                this.startPolling();
+            } else {
+                this.stopPolling();
+            }
+        },
+        startPolling() {
+            if (this.pollingTimer) {
+                return;
+            }
+            this.pollingTimer = setInterval(() => {
+                this.fetchProposals();
+            }, 5000);
+        },
+        stopPolling() {
+            if (!this.pollingTimer) {
+                return;
+            }
+            clearInterval(this.pollingTimer);
+            this.pollingTimer = null;
         },
         confidence(value) {
             if (value === null || value === undefined) {
@@ -351,6 +386,14 @@ export default {
 .status-proposed {
     background: #fff0df;
     color: #a85000;
+}
+.status-queued {
+    background: #eef3ff;
+    color: #2350a3;
+}
+.status-processing {
+    background: #e8f5ff;
+    color: #006c9c;
 }
 .status-applied {
     background: #dff6e8;

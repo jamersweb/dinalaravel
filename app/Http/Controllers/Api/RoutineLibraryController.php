@@ -69,6 +69,8 @@ class RoutineLibraryController extends Controller
                 ->paginate(max(10, min(100, (int) $request->get('per_page', 20)))),
             'summary' => [
                 'total' => AiExerciseTagProposal::count(),
+                'queued' => AiExerciseTagProposal::where('status', 'queued')->count(),
+                'processing' => AiExerciseTagProposal::where('status', 'processing')->count(),
                 'proposed' => AiExerciseTagProposal::where('status', 'proposed')->count(),
                 'applied' => AiExerciseTagProposal::where('status', 'applied')->count(),
                 'rejected' => AiExerciseTagProposal::where('status', 'rejected')->count(),
@@ -78,7 +80,7 @@ class RoutineLibraryController extends Controller
                 'languages' => RoutineLibraryRules::CONTENT_LANGUAGES,
                 'equipment_categories' => RoutineLibraryRules::EQUIPMENT_CATEGORIES,
                 'levels' => RoutineLibraryRules::LEVELS,
-                'proposal_statuses' => ['proposed', 'applied', 'rejected', 'failed'],
+                'proposal_statuses' => ['queued', 'processing', 'proposed', 'applied', 'rejected', 'failed'],
                 'default_model' => config('services.ollama.model', 'qwen2.5vl:7b'),
             ],
         ]);
@@ -108,9 +110,8 @@ class RoutineLibraryController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => sprintf(
-                    'AI video tag proposals complete. Created %d, failed %d.',
-                    $summary['created'] ?? 0,
-                    $summary['failed'] ?? 0
+                    'AI video tag proposals queued. Queued %d video(s). Keep the queue worker running; results will appear automatically.',
+                    $summary['queued'] ?? 0
                 ),
                 'data' => $summary,
             ]);

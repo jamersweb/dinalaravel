@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\ProcessAiExerciseTagProposalJob;
 use App\Models\AiExerciseTagProposal;
 use App\Models\Exercise;
 use App\Models\ExerciseLibraryTag;
@@ -52,6 +53,7 @@ class OllamaExerciseTaggerService
             'requested' => $limit,
             'model' => $model,
             'created' => 0,
+            'queued' => 0,
             'failed' => 0,
             'proposal_ids' => [],
         ];
@@ -61,45 +63,60 @@ class OllamaExerciseTaggerService
             $currentTagPayload = $exercise->libraryTag ? $this->tagPayload($exercise->libraryTag) : null;
 
             AiExerciseTagProposal::where('exercise_id', $exercise->id)
-                ->whereIn('status', ['rejected', 'failed'])
+                ->whereIn('status', ['queued', 'processing', 'proposed', 'rejected', 'failed'])
                 ->delete();
 
-            try {
-                $result = $this->tagWithOllama($metadata, $currentTagPayload, $model);
-                $proposal = AiExerciseTagProposal::create([
-                    'exercise_id' => $exercise->id,
-                    'provider' => 'ollama',
-                    'model' => $model,
-                    'status' => 'proposed',
-                    'source_metadata' => $metadata,
-                    'current_tag_payload' => $currentTagPayload,
-                    'proposed_payload' => $result['payload'],
-                    'confidence' => $result['confidence'],
-                    'reasoning' => $result['reasoning'],
-                    'raw_response' => $result['raw_response'],
-                    'generated_by' => Auth::id(),
-                    'generated_at' => now(),
-                ]);
-                $summary['created']++;
-                $summary['proposal_ids'][] = $proposal->id;
-            } catch (\Throwable $e) {
-                $proposal = AiExerciseTagProposal::create([
-                    'exercise_id' => $exercise->id,
-                    'provider' => 'ollama',
-                    'model' => $model,
-                    'status' => 'failed',
-                    'source_metadata' => $metadata,
-                    'current_tag_payload' => $currentTagPayload,
-                    'error_message' => $e->getMessage(),
-                    'generated_by' => Auth::id(),
-                    'generated_at' => now(),
-                ]);
-                $summary['failed']++;
-                $summary['proposal_ids'][] = $proposal->id;
-            }
+            $proposal = AiExerciseTagProposal::create([
+                'exercise_id' => $exercise->id,
+                'provider' => 'ollama',
+                'model' => $model,
+                'status' => 'queued',
+                'source_metadata' => $metadata,
+                'current_tag_payload' => $currentTagPayload,
+                'generated_by' => Auth::id(),
+                'generated_at' => now(),
+            ]);
+
+            ProcessAiExerciseTagProposalJob::dispatch($proposal->id)->onQueue('ai-tags');
+
+            $summary['created']++;
+            $summary['queued']++;
+            $summary['proposal_ids'][] = $proposal->id;
         }
 
         return $summary;
+    }
+
+    public function processQueuedProposal(AiExerciseTagProposal $proposal): void
+    {
+        if (! in_array($proposal->status, ['queued', 'processing'], true)) {
+            return;
+        }
+
+        $proposal->fill([
+            'status' => 'processing',
+            'error_message' => null,
+        ])->save();
+
+        try {
+            $metadata = is_array($proposal->source_metadata) ? $proposal->source_metadata : [];
+            $currentTagPayload = is_array($proposal->current_tag_payload) ? $proposal->current_tag_payload : null;
+            $result = $this->tagWithOllama($metadata, $currentTagPayload, $proposal->model);
+
+            $proposal->fill([
+                'status' => 'proposed',
+                'proposed_payload' => $result['payload'],
+                'confidence' => $result['confidence'],
+                'reasoning' => $result['reasoning'],
+                'raw_response' => $result['raw_response'],
+                'error_message' => null,
+            ])->save();
+        } catch (\Throwable $e) {
+            $proposal->fill([
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ])->save();
+        }
     }
 
     public function applyProposal(AiExerciseTagProposal $proposal, bool $approve): ExerciseLibraryTag
@@ -134,7 +151,7 @@ class OllamaExerciseTaggerService
 
     public function rejectProposal(AiExerciseTagProposal $proposal): void
     {
-        if (! in_array($proposal->status, ['proposed', 'failed'], true)) {
+        if (! in_array($proposal->status, ['queued', 'processing', 'proposed', 'failed'], true)) {
             throw new RuntimeException('Only open AI tag proposals can be removed.');
         }
 
@@ -150,7 +167,7 @@ class OllamaExerciseTaggerService
     {
         $baseUrl = rtrim((string) config('services.ollama.base_url', 'http://127.0.0.1:11434'), '/');
         $timeout = (int) config('services.ollama.timeout', 120);
-        $response = Http::timeout($timeout)->post($baseUrl . '/api/generate', [
+        $request = [
             'model' => $model,
             'stream' => false,
             'format' => 'json',
@@ -158,7 +175,14 @@ class OllamaExerciseTaggerService
             'options' => [
                 'temperature' => 0.1,
             ],
-        ]);
+        ];
+
+        $images = $this->ollamaImages($metadata);
+        if ($images !== []) {
+            $request['images'] = $images;
+        }
+
+        $response = Http::timeout($timeout)->post($baseUrl . '/api/generate', $request);
 
         if (! $response->successful()) {
             if ($response->status() === 404) {
@@ -222,8 +246,9 @@ class OllamaExerciseTaggerService
             'reasoning' => 'short explanation',
         ];
 
-        return 'You are a fitness-library tagging expert. You are NOT watching video frames; classify from the exact metadata only. '
-            . 'Never apply the same default tag to every exercise. Use title, current tag, equipment words, muscle words, and safety words. '
+        return 'You are a fitness-library tagging expert. If an image is attached, inspect it together with the metadata. '
+            . 'If no image is attached, classify from the exact metadata only. Never apply the same default tag to every exercise. '
+            . 'Use title, current tag, equipment words, muscle words, safety words, and visible equipment/body position from the image when available. '
             . 'Return one JSON object only. Use ONLY the allowed values from the schema. '
             . 'If a current deterministic tag exists and the title does not clearly contradict it, keep its equipment_category and language. '
             . 'Deadlift, squat, row, press, curl, bridge, lunge with dumbbell/home dumbbell evidence is not bodyweight. '
@@ -321,9 +346,37 @@ class OllamaExerciseTaggerService
             'tags' => $exercise->tags,
             'video_type' => $exercise->video_type,
             'video_url' => $exercise->getRawOriginal('video_url'),
+            'image_url' => $exercise->image,
+            'raw_image' => $exercise->getRawOriginal('image'),
+            'custom_thumbnail' => $exercise->getRawOriginal('custom_thumbnail'),
             'video_duration' => $exercise->video_duration,
             'rest_period' => $exercise->rest_period,
         ];
+    }
+
+    private function ollamaImages(array $metadata): array
+    {
+        $imageUrl = $metadata['image_url'] ?? null;
+        if (! is_string($imageUrl) || trim($imageUrl) === '') {
+            return [];
+        }
+
+        try {
+            $response = Http::timeout(20)->get($imageUrl);
+            if (! $response->successful()) {
+                return [];
+            }
+
+            $body = $response->body();
+            $contentType = strtolower((string) $response->header('Content-Type'));
+            if (strlen($body) > 5 * 1024 * 1024 || ($contentType !== '' && ! str_contains($contentType, 'image'))) {
+                return [];
+            }
+
+            return [base64_encode($body)];
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     private function tagPayload(ExerciseLibraryTag $tag): array
