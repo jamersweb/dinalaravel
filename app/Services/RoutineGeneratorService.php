@@ -105,29 +105,23 @@ class RoutineGeneratorService
         ]);
         $mainExerciseCount = $this->mainExerciseCount($filters);
         $usedExerciseIds = [];
-        $optionalCardio = [];
+        $mainWorkout = $this->pick($routineFilters, 'main_workout', $mainExerciseCount, $variation, $usedExerciseIds);
+        $focusProfile = $this->focusProfile($mainWorkout);
         $sections = [
-            'warm_up_cardio' => $this->pick($routineFilters, 'cardio_warm_up', 1, $variation, $usedExerciseIds),
-            'mobility_dynamic_warm_up' => array_merge(
-                $this->pick($routineFilters, 'warm_up', 1, $variation, $usedExerciseIds),
-                $this->pick($routineFilters, 'mobility', 2, $variation + 1, $usedExerciseIds)
-            ),
-            'muscle_activation' => $this->pick($routineFilters, 'muscle_activation', 1, $variation, $usedExerciseIds),
-            'core_lower_back_preparation' => $this->pick($routineFilters, 'lower_back_activation', 1, $variation, $usedExerciseIds),
-            'main_workout' => $this->pick($routineFilters, 'main_workout', $mainExerciseCount, $variation, $usedExerciseIds),
-            'core_obliques' => array_merge(
-                $this->pick($routineFilters, 'abs', 1, $variation, $usedExerciseIds),
-                $this->pick($routineFilters, 'obliques', 1, $variation + 1, $usedExerciseIds)
-            ),
-            'lower_back_strengthening' => $this->pick($routineFilters, 'lower_back_strength', 1, $variation, $usedExerciseIds),
-            'cool_down_stretching' => $this->pick($routineFilters, 'stretching', 5, $variation, $usedExerciseIds),
+            'dynamic_warm_up' => $this->dynamicWarmUp($routineFilters, $variation, $usedExerciseIds, $focusProfile),
+            'warm_up_cardio' => $this->pick($routineFilters, 'cardio_warm_up', 1, $variation, $usedExerciseIds, $focusProfile),
+            'muscle_activation' => $this->pick($routineFilters, 'muscle_activation', 1, $variation, $usedExerciseIds, $focusProfile),
+            'lower_back_core_superset' => $this->lowerBackCoreSuperset($routineFilters, $variation, $usedExerciseIds, $focusProfile),
+            'main_workout' => $mainWorkout,
+            'post_workout_stretching' => $this->pickStretching($routineFilters, $this->stretchCount($filters), $variation, $usedExerciseIds, $focusProfile),
         ];
-        try {
-            $optionalCardio = $this->pick($routineFilters, 'cardio_warm_up', 1, $variation + 3, $usedExerciseIds);
-        } catch (RuntimeException) {
-            $optionalCardio = [];
+        if ($this->shouldIncludeOptionalCardio($filters, $typeCode)) {
+            try {
+                $sections['optional_additional_cardio'] = $this->pick($routineFilters, 'optional_cardio', 1, $variation + 3, $usedExerciseIds, $focusProfile);
+            } catch (RuntimeException) {
+                $sections['optional_additional_cardio'] = [];
+            }
         }
-        $sections['optional_additional_cardio'] = $optionalCardio;
         $estimatedMinutes = $this->estimateWorkoutMinutes($sections, $filters);
 
         $workout = Workout::create([
@@ -149,15 +143,16 @@ class RoutineGeneratorService
         ]);
 
         foreach ($sections as $section => $tags) {
+            $groupId = $section === 'lower_back_core_superset' ? 'lb-core-'.$workout->id : null;
             foreach ($tags as $index => $tag) {
-                WorkoutExercise::create($this->workoutExercisePayload($workout->id, $tag, $section, $index, $filters));
+                WorkoutExercise::create($this->workoutExercisePayload($workout->id, $tag, $section, $index, $filters, $groupId));
             }
         }
 
         return $workout;
     }
 
-    private function pick(array $filters, string $usage, int $count, int $offset, array &$usedExerciseIds): array
+    private function pick(array $filters, string $usage, int $count, int $offset, array &$usedExerciseIds, ?array $focusProfile = null, ?string $bodyRegion = null): array
     {
         $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($filters['equipment_category']);
         $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment($filters['equipment_category']);
@@ -168,6 +163,7 @@ class RoutineGeneratorService
             ->get()
             ->filter(fn ($tag) => $this->levelCanServeRoutine((string) $tag->difficulty, $filters['fitness_level']))
             ->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))
+            ->filter(fn ($tag) => $bodyRegion === null || in_array($bodyRegion, is_array($tag->body_regions) ? $tag->body_regions : [], true))
             ->unique('exercise_id')
             ->values();
 
@@ -190,11 +186,21 @@ class RoutineGeneratorService
             ->sortBy('exercise_id')
             ->values();
 
+        if ($focusProfile !== null) {
+            $scored = $tags
+                ->map(fn ($tag) => ['tag' => $tag, 'score' => $this->profileScore($tag, $focusProfile)])
+                ->sortByDesc('score')
+                ->values();
+            $matched = $scored->filter(fn ($item) => $item['score'] > 0)->pluck('tag')->values();
+            $tags = ($matched->count() >= $count ? $matched : $scored->pluck('tag'))->values();
+        }
+
         if ($tags->count() < $count) {
             throw new RuntimeException("Not enough unique approved exercises for usage {$usage}; found {$tags->count()}.");
         }
 
         $selected = [];
+        $selectedFamilies = [];
         $seed = abs(crc32(implode('|', [
             $filters['language'] ?? '',
             $filters['equipment_category'] ?? '',
@@ -206,22 +212,165 @@ class RoutineGeneratorService
             $offset,
         ])));
         $start = $seed % $tags->count();
-        for ($i = 0; $i < $count; $i++) {
+        for ($i = 0; count($selected) < $count && $i < $tags->count() * 2; $i++) {
             $tag = $tags[($start + $i) % $tags->count()];
+            $family = (string) ($tag->exercise_family ?? '');
+            if ($usage === 'main_workout' && $family !== '' && isset($selectedFamilies[$family])) {
+                continue;
+            }
+
             $selected[] = $tag;
             $usedExerciseIds[] = (int) $tag->exercise_id;
+            if ($family !== '') {
+                $selectedFamilies[$family] = true;
+            }
+        }
+
+        if (count($selected) < $count) {
+            foreach ($tags as $tag) {
+                if (in_array((int) $tag->exercise_id, $usedExerciseIds, true)) {
+                    continue;
+                }
+                $selected[] = $tag;
+                $usedExerciseIds[] = (int) $tag->exercise_id;
+                if (count($selected) >= $count) {
+                    break;
+                }
+            }
+        }
+
+        if (count($selected) < $count) {
+            throw new RuntimeException("Not enough unique approved exercises for usage {$usage}; selected ".count($selected)." of {$count}.");
         }
 
         return $selected;
     }
 
-    private function workoutExercisePayload(int $workoutId, ExerciseLibraryTag $tag, string $section, int $index, array $filters): array
+    private function dynamicWarmUp(array $filters, int $variation, array &$usedExerciseIds, array $focusProfile): array
+    {
+        $count = $this->dynamicWarmUpCount($filters);
+        $mobilityCount = $count <= 3 ? 1 : 2;
+        if ($count >= 7) {
+            $mobilityCount = 3;
+        }
+        $warmUpCount = $count - $mobilityCount;
+
+        return array_merge(
+            $this->pick($filters, 'warm_up', $warmUpCount, $variation, $usedExerciseIds, $focusProfile),
+            $this->pick($filters, 'mobility', $mobilityCount, $variation + 1, $usedExerciseIds, $focusProfile)
+        );
+    }
+
+    private function lowerBackCoreSuperset(array $filters, int $variation, array &$usedExerciseIds, array $focusProfile): array
+    {
+        try {
+            $lowerBack = $this->pick($filters, 'lower_back_activation', 1, $variation, $usedExerciseIds, $focusProfile);
+        } catch (RuntimeException) {
+            $lowerBack = $this->pick($filters, 'lower_back_strength', 1, $variation, $usedExerciseIds, $focusProfile);
+        }
+
+        $primaryCoreUsage = $variation % 2 === 0 ? 'abs' : 'obliques';
+        $fallbackCoreUsage = $primaryCoreUsage === 'abs' ? 'obliques' : 'abs';
+        try {
+            $core = $this->pick($filters, $primaryCoreUsage, 1, $variation + 1, $usedExerciseIds, $focusProfile);
+        } catch (RuntimeException) {
+            $core = $this->pick($filters, $fallbackCoreUsage, 1, $variation + 2, $usedExerciseIds, $focusProfile);
+        }
+
+        return array_merge($lowerBack, $core);
+    }
+
+    private function pickStretching(array $filters, int $count, int $variation, array &$usedExerciseIds, array $focusProfile): array
+    {
+        $selected = [];
+        foreach ($this->stretchTargetRegions($focusProfile) as $index => $region) {
+            if (count($selected) >= $count) {
+                break;
+            }
+
+            try {
+                $selected = array_merge(
+                    $selected,
+                    $this->pick($filters, 'stretching', 1, $variation + $index, $usedExerciseIds, $focusProfile, $region)
+                );
+            } catch (RuntimeException) {
+                continue;
+            }
+        }
+
+        $remaining = $count - count($selected);
+        if ($remaining > 0) {
+            $selected = array_merge(
+                $selected,
+                $this->pick($filters, 'stretching', $remaining, $variation + 20, $usedExerciseIds, $focusProfile)
+            );
+        }
+
+        return $selected;
+    }
+
+    private function focusProfile(array $mainWorkout): array
+    {
+        $profile = [
+            'muscles' => [],
+            'body_regions' => [],
+            'movement_patterns' => [],
+            'families' => [],
+        ];
+
+        foreach ($mainWorkout as $tag) {
+            $profile['muscles'][] = strtolower((string) $tag->muscle_group);
+            foreach (is_array($tag->secondary_muscle_groups) ? $tag->secondary_muscle_groups : [] as $muscle) {
+                $profile['muscles'][] = strtolower((string) $muscle);
+            }
+            foreach (is_array($tag->body_regions) ? $tag->body_regions : [] as $region) {
+                $profile['body_regions'][] = strtolower((string) $region);
+            }
+            foreach (is_array($tag->movement_patterns) ? $tag->movement_patterns : [] as $pattern) {
+                $profile['movement_patterns'][] = strtolower((string) $pattern);
+            }
+            if (! empty($tag->exercise_family)) {
+                $profile['families'][] = strtolower((string) $tag->exercise_family);
+            }
+        }
+
+        return array_map(fn ($items) => array_values(array_unique(array_filter($items))), $profile);
+    }
+
+    private function profileScore(ExerciseLibraryTag $tag, array $profile): int
+    {
+        $score = 0;
+        $tagMuscles = array_filter(array_merge(
+            [strtolower((string) $tag->muscle_group)],
+            array_map('strtolower', is_array($tag->secondary_muscle_groups) ? $tag->secondary_muscle_groups : [])
+        ));
+        $tagRegions = array_map('strtolower', is_array($tag->body_regions) ? $tag->body_regions : []);
+        $tagPatterns = array_map('strtolower', is_array($tag->movement_patterns) ? $tag->movement_patterns : []);
+
+        $score += count(array_intersect($tagMuscles, $profile['muscles'] ?? [])) * 3;
+        $score += count(array_intersect($tagRegions, $profile['body_regions'] ?? [])) * 2;
+        $score += count(array_intersect($tagPatterns, $profile['movement_patterns'] ?? []));
+
+        return $score;
+    }
+
+    private function stretchTargetRegions(array $focusProfile): array
+    {
+        $targets = array_values(array_unique(array_merge(
+            $focusProfile['body_regions'] ?? [],
+            ['upper_body', 'lower_body', 'core', 'back']
+        )));
+
+        return array_values(array_intersect($targets, RoutineLibraryRules::BODY_REGIONS));
+    }
+
+    private function workoutExercisePayload(int $workoutId, ExerciseLibraryTag $tag, string $section, int $index, array $filters, ?string $groupId = null): array
     {
         $isTimed = in_array($section, [
+            'dynamic_warm_up',
             'warm_up_cardio',
-            'mobility_dynamic_warm_up',
             'optional_additional_cardio',
-            'cool_down_stretching',
+            'post_workout_stretching',
         ], true);
         $sets = $this->prescribedSets($tag, $section, $filters);
         $reps = $tag->recommended_repetitions ?: ($section === 'main_workout' ? '10-12' : '8-15');
@@ -241,6 +390,9 @@ class RoutineGeneratorService
             'rest_period' => $rest,
             'description' => $this->sectionInstruction($section),
             'category' => $section,
+            'group_id' => $groupId,
+            'group_type' => $groupId ? 'superset' : null,
+            'group_label' => $groupId ? 'Lower-Back and Core Superset' : null,
             'group_order' => $this->sectionOrder($section) + $index,
         ];
     }
@@ -249,14 +401,12 @@ class RoutineGeneratorService
     {
         $orderedSections = [
             'main_workout',
-            'core_obliques',
-            'lower_back_strengthening',
+            'lower_back_core_superset',
             'muscle_activation',
-            'warm_up_cardio',
-            'mobility_dynamic_warm_up',
-            'core_lower_back_preparation',
-            'cool_down_stretching',
+            'dynamic_warm_up',
             'optional_additional_cardio',
+            'warm_up_cardio',
+            'post_workout_stretching',
         ];
 
         foreach ($orderedSections as $section) {
@@ -293,9 +443,13 @@ class RoutineGeneratorService
     {
         $typeCodes = $filters['workout_types'] ?? array_keys(RoutineLibraryRules::WORKOUT_TYPES);
         $typeCodes = array_values(array_intersect($typeCodes, array_keys(RoutineLibraryRules::WORKOUT_TYPES)));
+        $language = RoutineLibraryRules::normalizeLanguage($filters['language'] ?? 'en');
+        if (! in_array($language, RoutineLibraryRules::CONTENT_LANGUAGES, true)) {
+            throw new RuntimeException('No-audio routine generation is deferred until no-audio exercise coverage is approved.');
+        }
 
         return [
-            'language' => RoutineLibraryRules::normalizeLanguage($filters['language'] ?? 'en'),
+            'language' => $language,
             'equipment_category' => RoutineLibraryRules::normalizeEquipment($filters['equipment_category'] ?? 'bodyweight'),
             'fitness_level' => RoutineLibraryRules::normalizeLevel($filters['fitness_level'] ?? 'beginner'),
             'workout_types' => $typeCodes ?: array_keys(RoutineLibraryRules::WORKOUT_TYPES),
@@ -329,13 +483,15 @@ class RoutineGeneratorService
                 'target_minutes' => $filters['target_minutes'],
                 'estimated_minutes' => $estimatedMinutes,
                 'duration_delta_minutes' => $estimatedMinutes - $filters['target_minutes'],
-                'section_contract' => 'ai_program_builder_phase_3',
+                'section_contract' => RoutineLibraryRules::ROUTINE_SECTION_CONTRACT,
                 'dina_methodology' => [
                     'mandatory_usage' => RoutineLibraryRules::DINA_MANDATORY_USAGE,
                     'mobility_focus' => $this->mobilityFocus($filters),
                     'coaching_cue' => $this->dinaCoachingCue($filters),
                     'rules' => [
-                        'abs_obliques_lower_back_every_session',
+                        'dynamic_warm_up_before_cardio',
+                        'lower_back_core_superset_every_session',
+                        'full_body_post_workout_stretching',
                         'movement_quality_first',
                         'coach_approval_required',
                     ],
@@ -368,14 +524,17 @@ class RoutineGeneratorService
     private function sectionInstruction(string $section): string
     {
         return match ($section) {
+            'dynamic_warm_up' => 'Use controlled dynamic movement that prepares the joints, muscles, and patterns trained today.',
             'warm_up_cardio' => 'Keep the pace easy to moderate and gradually increase body temperature.',
             'mobility_dynamic_warm_up' => 'Move smoothly through a pain-free range and prepare the joints used today.',
             'muscle_activation' => 'Use controlled tempo to activate the main muscles before heavier work.',
+            'lower_back_core_superset' => 'Pair lower-back preparation with core bracing. Keep the effort controlled and avoid fatigue.',
             'core_lower_back_preparation' => 'Brace gently and prepare the core and lower back without fatigue.',
             'main_workout' => 'Use clean form and leave 1-2 reps in reserve unless the program states otherwise.',
             'core_obliques' => 'Brace and avoid pulling through the neck or lower back.',
             'lower_back_strengthening' => 'Strengthen the posterior core with controlled tempo and no painful range.',
             'optional_additional_cardio' => 'Optional calorie-expenditure support; skip when recovery, pain, or time is a concern.',
+            'post_workout_stretching' => 'Hold each stretch without bouncing, breathe slowly, and cover the full body with priority on muscles trained today.',
             'cool_down_stretching' => 'Hold each stretch without bouncing and breathe slowly.',
             default => '',
         };
@@ -384,15 +543,13 @@ class RoutineGeneratorService
     private function sectionOrder(string $section): int
     {
         return array_search($section, [
+            'dynamic_warm_up',
             'warm_up_cardio',
-            'mobility_dynamic_warm_up',
             'muscle_activation',
-            'core_lower_back_preparation',
+            'lower_back_core_superset',
             'main_workout',
-            'core_obliques',
-            'lower_back_strengthening',
             'optional_additional_cardio',
-            'cool_down_stretching',
+            'post_workout_stretching',
         ], true) * 10;
     }
 
@@ -410,27 +567,66 @@ class RoutineGeneratorService
     {
         $minutes = (int) $filters['target_minutes'];
         $base = match (true) {
-            $minutes <= 15 => 2,
+            $minutes <= 15 => 3,
             $minutes <= 20 => 3,
-            $minutes <= 30 => 4,
-            $minutes <= 45 => 5,
-            default => 6,
+            $minutes <= 30 => 5,
+            $minutes <= 45 => 7,
+            default => 8,
         };
 
         if ($filters['fitness_level'] === 'advanced' && $minutes >= 45) {
-            return min(7, $base + 1);
+            return min(9, $base + 1);
         }
 
         return $base;
     }
 
+    private function dynamicWarmUpCount(array $filters): int
+    {
+        $minutes = (int) $filters['target_minutes'];
+        if ($minutes <= 15) {
+            return 3;
+        }
+        if ($minutes <= 20) {
+            return 4;
+        }
+        if ($minutes >= 60 || (($filters['fitness_level'] ?? '') === 'advanced' && $minutes >= 45)) {
+            return 7;
+        }
+
+        return 5;
+    }
+
+    private function stretchCount(array $filters): int
+    {
+        $minutes = (int) $filters['target_minutes'];
+        if ($minutes <= 30) {
+            return 5;
+        }
+        if ($minutes >= 60) {
+            return 8;
+        }
+
+        return 7;
+    }
+
+    private function shouldIncludeOptionalCardio(array $filters, string $typeCode): bool
+    {
+        $minutes = (int) $filters['target_minutes'];
+        if ($minutes >= 45) {
+            return true;
+        }
+
+        return $minutes >= 30 && in_array($typeCode, ['hic', 'cst', 'fnc'], true);
+    }
+
     private function displayDuration(ExerciseLibraryTag $tag, string $section): string
     {
         if ($section === 'warm_up_cardio') {
-            return '3-8 min';
+            return '5-10 min';
         }
         if ($section === 'optional_additional_cardio') {
-            return '10-15 min';
+            return '10-20 min';
         }
 
         $seconds = (int) ($tag->recommended_duration_seconds ?: 45);
@@ -444,9 +640,6 @@ class RoutineGeneratorService
     {
         $seconds = 0;
         foreach ($sections as $section => $tags) {
-            if ($section === 'optional_additional_cardio') {
-                continue;
-            }
             $seconds += $this->estimateSectionMinutes($section, $tags, $filters) * 60;
         }
 
@@ -455,41 +648,47 @@ class RoutineGeneratorService
 
     private function estimateSectionMinutes(string $section, array $tags, array $filters): int
     {
+        if ($tags === []) {
+            return 0;
+        }
+
         if ((int) $filters['target_minutes'] <= 15) {
             return match ($section) {
-                'warm_up_cardio' => 2,
-                'mobility_dynamic_warm_up' => 2,
+                'dynamic_warm_up' => 3,
+                'warm_up_cardio' => 5,
                 'muscle_activation' => 1,
-                'core_lower_back_preparation' => 1,
+                'lower_back_core_superset' => 2,
                 'main_workout' => 5,
-                'core_obliques' => 2,
-                'lower_back_strengthening' => 1,
-                'cool_down_stretching' => 2,
-                'optional_additional_cardio' => 5,
+                'post_workout_stretching' => 3,
+                'optional_additional_cardio' => 0,
                 default => 1,
             };
         }
 
         if ((int) $filters['target_minutes'] <= 30) {
             return match ($section) {
-                'warm_up_cardio' => 4,
-                'mobility_dynamic_warm_up' => 3,
+                'dynamic_warm_up' => 4,
+                'warm_up_cardio' => 5,
                 'muscle_activation' => 2,
-                'core_lower_back_preparation' => 2,
-                'main_workout' => 12,
-                'core_obliques' => 4,
-                'lower_back_strengthening' => 2,
-                'cool_down_stretching' => 3,
-                'optional_additional_cardio' => 8,
+                'lower_back_core_superset' => 3,
+                'main_workout' => 11,
+                'post_workout_stretching' => 5,
+                'optional_additional_cardio' => 10,
                 default => 1,
             };
         }
 
+        if ($section === 'dynamic_warm_up') {
+            return (int) $filters['target_minutes'] >= 60 ? 7 : 5;
+        }
         if ($section === 'warm_up_cardio') {
-            return 5;
+            return (int) $filters['target_minutes'] >= 60 ? 8 : 5;
         }
         if ($section === 'optional_additional_cardio') {
             return 10;
+        }
+        if ($section === 'post_workout_stretching') {
+            return (int) $filters['target_minutes'] >= 60 ? 8 : 6;
         }
 
         $seconds = 0;
@@ -518,8 +717,12 @@ class RoutineGeneratorService
             return '3';
         }
 
-        if (in_array($section, ['muscle_activation', 'core_lower_back_preparation', 'core_obliques', 'lower_back_strengthening'], true)) {
-            return '2';
+        if ($section === 'lower_back_core_superset') {
+            return (int) $filters['target_minutes'] <= 15 ? '1' : '1-2';
+        }
+
+        if ($section === 'muscle_activation') {
+            return '1-2';
         }
 
         return (string) ($tag->recommended_sets ?: '1');
@@ -530,8 +733,11 @@ class RoutineGeneratorService
         if ($section === 'main_workout') {
             return (int) $filters['target_minutes'] <= 20 ? 2 : 3;
         }
-        if (in_array($section, ['muscle_activation', 'core_lower_back_preparation', 'core_obliques', 'lower_back_strengthening'], true)) {
-            return 2;
+        if ($section === 'lower_back_core_superset') {
+            return (int) $filters['target_minutes'] <= 15 ? 1 : 2;
+        }
+        if ($section === 'muscle_activation') {
+            return 1;
         }
 
         $sets = $this->firstNumber((string) ($tag->recommended_sets ?: '1'));
@@ -637,6 +843,13 @@ class RoutineGeneratorService
                 && $this->isStretchingExercise($type, $title, $patterns);
         }
 
+        if ($usage === 'optional_cardio') {
+            return in_array($primaryCategory, ['cardiovascular_training', 'steady_state_cardio', 'optional_additional_cardio', 'cool_down_cardio'], true)
+                && in_array($programRole, ['', 'cardio', 'optional_cardio', 'finisher'], true)
+                && in_array($type, ['cardio', 'cardio_warm_up'], true)
+                && empty($safety['high_impact']);
+        }
+
         if (RoutineLibraryRules::usageMatches($flags, $usage)) {
             if (in_array($usage, ['warm_up', 'lower_back_activation'], true) && ! empty($safety['unsafe_as_warmup'])) {
                 return false;
@@ -649,7 +862,7 @@ class RoutineGeneratorService
                 || in_array($programRole, ['main_workout', 'main_compound_exercise', 'accessory_exercise', 'isolation_exercise', 'superset_exercise', 'circuit_exercise', 'hiit_interval', 'finisher', 'core'], true)
                 || in_array($type, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'power_explosive'], true),
             'warm_up' => empty($safety['unsafe_as_warmup']) && (
-                in_array($primaryCategory, ['dynamic_warm_up', 'mobility', 'warm_up_cardio'], true)
+                in_array($primaryCategory, ['dynamic_warm_up', 'mobility'], true)
                 || in_array($programRole, ['warm_up', 'dynamic_warm_up', 'activation'], true)
                 || in_array($type, ['warm_up', 'warm-up'], true)
                 || str_contains($title, 'warm up')

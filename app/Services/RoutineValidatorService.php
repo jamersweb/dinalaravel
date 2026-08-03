@@ -20,7 +20,11 @@ class RoutineValidatorService
             }
         }
 
-        $sections = $workout->workoutExercises()->with('exerciseDetail.libraryTag')->get()->groupBy('category');
+        $rows = $workout->workoutExercises()->with('exerciseDetail.libraryTag')->orderBy('group_order')->orderBy('id')->get();
+        $sections = $rows->groupBy('category');
+        $routineSections = is_array($workout->routine_sections) ? $workout->routine_sections : [];
+        $meta = $routineSections['_meta'] ?? [];
+        $targetMinutes = (int) ($meta['target_minutes'] ?? 30);
         foreach (RoutineLibraryRules::REQUIRED_WORKOUT_SECTIONS as $section) {
             if (! $sections->has($section) || $sections->get($section)->isEmpty()) {
                 $errors[] = [
@@ -32,6 +36,7 @@ class RoutineValidatorService
         }
 
         foreach (RoutineLibraryRules::SECTION_MINIMUM_EXERCISES as $section => $minimum) {
+            $minimum = $this->sectionMinimum($section, $targetMinutes);
             $count = $sections->get($section, collect())->count();
             if ($count < $minimum) {
                 $errors[] = [
@@ -44,14 +49,19 @@ class RoutineValidatorService
             }
         }
 
-        $routineSections = is_array($workout->routine_sections) ? $workout->routine_sections : [];
-        $meta = $routineSections['_meta'] ?? [];
-        if (($workout->routine_source === 'generated' || $meta !== []) && ($meta['section_contract'] ?? null) !== 'ai_program_builder_phase_3') {
+        if (($workout->routine_source === 'generated' || $meta !== []) && ($meta['section_contract'] ?? null) !== RoutineLibraryRules::ROUTINE_SECTION_CONTRACT) {
             $errors[] = [
-                'code' => 'missing_phase_3_contract',
-                'message' => 'Generated routine must use the AI program-builder Phase 3 workout section contract.',
+                'code' => 'missing_master_ai_prompt_contract',
+                'expected_contract' => RoutineLibraryRules::ROUTINE_SECTION_CONTRACT,
+                'actual_contract' => $meta['section_contract'] ?? null,
+                'message' => 'Generated routine must use the master AI prompt workout section contract.',
             ];
         }
+
+        $this->validateSectionOrder($sections, $errors);
+        $this->validateLowerBackCoreSuperset($sections, $errors);
+        $this->validateDynamicWarmUpRelevance($sections, $errors);
+        $this->validateFullBodyStretching($sections, $errors);
 
         if (isset($meta['target_minutes'], $meta['estimated_minutes'])) {
             $target = (int) $meta['target_minutes'];
@@ -71,6 +81,7 @@ class RoutineValidatorService
         $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment((string) $workout->equipment_category);
         $seenExerciseIds = [];
         $seenTitlesBySection = [];
+        $seenMainFamilies = [];
         foreach ($sections->flatten(1) as $row) {
             if (! $row->exerciseDetail) {
                 $errors[] = [
@@ -138,6 +149,31 @@ class RoutineValidatorService
                 ];
             }
 
+            if ($row->category === 'main_workout' && ! empty($tag->exercise_family)) {
+                $family = strtolower((string) $tag->exercise_family);
+                if (isset($seenMainFamilies[$family])) {
+                    $errors[] = [
+                        'code' => 'duplicate_main_workout_family',
+                        'exercise_id' => $row->exercise_id,
+                        'first_exercise_id' => $seenMainFamilies[$family],
+                        'exercise_family' => $family,
+                        'message' => 'Main workout repeats the same exercise family; use a different movement or variation family.',
+                    ];
+                } else {
+                    $seenMainFamilies[$family] = $row->exercise_id;
+                }
+            }
+
+            $safetyFlags = is_array($tag->safety_flags) ? $tag->safety_flags : [];
+            if ($workout->fitness_level === 'beginner' && ((string) $tag->impact_level === 'high' || ! empty($safetyFlags['high_impact']))) {
+                $errors[] = [
+                    'code' => 'beginner_high_impact_exercise',
+                    'exercise_id' => $row->exercise_id,
+                    'section' => $row->category,
+                    'message' => 'Beginner routines cannot include high-impact exercises.',
+                ];
+            }
+
             if ($workout->language && $tag->language && $workout->language !== $tag->language) {
                 $errors[] = [
                     'code' => 'language_mismatch',
@@ -148,7 +184,7 @@ class RoutineValidatorService
                 ];
             }
 
-            if (in_array($row->category, ['warm_up_cardio', 'mobility_dynamic_warm_up', 'optional_additional_cardio', 'cool_down_stretching'], true)) {
+            if (in_array($row->category, ['dynamic_warm_up', 'warm_up_cardio', 'optional_additional_cardio', 'post_workout_stretching'], true)) {
                 if (empty($row->time)) {
                     $errors[] = [
                         'code' => 'missing_exercise_duration',
@@ -177,7 +213,7 @@ class RoutineValidatorService
                 ];
             }
 
-            if ($row->category === 'cool_down_stretching' && ! $this->isStretchingExercise($type, $title, $patterns)) {
+            if ($row->category === 'post_workout_stretching' && ! $this->isStretchingExercise($type, $title, $patterns)) {
                 $errors[] = [
                     'code' => 'non_stretching_cooldown_exercise',
                     'exercise_id' => $row->exercise_id,
@@ -190,6 +226,244 @@ class RoutineValidatorService
             'valid' => $errors === [],
             'errors' => $errors,
         ];
+    }
+
+    private function sectionMinimum(string $section, int $targetMinutes): int
+    {
+        if ($section === 'dynamic_warm_up') {
+            if ($targetMinutes <= 15) {
+                return 3;
+            }
+            if ($targetMinutes <= 20) {
+                return 4;
+            }
+        }
+
+        if ($section === 'main_workout' && $targetMinutes <= 20) {
+            return 3;
+        }
+
+        return RoutineLibraryRules::SECTION_MINIMUM_EXERCISES[$section] ?? 1;
+    }
+
+    private function validateSectionOrder($sections, array &$errors): void
+    {
+        $lastOrder = -1;
+        foreach (RoutineLibraryRules::REQUIRED_WORKOUT_SECTIONS as $section) {
+            $rows = $sections->get($section, collect());
+            if ($rows->isEmpty()) {
+                continue;
+            }
+
+            $order = (int) $rows->min(fn ($row) => $row->group_order ?? $row->id);
+            if ($order <= $lastOrder) {
+                $errors[] = [
+                    'code' => 'section_order_violation',
+                    'section' => $section,
+                    'message' => 'Routine sections must follow the master prompt order: dynamic warm-up, warm-up cardio, activation, lower-back/core superset, main workout, optional cardio, post-workout stretching.',
+                ];
+            }
+            $lastOrder = $order;
+        }
+
+        $optional = $sections->get('optional_additional_cardio', collect());
+        if ($optional->isNotEmpty()) {
+            $optionalOrder = (int) $optional->min(fn ($row) => $row->group_order ?? $row->id);
+            $mainOrder = (int) $sections->get('main_workout', collect())->min(fn ($row) => $row->group_order ?? $row->id);
+            $stretchOrder = (int) $sections->get('post_workout_stretching', collect())->min(fn ($row) => $row->group_order ?? $row->id);
+            if ($mainOrder && $stretchOrder && ($optionalOrder <= $mainOrder || $optionalOrder >= $stretchOrder)) {
+                $errors[] = [
+                    'code' => 'optional_cardio_order_violation',
+                    'message' => 'Optional cardio must appear after the main workout and before post-workout stretching.',
+                ];
+            }
+        }
+    }
+
+    private function validateLowerBackCoreSuperset($sections, array &$errors): void
+    {
+        $rows = $sections->get('lower_back_core_superset', collect());
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        $hasLowerBack = false;
+        $hasCore = false;
+        $groupIds = [];
+        foreach ($rows as $row) {
+            $tag = $row->exerciseDetail?->libraryTag;
+            if (! $tag) {
+                continue;
+            }
+            $hasLowerBack = $hasLowerBack || $this->isLowerBackTag($tag);
+            $hasCore = $hasCore || $this->isCoreTag($tag);
+            if (! empty($row->group_id)) {
+                $groupIds[] = $row->group_id;
+            }
+        }
+
+        if (! $hasLowerBack || ! $hasCore) {
+            $errors[] = [
+                'code' => 'missing_lower_back_core_pair',
+                'message' => 'Lower-back/core superset must contain at least one lower-back exercise and one core exercise.',
+            ];
+        }
+
+        if (count(array_unique($groupIds)) !== 1 || count($groupIds) < 2) {
+            $errors[] = [
+                'code' => 'lower_back_core_not_grouped',
+                'message' => 'Lower-back/core preparation must be paired as one superset group.',
+            ];
+        }
+    }
+
+    private function validateDynamicWarmUpRelevance($sections, array &$errors): void
+    {
+        $dynamicRows = $sections->get('dynamic_warm_up', collect());
+        $mainRows = $sections->get('main_workout', collect());
+        if ($dynamicRows->isEmpty() || $mainRows->isEmpty()) {
+            return;
+        }
+
+        $dynamicProfile = $this->profileForRows($dynamicRows);
+        $mainProfile = $this->profileForRows($mainRows);
+        $hasOverlap = array_intersect($dynamicProfile['body_regions'], $mainProfile['body_regions']) !== []
+            || array_intersect($dynamicProfile['movement_patterns'], $mainProfile['movement_patterns']) !== []
+            || in_array('full_body', $dynamicProfile['body_regions'], true);
+
+        if (! $hasOverlap) {
+            $errors[] = [
+                'code' => 'dynamic_warm_up_not_relevant',
+                'message' => 'Dynamic warm-up should prepare at least one body region or movement pattern used in the main workout.',
+            ];
+        }
+    }
+
+    private function validateFullBodyStretching($sections, array &$errors): void
+    {
+        $rows = $sections->get('post_workout_stretching', collect());
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        $regions = [];
+        foreach ($rows as $row) {
+            $regions = array_merge($regions, $this->rowBodyRegions($row));
+        }
+        $regions = array_values(array_unique($regions));
+
+        $hasFullBody = in_array('full_body', $regions, true);
+        $hasUpper = $hasFullBody || array_intersect($regions, ['upper_body', 'chest', 'back', 'shoulders', 'arms']) !== [];
+        $hasLower = $hasFullBody || array_intersect($regions, ['lower_body', 'glutes', 'quadriceps', 'hamstrings', 'calves']) !== [];
+        $hasCoreBack = $hasFullBody || array_intersect($regions, ['core', 'abs', 'obliques', 'lower_back', 'back']) !== [];
+
+        if (! $hasUpper || ! $hasLower || ! $hasCoreBack) {
+            $errors[] = [
+                'code' => 'post_workout_stretching_not_full_body',
+                'covered_regions' => $regions,
+                'message' => 'Post-workout stretching must cover upper body, lower body, and core/back areas.',
+            ];
+        }
+    }
+
+    private function profileForRows($rows): array
+    {
+        $profile = [
+            'body_regions' => [],
+            'movement_patterns' => [],
+        ];
+
+        foreach ($rows as $row) {
+            $profile['body_regions'] = array_merge($profile['body_regions'], $this->rowBodyRegions($row));
+            $tag = $row->exerciseDetail?->libraryTag;
+            if ($tag && is_array($tag->movement_patterns)) {
+                $profile['movement_patterns'] = array_merge($profile['movement_patterns'], array_map('strtolower', $tag->movement_patterns));
+            }
+        }
+
+        return array_map(fn ($items) => array_values(array_unique(array_filter($items))), $profile);
+    }
+
+    private function rowBodyRegions($row): array
+    {
+        $tag = $row->exerciseDetail?->libraryTag;
+        $regions = $tag && is_array($tag->body_regions) ? array_map('strtolower', $tag->body_regions) : [];
+        $muscles = [];
+        if ($tag) {
+            $muscles[] = strtolower((string) $tag->muscle_group);
+            foreach (is_array($tag->secondary_muscle_groups) ? $tag->secondary_muscle_groups : [] as $muscle) {
+                $muscles[] = strtolower((string) $muscle);
+            }
+        }
+
+        foreach ($muscles as $muscle) {
+            $regions = array_merge($regions, $this->bodyRegionsForMuscle($muscle));
+        }
+
+        $title = strtolower((string) optional($row->exerciseDetail)->title);
+        foreach ([
+            'upper_body' => '/\b(chest|shoulder|lat|back|bicep|tricep|arm|pec)\b/',
+            'lower_body' => '/\b(quad|hamstring|calf|glute|hip flexor|adductor|leg)\b/',
+            'core' => '/\b(core|abs|oblique|plank)\b/',
+            'back' => '/\b(back|lat|cobra|child pose)\b/',
+            'lower_back' => '/\b(lower back|lumbar)\b/',
+        ] as $region => $pattern) {
+            if (preg_match($pattern, $title)) {
+                $regions[] = $region;
+            }
+        }
+
+        return array_values(array_unique(array_intersect($regions, RoutineLibraryRules::BODY_REGIONS)));
+    }
+
+    private function bodyRegionsForMuscle(string $muscle): array
+    {
+        $key = trim(strtolower($muscle));
+
+        return [
+            'abs' => ['core', 'abs'],
+            'core' => ['core', 'abs'],
+            'obliques' => ['core', 'obliques'],
+            'lower back' => ['lower_back', 'back', 'core'],
+            'back' => ['back', 'upper_body'],
+            'lats' => ['back', 'upper_body'],
+            'chest' => ['chest', 'upper_body'],
+            'shoulder' => ['shoulders', 'upper_body'],
+            'shoulders' => ['shoulders', 'upper_body'],
+            'biceps' => ['arms', 'upper_body'],
+            'triceps' => ['arms', 'upper_body'],
+            'glutes' => ['glutes', 'lower_body'],
+            'hamstrings' => ['hamstrings', 'lower_body'],
+            'quads' => ['quadriceps', 'lower_body'],
+            'quadriceps' => ['quadriceps', 'lower_body'],
+            'calves' => ['calves', 'lower_body'],
+        ][$key] ?? [];
+    }
+
+    private function isLowerBackTag($tag): bool
+    {
+        $flags = is_array($tag->usage_flags) ? $tag->usage_flags : [];
+        $regions = is_array($tag->body_regions) ? $tag->body_regions : [];
+
+        return strtolower((string) $tag->muscle_group) === 'lower back'
+            || strtolower((string) $tag->exercise_type) === 'lower_back'
+            || in_array('lower_back', $regions, true)
+            || ! empty($flags['lower_back_activation'])
+            || ! empty($flags['lower_back_strength']);
+    }
+
+    private function isCoreTag($tag): bool
+    {
+        $flags = is_array($tag->usage_flags) ? $tag->usage_flags : [];
+        $regions = is_array($tag->body_regions) ? $tag->body_regions : [];
+        $muscle = strtolower((string) $tag->muscle_group);
+        $type = strtolower((string) $tag->exercise_type);
+
+        return in_array($muscle, ['abs', 'obliques', 'core'], true)
+            || in_array($type, ['abs', 'obliques'], true)
+            || array_intersect(['core', 'abs', 'obliques'], $regions) !== []
+            || ! empty($flags['abs'])
+            || ! empty($flags['obliques']);
     }
 
     private function normalizeTitle(string $title): string

@@ -121,6 +121,17 @@
                                 <div v-if="proposal.proposed_payload.body_regions && proposal.proposed_payload.body_regions.length" class="muted small-text">
                                     Regions: {{ proposal.proposed_payload.body_regions.map(readableStatus).join(', ') }}
                                 </div>
+                                <div v-if="proposal.proposed_payload.exercise_family" class="muted small-text">
+                                    Family: {{ readableStatus(proposal.proposed_payload.exercise_family) }}
+                                </div>
+                                <div class="muted small-text">
+                                    {{ readableStatus(proposal.proposed_payload.movement_direction || '-') }} /
+                                    {{ readableStatus(proposal.proposed_payload.stability_demand || '-') }} /
+                                    {{ readableStatus(proposal.proposed_payload.variation_type || '-') }}
+                                </div>
+                                <div v-if="proposal.proposed_payload.confidence_bucket" class="muted small-text">
+                                    Bucket: {{ readableStatus(proposal.proposed_payload.confidence_bucket) }}
+                                </div>
                                 <div class="muted small-text">Confidence {{ confidence(proposal.confidence) }}</div>
                             </div>
                             <span v-else class="text-danger">{{ proposal.error_message || 'No proposal' }}</span>
@@ -130,6 +141,9 @@
                                 <div>{{ proposal.proposed_payload.impact_level || '-' }} impact / {{ proposal.proposed_payload.intensity_level || '-' }} intensity</div>
                                 <div v-if="proposal.proposed_payload.safety_flags && proposal.proposed_payload.safety_flags.unsafe_as_warmup" class="danger-text">Unsafe as warm-up</div>
                                 <div class="usage-list">{{ enabledUsage(proposal.proposed_payload.usage_flags).join(', ') || 'No usage flags' }}</div>
+                                <div v-if="hasReviewBlockers(proposal)" class="danger-text">
+                                    {{ proposal.proposed_payload.review_blockers.join('; ') }}
+                                </div>
                                 <div v-if="proposal.reasoning" class="muted small-text">{{ proposal.reasoning }}</div>
                             </div>
                         </td>
@@ -138,7 +152,7 @@
                             <div class="muted small-text">{{ proposal.model }}</div>
                         </td>
                         <td class="text-end">
-                            <button v-if="proposal.status === 'proposed'" class="tiny-btn" @click="applyProposal(proposal.id, true)">Apply + approve</button>
+                            <button v-if="proposal.status === 'proposed'" class="tiny-btn" :disabled="hasReviewBlockers(proposal)" :title="hasReviewBlockers(proposal) ? 'Clear blockers in Exercise Tags before approving.' : ''" @click="applyProposal(proposal.id, true)">Apply + approve</button>
                             <button v-if="proposal.status === 'proposed'" class="tiny-btn" @click="applyProposal(proposal.id, false)">Apply pending</button>
                             <button v-if="['queued', 'processing', 'proposed', 'failed'].includes(proposal.status)" class="tiny-btn reject" @click="rejectProposal(proposal.id)">Remove</button>
                         </td>
@@ -326,6 +340,10 @@ export default {
                 return [];
             }
             return Object.keys(flags).filter(key => flags[key]).map(this.readableStatus);
+        },
+        hasReviewBlockers(proposal) {
+            const blockers = proposal?.proposed_payload?.review_blockers;
+            return Array.isArray(blockers) && blockers.length > 0;
         },
         hasActiveQueue() {
             return (Number(this.summary.queued || 0) + Number(this.summary.processing || 0)) > 0;

@@ -325,11 +325,38 @@
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Exercise type</label>
-                                    <input v-model="selectedTag.exercise_type" class="form-control form-control-sm">
+                                    <select v-model="selectedTag.exercise_type" class="form-select form-select-sm">
+                                        <option v-for="option in taxonomyOptions.exercise_types" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Muscle group</label>
                                     <input v-model="selectedTag.muscle_group" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Exercise family</label>
+                                    <input v-model="selectedTag.exercise_family" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Movement direction</label>
+                                    <select v-model="selectedTag.movement_direction" class="form-select form-select-sm">
+                                        <option value="">None</option>
+                                        <option v-for="option in taxonomyOptions.movement_directions" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Stability demand</label>
+                                    <select v-model="selectedTag.stability_demand" class="form-select form-select-sm">
+                                        <option value="">None</option>
+                                        <option v-for="option in taxonomyOptions.stability_demands" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Variation type</label>
+                                    <select v-model="selectedTag.variation_type" class="form-select form-select-sm">
+                                        <option value="">None</option>
+                                        <option v-for="option in taxonomyOptions.variation_types" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Impact</label>
@@ -359,6 +386,13 @@
                                 <div class="col-6 mb-2">
                                     <label>Rest seconds</label>
                                     <input v-model.number="selectedTag.recommended_rest_seconds" type="number" min="0" max="600" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Confidence</label>
+                                    <select v-model="selectedTag.confidence_bucket" class="form-select form-select-sm">
+                                        <option value="">None</option>
+                                        <option v-for="option in taxonomyOptions.confidence_buckets" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -424,6 +458,13 @@
                                     <input v-model="goalText" class="form-control form-control-sm" placeholder="comma separated">
                                 </div>
                             </div>
+
+                            <div v-if="selectedTag.review_blockers && selectedTag.review_blockers.length" class="review-blockers mb-2">
+                                <strong>Review blockers</strong>
+                                <div v-for="blocker in selectedTag.review_blockers" :key="blocker">{{ blocker }}</div>
+                            </div>
+                            <label>Review blockers</label>
+                            <input v-model="reviewBlockersText" class="form-control form-control-sm mb-2" placeholder="comma separated">
 
                             <label>Notes</label>
                             <textarea v-model="selectedTag.notes" class="form-control form-control-sm mb-2" rows="2"></textarea>
@@ -549,7 +590,15 @@ export default {
                 primary_categories: [],
                 training_adaptations: [],
                 program_roles: [],
-                body_regions: []
+                body_regions: [],
+                movement_patterns: [],
+                equipment_tags: [],
+                exercise_types: [],
+                training_styles: [],
+                movement_directions: [],
+                stability_demands: [],
+                variation_types: [],
+                confidence_buckets: []
             },
             usageOptions: [
                 'cardio_warm_up',
@@ -651,6 +700,18 @@ export default {
                     this.selectedTag.goal_fit = this.csvToArray(value);
                 }
             }
+        },
+        reviewBlockersText: {
+            get() {
+                return (this.selectedTag && Array.isArray(this.selectedTag.review_blockers))
+                    ? this.selectedTag.review_blockers.join(', ')
+                    : '';
+            },
+            set(value) {
+                if (this.selectedTag) {
+                    this.selectedTag.review_blockers = this.csvToArray(value);
+                }
+            }
         }
     },
     mounted() {
@@ -744,6 +805,14 @@ export default {
                     this.taxonomyOptions.training_adaptations = res.data.options.training_adaptations || [];
                     this.taxonomyOptions.program_roles = res.data.options.program_roles || [];
                     this.taxonomyOptions.body_regions = res.data.options.body_regions || [];
+                    this.taxonomyOptions.movement_patterns = res.data.options.movement_patterns || [];
+                    this.taxonomyOptions.equipment_tags = res.data.options.equipment_tags || [];
+                    this.taxonomyOptions.exercise_types = res.data.options.exercise_types || [];
+                    this.taxonomyOptions.training_styles = res.data.options.training_styles || [];
+                    this.taxonomyOptions.movement_directions = res.data.options.movement_directions || [];
+                    this.taxonomyOptions.stability_demands = res.data.options.stability_demands || [];
+                    this.taxonomyOptions.variation_types = res.data.options.variation_types || [];
+                    this.taxonomyOptions.confidence_buckets = res.data.options.confidence_buckets || [];
                 }
                 this.selectedTag = this.exerciseTags.length ? this.normalizedTag(this.exerciseTags[0]) : null;
             }).catch(er => this.showError(er.response?.data?.message || er.message));
@@ -760,10 +829,17 @@ export default {
             copy.movement_patterns = Array.isArray(copy.movement_patterns) ? copy.movement_patterns : [];
             copy.training_styles = Array.isArray(copy.training_styles) ? copy.training_styles : [];
             copy.workout_sections = Array.isArray(copy.workout_sections) ? copy.workout_sections : [];
+            copy.exercise_type = copy.exercise_type === 'strength' ? 'resistance' : copy.exercise_type;
+            copy.equipment_tags = this.filterAllowedValues(copy.equipment_tags, this.taxonomyOptions.equipment_tags);
+            copy.movement_patterns = this.filterAllowedValues(copy.movement_patterns, this.taxonomyOptions.movement_patterns);
+            copy.training_styles = this.filterAllowedValues(copy.training_styles, this.taxonomyOptions.training_styles);
             copy.safety_notes = Array.isArray(copy.safety_notes) ? copy.safety_notes : [];
             copy.contraindications = Array.isArray(copy.contraindications) ? copy.contraindications : [];
             copy.injury_cautions = Array.isArray(copy.injury_cautions) ? copy.injury_cautions : [];
             copy.goal_fit = Array.isArray(copy.goal_fit) ? copy.goal_fit : [];
+            copy.compatibility_flags = copy.compatibility_flags && typeof copy.compatibility_flags === 'object' ? copy.compatibility_flags : {};
+            copy.alternative_exercise_ids = Array.isArray(copy.alternative_exercise_ids) ? copy.alternative_exercise_ids : [];
+            copy.review_blockers = Array.isArray(copy.review_blockers) ? copy.review_blockers : [];
             copy.usage_flags = copy.usage_flags && typeof copy.usage_flags === 'object' ? copy.usage_flags : {};
             copy.safety_flags = copy.safety_flags && typeof copy.safety_flags === 'object' ? copy.safety_flags : {};
             this.usageOptions.forEach(key => {
@@ -792,6 +868,10 @@ export default {
                 secondary_muscle_groups: this.selectedTag.secondary_muscle_groups || [],
                 body_regions: this.selectedTag.body_regions || [],
                 exercise_type: this.selectedTag.exercise_type,
+                exercise_family: this.selectedTag.exercise_family || null,
+                movement_direction: this.selectedTag.movement_direction || null,
+                stability_demand: this.selectedTag.stability_demand || null,
+                variation_type: this.selectedTag.variation_type || null,
                 movement_patterns: this.selectedTag.movement_patterns || [],
                 training_styles: this.selectedTag.training_styles || [],
                 workout_sections: this.selectedTag.workout_sections || [],
@@ -807,9 +887,15 @@ export default {
                 difficulty: this.selectedTag.difficulty,
                 injury_cautions: this.selectedTag.injury_cautions || [],
                 goal_fit: this.selectedTag.goal_fit || [],
+                compatibility_flags: this.selectedTag.compatibility_flags || {},
+                regression_exercise_id: this.selectedTag.regression_exercise_id || null,
+                progression_exercise_id: this.selectedTag.progression_exercise_id || null,
+                alternative_exercise_ids: this.selectedTag.alternative_exercise_ids || [],
                 usage_flags: this.selectedTag.usage_flags || {},
                 safety_flags: this.selectedTag.safety_flags || {},
+                confidence_bucket: this.selectedTag.confidence_bucket || null,
                 review_status: this.selectedTag.review_status,
+                review_blockers: this.selectedTag.review_blockers || [],
                 notes: this.selectedTag.notes
             }, this.apiConfig).then(res => {
                 this.modalTitle = 'Done';
@@ -1122,6 +1208,12 @@ export default {
                 .map(item => item.trim())
                 .filter(Boolean);
         },
+        filterAllowedValues(values, allowed) {
+            if (!Array.isArray(allowed) || allowed.length === 0) {
+                return values;
+            }
+            return (Array.isArray(values) ? values : []).filter(value => allowed.includes(value));
+        },
         showError(message) {
             this.loading = false;
             this.modalTitle = 'Error';
@@ -1356,6 +1448,15 @@ export default {
 .usage-option span {
     font-size: 12px;
     overflow-wrap: anywhere;
+}
+
+.review-blockers {
+    background: #fff4e5;
+    border: 1px solid #f3c078;
+    border-radius: 6px;
+    color: #8a4700;
+    font-size: 12px;
+    padding: 8px;
 }
 
 .badge {

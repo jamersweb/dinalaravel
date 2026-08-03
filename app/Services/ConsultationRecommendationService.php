@@ -264,6 +264,7 @@ class ConsultationRecommendationService
             ->where('fitness_level', $level)
             ->with('workoutExercises.exerciseDetail.libraryTag')
             ->get()
+            ->filter(fn (Workout $workout) => $this->routineUsesPromptContract($workout))
             ->reject(function (Workout $workout) use ($injuries) {
                 if ($injuries === []) {
                     return false;
@@ -285,6 +286,22 @@ class ConsultationRecommendationService
                 return false;
             })
             ->values();
+    }
+
+    private function routineUsesPromptContract(Workout $workout): bool
+    {
+        $routineSections = is_array($workout->routine_sections) ? $workout->routine_sections : [];
+        if (($routineSections['_meta']['section_contract'] ?? null) !== RoutineLibraryRules::ROUTINE_SECTION_CONTRACT) {
+            return false;
+        }
+
+        $categories = $workout->workoutExercises
+            ->pluck('category')
+            ->unique()
+            ->values()
+            ->all();
+
+        return array_diff(RoutineLibraryRules::REQUIRED_WORKOUT_SECTIONS, $categories) === [];
     }
 
     private function programIds(string $language, string $equipment, string $level, int $frequency, int $duration, array $injuries, string $text): array

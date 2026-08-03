@@ -105,7 +105,7 @@ class AiLaunchProgramBuilderService
             ->orderBy('workout_type')
             ->orderBy('id')
             ->get()
-            ->filter(fn (Workout $routine) => $this->usesPhase3Contract($routine))
+            ->filter(fn (Workout $routine) => $this->usesPromptContract($routine))
             ->filter(fn (Workout $routine) => $this->matchesProgramDuration($routine, (string) $definition['minutes']))
             ->values();
 
@@ -153,10 +153,10 @@ class AiLaunchProgramBuilderService
         return $selected->values();
     }
 
-    private function usesPhase3Contract(Workout $routine): bool
+    private function usesPromptContract(Workout $routine): bool
     {
         $routineSections = is_array($routine->routine_sections) ? $routine->routine_sections : [];
-        if (($routineSections['_meta']['section_contract'] ?? null) !== 'ai_program_builder_phase_3') {
+        if (($routineSections['_meta']['section_contract'] ?? null) !== RoutineLibraryRules::ROUTINE_SECTION_CONTRACT) {
             return false;
         }
 

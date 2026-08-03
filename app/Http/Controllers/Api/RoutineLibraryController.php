@@ -83,6 +83,13 @@ class RoutineLibraryController extends Controller
                 'primary_categories' => RoutineLibraryRules::PRIMARY_CATEGORIES,
                 'training_adaptations' => RoutineLibraryRules::TRAINING_ADAPTATIONS,
                 'program_roles' => RoutineLibraryRules::PROGRAM_ROLES,
+                'equipment_tags' => RoutineLibraryRules::EQUIPMENT_TAGS,
+                'exercise_types' => RoutineLibraryRules::EXERCISE_TYPES,
+                'training_styles' => RoutineLibraryRules::TRAINING_STYLES,
+                'movement_directions' => RoutineLibraryRules::MOVEMENT_DIRECTIONS,
+                'stability_demands' => RoutineLibraryRules::STABILITY_DEMANDS,
+                'variation_types' => RoutineLibraryRules::VARIATION_TYPES,
+                'confidence_buckets' => RoutineLibraryRules::CONFIDENCE_BUCKETS,
                 'proposal_statuses' => ['queued', 'processing', 'proposed', 'applied', 'rejected', 'failed'],
                 'default_model' => config('services.ollama.model', 'qwen2.5vl:7b'),
             ],
@@ -418,7 +425,7 @@ class RoutineLibraryController extends Controller
             ->where('equipment_category', $definition['equipment_category'])
             ->where('fitness_level', $definition['level'])
             ->get()
-            ->filter(fn (Workout $routine) => $this->routineUsesPhase3Contract($routine))
+            ->filter(fn (Workout $routine) => $this->routineUsesPromptContract($routine))
             ->filter(fn (Workout $routine) => $this->routineMatchesProgramDuration($routine, (string) $definition['minutes']));
 
         return [
@@ -458,10 +465,10 @@ class RoutineLibraryController extends Controller
             ->first();
     }
 
-    private function routineUsesPhase3Contract(Workout $routine): bool
+    private function routineUsesPromptContract(Workout $routine): bool
     {
         $routineSections = is_array($routine->routine_sections) ? $routine->routine_sections : [];
-        if (($routineSections['_meta']['section_contract'] ?? null) !== 'ai_program_builder_phase_3') {
+        if (($routineSections['_meta']['section_contract'] ?? null) !== RoutineLibraryRules::ROUTINE_SECTION_CONTRACT) {
             return false;
         }
 
@@ -566,6 +573,7 @@ class RoutineLibraryController extends Controller
             'language' => ['required', Rule::in(RoutineLibraryRules::LANGUAGES)],
             'equipment_category' => ['required', Rule::in(RoutineLibraryRules::EQUIPMENT_CATEGORIES)],
             'equipment_tags' => 'nullable|array',
+            'equipment_tags.*' => ['nullable', Rule::in(RoutineLibraryRules::EQUIPMENT_TAGS)],
             'primary_category' => ['nullable', Rule::in(RoutineLibraryRules::PRIMARY_CATEGORIES)],
             'secondary_categories' => 'nullable|array',
             'secondary_categories.*' => ['nullable', Rule::in(RoutineLibraryRules::PRIMARY_CATEGORIES)],
@@ -575,10 +583,17 @@ class RoutineLibraryController extends Controller
             'secondary_muscle_groups' => 'nullable|array',
             'body_regions' => 'nullable|array',
             'body_regions.*' => ['nullable', Rule::in(RoutineLibraryRules::BODY_REGIONS)],
-            'exercise_type' => 'required|string|max:64',
+            'exercise_type' => ['required', Rule::in(RoutineLibraryRules::EXERCISE_TYPES)],
+            'exercise_family' => 'nullable|string|max:128',
+            'movement_direction' => ['nullable', Rule::in(RoutineLibraryRules::MOVEMENT_DIRECTIONS)],
+            'stability_demand' => ['nullable', Rule::in(RoutineLibraryRules::STABILITY_DEMANDS)],
+            'variation_type' => ['nullable', Rule::in(RoutineLibraryRules::VARIATION_TYPES)],
             'movement_patterns' => 'nullable|array',
+            'movement_patterns.*' => ['nullable', Rule::in(RoutineLibraryRules::MOVEMENT_PATTERNS)],
             'training_styles' => 'nullable|array',
+            'training_styles.*' => ['nullable', Rule::in(RoutineLibraryRules::TRAINING_STYLES)],
             'workout_sections' => 'nullable|array',
+            'workout_sections.*' => ['nullable', Rule::in(array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS))],
             'impact_level' => ['nullable', Rule::in(RoutineLibraryRules::IMPACT_LEVELS)],
             'intensity_level' => ['nullable', Rule::in(RoutineLibraryRules::INTENSITY_LEVELS)],
             'video_variant' => ['nullable', Rule::in(RoutineLibraryRules::VIDEO_VARIANTS)],
@@ -591,10 +606,17 @@ class RoutineLibraryController extends Controller
             'difficulty' => ['required', Rule::in(RoutineLibraryRules::LEVELS)],
             'injury_cautions' => 'nullable|array',
             'goal_fit' => 'nullable|array',
+            'compatibility_flags' => 'nullable|array',
+            'regression_exercise_id' => 'nullable|integer|exists:exercises,id',
+            'progression_exercise_id' => 'nullable|integer|exists:exercises,id',
+            'alternative_exercise_ids' => 'nullable|array',
+            'alternative_exercise_ids.*' => 'integer|exists:exercises,id',
             'usage_flags' => 'nullable|array',
             'safety_flags' => 'nullable|array',
             'approved_for_generation' => 'boolean',
+            'confidence_bucket' => ['nullable', Rule::in(RoutineLibraryRules::CONFIDENCE_BUCKETS)],
             'review_status' => ['nullable', Rule::in(RoutineLibraryRules::EXERCISE_TAG_REVIEW_STATUSES)],
+            'review_blockers' => 'nullable|array',
             'notes' => 'nullable|string',
         ]);
 
@@ -608,6 +630,12 @@ class RoutineLibraryController extends Controller
         $payload = $validator->validated();
         if (! isset($payload['review_status'])) {
             $payload['review_status'] = ($payload['approved_for_generation'] ?? false) ? 'approved' : 'pending_review';
+        }
+        if (($payload['review_status'] ?? null) === 'approved' && $this->hasReviewBlockers($payload['review_blockers'] ?? [])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Clear review blockers before approving this exercise for generation.',
+            ], 422);
         }
         if (($payload['review_status'] ?? null) !== 'approved') {
             $payload['approved_for_generation'] = false;
@@ -690,6 +718,13 @@ class RoutineLibraryController extends Controller
                 'intensity_levels' => RoutineLibraryRules::INTENSITY_LEVELS,
                 'video_variants' => RoutineLibraryRules::VIDEO_VARIANTS,
                 'movement_patterns' => RoutineLibraryRules::MOVEMENT_PATTERNS,
+                'equipment_tags' => RoutineLibraryRules::EQUIPMENT_TAGS,
+                'exercise_types' => RoutineLibraryRules::EXERCISE_TYPES,
+                'training_styles' => RoutineLibraryRules::TRAINING_STYLES,
+                'movement_directions' => RoutineLibraryRules::MOVEMENT_DIRECTIONS,
+                'stability_demands' => RoutineLibraryRules::STABILITY_DEMANDS,
+                'variation_types' => RoutineLibraryRules::VARIATION_TYPES,
+                'confidence_buckets' => RoutineLibraryRules::CONFIDENCE_BUCKETS,
                 'review_statuses' => RoutineLibraryRules::EXERCISE_TAG_REVIEW_STATUSES,
                 'usage_flags' => array_keys(RoutineLibraryRules::REQUIRED_AUDIT_USAGE),
             ],
@@ -710,6 +745,7 @@ class RoutineLibraryController extends Controller
             'language' => ['required', Rule::in(RoutineLibraryRules::LANGUAGES)],
             'equipment_category' => ['required', Rule::in(RoutineLibraryRules::EQUIPMENT_CATEGORIES)],
             'equipment_tags' => 'nullable|array',
+            'equipment_tags.*' => ['nullable', Rule::in(RoutineLibraryRules::EQUIPMENT_TAGS)],
             'primary_category' => ['nullable', Rule::in(RoutineLibraryRules::PRIMARY_CATEGORIES)],
             'secondary_categories' => 'nullable|array',
             'secondary_categories.*' => ['nullable', Rule::in(RoutineLibraryRules::PRIMARY_CATEGORIES)],
@@ -719,10 +755,17 @@ class RoutineLibraryController extends Controller
             'secondary_muscle_groups' => 'nullable|array',
             'body_regions' => 'nullable|array',
             'body_regions.*' => ['nullable', Rule::in(RoutineLibraryRules::BODY_REGIONS)],
-            'exercise_type' => 'required|string|max:64',
+            'exercise_type' => ['required', Rule::in(RoutineLibraryRules::EXERCISE_TYPES)],
+            'exercise_family' => 'nullable|string|max:128',
+            'movement_direction' => ['nullable', Rule::in(RoutineLibraryRules::MOVEMENT_DIRECTIONS)],
+            'stability_demand' => ['nullable', Rule::in(RoutineLibraryRules::STABILITY_DEMANDS)],
+            'variation_type' => ['nullable', Rule::in(RoutineLibraryRules::VARIATION_TYPES)],
             'movement_patterns' => 'nullable|array',
+            'movement_patterns.*' => ['nullable', Rule::in(RoutineLibraryRules::MOVEMENT_PATTERNS)],
             'training_styles' => 'nullable|array',
+            'training_styles.*' => ['nullable', Rule::in(RoutineLibraryRules::TRAINING_STYLES)],
             'workout_sections' => 'nullable|array',
+            'workout_sections.*' => ['nullable', Rule::in(array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS))],
             'impact_level' => ['nullable', Rule::in(RoutineLibraryRules::IMPACT_LEVELS)],
             'intensity_level' => ['nullable', Rule::in(RoutineLibraryRules::INTENSITY_LEVELS)],
             'video_variant' => ['nullable', Rule::in(RoutineLibraryRules::VIDEO_VARIANTS)],
@@ -735,9 +778,16 @@ class RoutineLibraryController extends Controller
             'difficulty' => ['required', Rule::in(RoutineLibraryRules::LEVELS)],
             'injury_cautions' => 'nullable|array',
             'goal_fit' => 'nullable|array',
+            'compatibility_flags' => 'nullable|array',
+            'regression_exercise_id' => 'nullable|integer|exists:exercises,id',
+            'progression_exercise_id' => 'nullable|integer|exists:exercises,id',
+            'alternative_exercise_ids' => 'nullable|array',
+            'alternative_exercise_ids.*' => 'integer|exists:exercises,id',
             'usage_flags' => 'nullable|array',
             'safety_flags' => 'nullable|array',
+            'confidence_bucket' => ['nullable', Rule::in(RoutineLibraryRules::CONFIDENCE_BUCKETS)],
             'review_status' => ['required', Rule::in(RoutineLibraryRules::EXERCISE_TAG_REVIEW_STATUSES)],
+            'review_blockers' => 'nullable|array',
             'notes' => 'nullable|string',
         ]);
 
@@ -749,6 +799,13 @@ class RoutineLibraryController extends Controller
         }
 
         $payload = $validator->validated();
+        if ($payload['review_status'] === 'approved' && $this->hasReviewBlockers($payload['review_blockers'] ?? [])) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Clear review blockers before approving this exercise for generation.',
+            ], 422);
+        }
+
         $payload['approved_for_generation'] = $payload['review_status'] === 'approved';
         $tag->fill($payload);
         $tag->save();
@@ -779,23 +836,35 @@ class RoutineLibraryController extends Controller
         }
 
         $status = $request->review_status;
-        ExerciseLibraryTag::whereIn('id', $request->ids)->update([
-            'review_status' => $status,
-            'approved_for_generation' => $status === 'approved',
-            'updated_at' => now(),
-        ]);
+        $updated = 0;
+        $blocked = 0;
+        $tags = ExerciseLibraryTag::whereIn('id', $request->ids)->get();
+        foreach ($tags as $tag) {
+            if ($status === 'approved' && $this->hasReviewBlockers($tag->review_blockers)) {
+                $blocked++;
+                continue;
+            }
+
+            $tag->review_status = $status;
+            $tag->approved_for_generation = $status === 'approved';
+            $tag->save();
+            $updated++;
+        }
 
         return response()->json([
-            'status' => true,
-            'message' => 'Exercise tags updated.',
-            'updated_count' => count($request->ids),
-        ]);
+            'status' => $blocked === 0,
+            'message' => $blocked === 0
+                ? 'Exercise tags updated.'
+                : "Updated {$updated} exercise tag(s). {$blocked} tag(s) still have review blockers.",
+            'updated_count' => $updated,
+            'blocked_count' => $blocked,
+        ], $blocked === 0 ? 200 : 422);
     }
 
     public function generateBatch(Request $request, RoutineGeneratorService $generator)
     {
         $validator = Validator::make($request->all(), [
-            'language' => ['required', Rule::in(RoutineLibraryRules::LANGUAGES)],
+            'language' => ['required', Rule::in(RoutineLibraryRules::CONTENT_LANGUAGES)],
             'equipment_category' => ['required', Rule::in(RoutineLibraryRules::EQUIPMENT_CATEGORIES)],
             'fitness_level' => ['required', Rule::in(RoutineLibraryRules::LEVELS)],
             'workout_types' => 'nullable|array',
@@ -1224,6 +1293,15 @@ class RoutineLibraryController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    private function hasReviewBlockers($blockers): bool
+    {
+        if (! is_array($blockers)) {
+            return false;
+        }
+
+        return array_values(array_filter($blockers, fn ($blocker) => trim((string) $blocker) !== '')) !== [];
     }
 
     private function recommendationPayload(?ConsultationRecommendation $recommendation): ?array

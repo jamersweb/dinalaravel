@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 class GenerateRoutineBatchCommand extends Command
 {
     protected $signature = 'routine-library:generate
-        {--language=en : en, ar, or no_audio}
+        {--language=en : en or ar; no_audio generation is deferred}
         {--equipment=bodyweight : full_gym, gym, home_dumbbell, or bodyweight}
         {--level=beginner : beginner, intermediate, or advanced}
         {--minutes=30 : Target workout duration: 15, 20, 30, 45, or 60}

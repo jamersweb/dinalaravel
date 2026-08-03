@@ -33,6 +33,33 @@ class RoutineLibraryRules
     public const IMPACT_LEVELS = ['low', 'moderate', 'high'];
     public const INTENSITY_LEVELS = ['low', 'moderate', 'high'];
     public const VIDEO_VARIANTS = ['explained', 'no_audio'];
+    public const ROUTINE_SECTION_CONTRACT = 'master_ai_prompt_v1';
+    public const LEGACY_ROUTINE_SECTION_CONTRACT = 'ai_program_builder_phase_3';
+    public const EQUIPMENT_TAGS = ['bodyweight', 'dumbbells', 'machine', 'cable', 'barbell', 'cardio_machine', 'bench', 'mat', 'bands', 'kettlebell'];
+    public const EXERCISE_TYPES = ['resistance', 'main', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'cardio_warm_up', 'warm_up', 'mobility', 'stretching', 'activation', 'power_explosive', 'lower_back', 'abs', 'obliques'];
+    public const TRAINING_STYLES = ['resistance_training', 'hypertrophy', 'muscular_endurance', 'conditioning', 'mobility', 'core', 'stretching', 'warm_up', 'circuit', 'hiit', 'steady_state_cardio'];
+    public const MOVEMENT_DIRECTIONS = [
+        'bilateral',
+        'unilateral',
+        'horizontal_push',
+        'vertical_push',
+        'horizontal_pull',
+        'vertical_pull',
+        'squat',
+        'hinge',
+        'lunge',
+        'rotation',
+        'anti_rotation',
+        'locomotion',
+        'static_hold',
+        'loaded_carry',
+        'lateral',
+        'forward_backward',
+        'multi_directional',
+    ];
+    public const STABILITY_DEMANDS = ['stable', 'supported', 'unsupported', 'unstable', 'single_leg', 'anti_rotation'];
+    public const VARIATION_TYPES = ['base', 'regression', 'progression', 'alternative', 'advanced_variant', 'unilateral_variant', 'bilateral_variant', 'lateral_variant'];
+    public const CONFIDENCE_BUCKETS = ['high', 'medium', 'low'];
     public const PRIMARY_CATEGORIES = [
         'resistance_training',
         'cardiovascular_training',
@@ -242,25 +269,21 @@ class RoutineLibraryRules
     ];
 
     public const REQUIRED_WORKOUT_SECTIONS = [
+        'dynamic_warm_up',
         'warm_up_cardio',
-        'mobility_dynamic_warm_up',
         'muscle_activation',
-        'core_lower_back_preparation',
+        'lower_back_core_superset',
         'main_workout',
-        'core_obliques',
-        'lower_back_strengthening',
-        'cool_down_stretching',
+        'post_workout_stretching',
     ];
 
     public const SECTION_MINIMUM_EXERCISES = [
+        'dynamic_warm_up' => 5,
         'warm_up_cardio' => 1,
-        'mobility_dynamic_warm_up' => 3,
         'muscle_activation' => 1,
-        'core_lower_back_preparation' => 1,
-        'main_workout' => 2,
-        'core_obliques' => 2,
-        'lower_back_strengthening' => 1,
-        'cool_down_stretching' => 5,
+        'lower_back_core_superset' => 2,
+        'main_workout' => 5,
+        'post_workout_stretching' => 5,
     ];
 
     public const OPTIONAL_WORKOUT_SECTIONS = [
@@ -268,14 +291,17 @@ class RoutineLibraryRules
     ];
 
     public const WORKOUT_SECTION_LABELS = [
+        'dynamic_warm_up' => 'Dynamic Warm-Up',
         'warm_up_cardio' => 'Warm-Up Cardio',
         'mobility_dynamic_warm_up' => 'Mobility and Dynamic Warm-Up',
         'muscle_activation' => 'Muscle Activation',
+        'lower_back_core_superset' => 'Lower-Back and Core Superset',
         'core_lower_back_preparation' => 'Core and Lower-Back Preparation',
         'main_workout' => 'Main Training Workout',
         'core_obliques' => 'Core and Obliques',
         'lower_back_strengthening' => 'Lower-Back Strengthening',
         'optional_additional_cardio' => 'Optional Additional Cardio',
+        'post_workout_stretching' => 'Post-Workout Full-Body Stretching',
         'cool_down_stretching' => 'Cool-Down and Stretching',
     ];
 

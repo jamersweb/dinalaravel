@@ -133,9 +133,16 @@ class OllamaExerciseTaggerService
             is_array($proposal->source_metadata) ? $proposal->source_metadata : null,
             is_array($proposal->current_tag_payload) ? $proposal->current_tag_payload : null
         );
+        $reviewBlockers = is_array($payload['review_blockers'] ?? null) ? $payload['review_blockers'] : [];
+        if ($approve && $reviewBlockers !== []) {
+            throw new RuntimeException('AI proposal has review blockers and must stay in manual review: ' . implode('; ', $reviewBlockers));
+        }
+
         $payload['exercise_id'] = $proposal->exercise_id;
-        $payload['approved_for_generation'] = $approve;
-        $payload['review_status'] = $approve ? 'approved' : 'pending_review';
+        $payload['approved_for_generation'] = $approve && $reviewBlockers === [];
+        $payload['review_status'] = $approve
+            ? 'approved'
+            : ($reviewBlockers === [] ? 'pending_review' : 'needs_fix');
         $payload['notes'] = trim(($payload['notes'] ?? '') . "\nAI-tagged by {$proposal->model}; reviewed in AI Video Tags.");
 
         $tag = ExerciseLibraryTag::updateOrCreate(
@@ -224,7 +231,11 @@ class OllamaExerciseTaggerService
 
         $raw = (string) ($response->json('response') ?? '');
         $decoded = $this->decodeJsonResponse($raw);
-        $payload = $this->normalizePayload($decoded['tag'] ?? $decoded, $metadata, $currentTagPayload);
+        $tagPayload = $decoded['tag'] ?? $decoded;
+        if (isset($decoded['confidence']) && ! isset($tagPayload['confidence'])) {
+            $tagPayload['confidence'] = $decoded['confidence'];
+        }
+        $payload = $this->normalizePayload($tagPayload, $metadata, $currentTagPayload);
 
         return [
             'payload' => $payload,
@@ -250,7 +261,7 @@ class OllamaExerciseTaggerService
             'tag' => [
                 'language' => RoutineLibraryRules::LANGUAGES,
                 'equipment_category' => RoutineLibraryRules::EQUIPMENT_CATEGORIES,
-                'equipment_tags' => ['bodyweight', 'dumbbells', 'machine', 'cable', 'barbell', 'cardio_machine', 'bench', 'mat'],
+                'equipment_tags' => RoutineLibraryRules::EQUIPMENT_TAGS,
                 'primary_category' => RoutineLibraryRules::PRIMARY_CATEGORIES,
                 'secondary_categories' => RoutineLibraryRules::PRIMARY_CATEGORIES,
                 'training_adaptation' => RoutineLibraryRules::TRAINING_ADAPTATIONS,
@@ -258,9 +269,13 @@ class OllamaExerciseTaggerService
                 'muscle_group' => 'string',
                 'secondary_muscle_groups' => ['string'],
                 'body_regions' => RoutineLibraryRules::BODY_REGIONS,
-                'exercise_type' => ['resistance', 'main', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'cardio_warm_up', 'warm_up', 'mobility', 'stretching', 'activation', 'power_explosive', 'lower_back', 'abs', 'obliques'],
+                'exercise_type' => RoutineLibraryRules::EXERCISE_TYPES,
+                'exercise_family' => 'string_or_null',
+                'movement_direction' => RoutineLibraryRules::MOVEMENT_DIRECTIONS,
+                'stability_demand' => RoutineLibraryRules::STABILITY_DEMANDS,
+                'variation_type' => RoutineLibraryRules::VARIATION_TYPES,
                 'movement_patterns' => RoutineLibraryRules::MOVEMENT_PATTERNS,
-                'training_styles' => ['resistance_training', 'hypertrophy', 'muscular_endurance', 'conditioning', 'mobility', 'core', 'stretching', 'warm_up'],
+                'training_styles' => RoutineLibraryRules::TRAINING_STYLES,
                 'workout_sections' => array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS),
                 'impact_level' => RoutineLibraryRules::IMPACT_LEVELS,
                 'intensity_level' => RoutineLibraryRules::INTENSITY_LEVELS,
@@ -274,6 +289,17 @@ class OllamaExerciseTaggerService
                 'difficulty' => RoutineLibraryRules::LEVELS,
                 'injury_cautions' => ['string'],
                 'goal_fit' => ['string'],
+                'compatibility_flags' => [
+                    'beginner_compatible' => 'boolean',
+                    'warmup_compatible' => 'boolean',
+                    'cooldown_compatible' => 'boolean',
+                    'main_workout_compatible' => 'boolean',
+                    'low_impact_compatible' => 'boolean',
+                ],
+                'regression_exercise_id' => 'integer_or_null',
+                'progression_exercise_id' => 'integer_or_null',
+                'alternative_exercise_ids' => ['integer'],
+                'confidence_bucket' => RoutineLibraryRules::CONFIDENCE_BUCKETS,
                 'usage_flags' => array_fill_keys(array_keys(RoutineLibraryRules::REQUIRED_AUDIT_USAGE), 'boolean'),
                 'safety_flags' => [
                     'safe_for_warmup' => 'boolean',
@@ -297,6 +323,8 @@ class OllamaExerciseTaggerService
             . 'Use training_adaptation to describe why the exercise is performed: strength, hypertrophy, muscular_endurance, power, explosiveness, aerobic_conditioning, anaerobic_conditioning, mobility, flexibility, muscle_activation, movement_preparation, rehabilitation_corrective, or recovery. '
             . 'Use program_role to say where the exercise belongs in a workout: warm_up, activation, lower_back_core_preparation, main_workout, main_compound_exercise, accessory_exercise, isolation_exercise, superset_exercise, circuit_exercise, hiit_interval, optional_cardio, cool_down, post_workout_stretching, corrective, or recovery. '
             . 'Set body_regions from the body-region list and movement_patterns from the movement-pattern list so the builder can create balanced routines. '
+            . 'Set exercise_family, movement_direction, stability_demand, and variation_type so the builder can avoid duplicate variations in one workout. '
+            . 'Use only schema values for equipment_tags, exercise_type, movement_patterns, training_styles, workout_sections, movement_direction, stability_demand, variation_type, and confidence_bucket. '
             . 'If a current deterministic tag exists and the title does not clearly contradict it, keep its equipment_category and language. '
             . 'Deadlift, squat, row, press, curl, bridge, lunge with dumbbell/home dumbbell evidence is not bodyweight. '
             . 'Warm-up titles must use primary_category dynamic_warm_up, mobility, muscle_activation, or warm_up_cardio and exercise_type warm_up, mobility, activation, or cardio, not resistance/main. '
@@ -354,15 +382,37 @@ class OllamaExerciseTaggerService
         $usageFlags = $this->usageFlags((array) ($payload['usage_flags'] ?? []), $exerciseType, $muscleGroup, $metadata, $primaryCategory, $trainingAdaptation, $safetyFlags);
         $programRole = $this->inferProgramRole($payload, $metadata, $usageFlags, $primaryCategory, $trainingAdaptation, $exerciseType, $safetyFlags);
         $bodyRegions = $this->inferBodyRegions($payload, $muscleGroup, $this->stringArray($payload['secondary_muscle_groups'] ?? []), $metadata);
-        $workoutSections = array_values(array_intersect($this->stringArray($payload['workout_sections'] ?? []), array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS)));
+        $equipmentTags = $this->allowedStringArray($payload['equipment_tags'] ?? [], RoutineLibraryRules::EQUIPMENT_TAGS);
+        $movementPatterns = $this->allowedStringArray($payload['movement_patterns'] ?? [], RoutineLibraryRules::MOVEMENT_PATTERNS);
+        $trainingStyles = $this->allowedStringArray($payload['training_styles'] ?? [], RoutineLibraryRules::TRAINING_STYLES);
+        $workoutSections = $this->allowedStringArray($payload['workout_sections'] ?? [], array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS));
         if ($workoutSections === []) {
             $workoutSections = $this->sectionsFromUsageFlags($usageFlags);
         }
+        $exerciseFamily = $this->inferExerciseFamily($payload, $metadata, $exerciseType, $muscleGroup, $movementPatterns);
+        $movementDirection = $this->inferMovementDirection($payload, $metadata, $movementPatterns);
+        $stabilityDemand = $this->inferStabilityDemand($payload, $metadata, $movementPatterns);
+        $variationType = $this->inferVariationType($payload, $metadata);
+        $compatibilityFlags = $this->compatibilityFlags($payload, $difficulty, $primaryCategory, $usageFlags, $safetyFlags, $impact);
+        $confidenceBucket = $this->confidenceBucket($payload);
+        $reviewBlockers = $this->reviewBlockers(
+            $payload,
+            $confidenceBucket,
+            $primaryCategory,
+            $usageFlags,
+            $safetyFlags,
+            [
+                'equipment_tags' => RoutineLibraryRules::EQUIPMENT_TAGS,
+                'movement_patterns' => RoutineLibraryRules::MOVEMENT_PATTERNS,
+                'training_styles' => RoutineLibraryRules::TRAINING_STYLES,
+                'workout_sections' => array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS),
+            ]
+        );
 
         return [
             'language' => $language,
             'equipment_category' => $equipment,
-            'equipment_tags' => $this->stringArray($payload['equipment_tags'] ?? []),
+            'equipment_tags' => $equipmentTags,
             'primary_category' => $primaryCategory,
             'secondary_categories' => $secondaryCategories,
             'training_adaptation' => $trainingAdaptation,
@@ -371,8 +421,12 @@ class OllamaExerciseTaggerService
             'secondary_muscle_groups' => $this->stringArray($payload['secondary_muscle_groups'] ?? []),
             'body_regions' => $bodyRegions,
             'exercise_type' => $exerciseType,
-            'movement_patterns' => array_values(array_intersect($this->stringArray($payload['movement_patterns'] ?? []), RoutineLibraryRules::MOVEMENT_PATTERNS)),
-            'training_styles' => $this->stringArray($payload['training_styles'] ?? []),
+            'exercise_family' => $exerciseFamily,
+            'movement_direction' => $movementDirection,
+            'stability_demand' => $stabilityDemand,
+            'variation_type' => $variationType,
+            'movement_patterns' => $movementPatterns,
+            'training_styles' => $trainingStyles,
             'workout_sections' => $workoutSections,
             'impact_level' => $impact,
             'intensity_level' => $intensity,
@@ -386,10 +440,16 @@ class OllamaExerciseTaggerService
             'difficulty' => $difficulty,
             'injury_cautions' => $this->stringArray($payload['injury_cautions'] ?? []),
             'goal_fit' => $this->stringArray($payload['goal_fit'] ?? []),
+            'compatibility_flags' => $compatibilityFlags,
+            'regression_exercise_id' => $this->nullablePositiveInteger($payload['regression_exercise_id'] ?? null),
+            'progression_exercise_id' => $this->nullablePositiveInteger($payload['progression_exercise_id'] ?? null),
+            'alternative_exercise_ids' => $this->integerArray($payload['alternative_exercise_ids'] ?? []),
             'usage_flags' => $usageFlags,
             'safety_flags' => $safetyFlags,
             'approved_for_generation' => false,
-            'review_status' => 'pending_review',
+            'confidence_bucket' => $confidenceBucket,
+            'review_status' => $reviewBlockers === [] ? 'pending_review' : 'needs_fix',
+            'review_blockers' => $reviewBlockers,
             'notes' => $this->nullableString($payload['notes'] ?? 'AI tag proposal from Ollama.', 1000),
         ];
     }
@@ -1288,15 +1348,15 @@ class OllamaExerciseTaggerService
     {
         $map = [
             'cardio_warm_up' => 'warm_up_cardio',
-            'warm_up' => 'mobility_dynamic_warm_up',
-            'mobility' => 'mobility_dynamic_warm_up',
+            'warm_up' => 'dynamic_warm_up',
+            'mobility' => 'dynamic_warm_up',
             'muscle_activation' => 'muscle_activation',
-            'lower_back_activation' => 'core_lower_back_preparation',
+            'lower_back_activation' => 'lower_back_core_superset',
             'main_workout' => 'main_workout',
-            'abs' => 'core_obliques',
-            'obliques' => 'core_obliques',
-            'lower_back_strength' => 'lower_back_strengthening',
-            'stretching' => 'cool_down_stretching',
+            'abs' => 'lower_back_core_superset',
+            'obliques' => 'lower_back_core_superset',
+            'lower_back_strength' => 'lower_back_core_superset',
+            'stretching' => 'post_workout_stretching',
         ];
 
         $sections = [];
@@ -1309,11 +1369,273 @@ class OllamaExerciseTaggerService
         return array_values(array_unique($sections));
     }
 
+    private function inferExerciseFamily(array $payload, ?array $metadata, string $exerciseType, string $muscleGroup, array $movementPatterns): ?string
+    {
+        $raw = $this->nullableString($payload['exercise_family'] ?? null, 128);
+        if ($raw) {
+            return $this->familyKey($raw);
+        }
+
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        $title = preg_replace('/\b(with|using)?\s*(dumbbells?|db|barbell|cable|machine|bench|mat|band|bands)\b/', ' ', $title) ?? $title;
+        $title = preg_replace('/\b(beginner|intermediate|advanced|level\s*\d+|variation|progression|regression|modified|assisted|weighted|bodyweight)\b/', ' ', $title) ?? $title;
+        $title = preg_replace('/\b(left|right|alternating|single arm|single leg|one arm|one leg|bilateral|unilateral|seated|standing|kneeling|incline|decline)\b/', ' ', $title) ?? $title;
+        $title = trim(preg_replace('/\s+/', ' ', $title) ?? '');
+        if ($title !== '') {
+            return $this->familyKey($title);
+        }
+
+        $pattern = $movementPatterns[0] ?? null;
+        $parts = array_filter([$muscleGroup, $pattern, $exerciseType]);
+
+        return $parts === [] ? null : $this->familyKey(implode(' ', $parts));
+    }
+
+    private function inferMovementDirection(array $payload, ?array $metadata, array $movementPatterns): ?string
+    {
+        $raw = $this->normalizedAllowedValue($payload['movement_direction'] ?? null, RoutineLibraryRules::MOVEMENT_DIRECTIONS, '');
+        if ($raw !== '') {
+            return $raw;
+        }
+
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        if (preg_match('/\b(single|one arm|one leg|alternating|split|side plank)\b/', $title)) {
+            return 'unilateral';
+        }
+        if (preg_match('/\b(carry|farmer|suitcase)\b/', $title)) {
+            return 'loaded_carry';
+        }
+        if (preg_match('/\b(lateral|side step|side lunge|side plank)\b/', $title)) {
+            return 'lateral';
+        }
+        if (preg_match('/\b(row|pull down|pulldown|pull-up|pull up)\b/', $title)) {
+            return str_contains($title, 'pulldown') || str_contains($title, 'pull up') || str_contains($title, 'pull-up') ? 'vertical_pull' : 'horizontal_pull';
+        }
+        if (preg_match('/\b(press|push up|push-up)\b/', $title)) {
+            return preg_match('/\b(overhead|shoulder)\b/', $title) ? 'vertical_push' : 'horizontal_push';
+        }
+
+        foreach (['squat', 'hinge', 'lunge', 'rotation', 'anti_rotation', 'locomotion'] as $direction) {
+            if (in_array($direction, $movementPatterns, true)) {
+                return $direction;
+            }
+        }
+        if (in_array('stabilization', $movementPatterns, true)) {
+            return 'static_hold';
+        }
+
+        return null;
+    }
+
+    private function inferStabilityDemand(array $payload, ?array $metadata, array $movementPatterns): ?string
+    {
+        $raw = $this->normalizedAllowedValue($payload['stability_demand'] ?? null, RoutineLibraryRules::STABILITY_DEMANDS, '');
+        if ($raw !== '') {
+            return $raw;
+        }
+
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        if (preg_match('/\b(bench|machine|supported|chest supported|seated)\b/', $title)) {
+            return 'supported';
+        }
+        if (preg_match('/\b(bosu|stability ball|unstable)\b/', $title)) {
+            return 'unstable';
+        }
+        if (preg_match('/\b(single leg|one leg|split squat|side plank)\b/', $title)) {
+            return 'single_leg';
+        }
+        if (in_array('anti_rotation', $movementPatterns, true)) {
+            return 'anti_rotation';
+        }
+        if (in_array('stabilization', $movementPatterns, true)) {
+            return 'unsupported';
+        }
+
+        return 'stable';
+    }
+
+    private function inferVariationType(array $payload, ?array $metadata): string
+    {
+        $raw = $this->normalizedAllowedValue($payload['variation_type'] ?? null, RoutineLibraryRules::VARIATION_TYPES, '');
+        if ($raw !== '') {
+            return $raw;
+        }
+
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        if (preg_match('/\b(regression|modified|assisted|easy|beginner)\b/', $title)) {
+            return 'regression';
+        }
+        if (preg_match('/\b(progression|advanced|hard|explosive|weighted)\b/', $title)) {
+            return 'progression';
+        }
+        if (preg_match('/\b(single|one arm|one leg|unilateral)\b/', $title)) {
+            return 'unilateral_variant';
+        }
+        if (preg_match('/\b(alternative|substitute|variation)\b/', $title)) {
+            return 'alternative';
+        }
+
+        return 'base';
+    }
+
+    private function compatibilityFlags(array $payload, string $difficulty, string $primaryCategory, array $usageFlags, array $safetyFlags, string $impact): array
+    {
+        $provided = is_array($payload['compatibility_flags'] ?? null) ? $payload['compatibility_flags'] : [];
+        $flags = [];
+        foreach ($provided as $key => $value) {
+            $normalizedKey = $this->normalizeKey($key);
+            if ($normalizedKey !== '') {
+                $flags[$normalizedKey] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+            }
+        }
+
+        return array_merge($flags, [
+            'beginner_compatible' => $difficulty === 'beginner',
+            'intermediate_compatible' => in_array($difficulty, ['beginner', 'intermediate'], true),
+            'advanced_compatible' => true,
+            'warmup_compatible' => empty($safetyFlags['unsafe_as_warmup']) && ! empty($safetyFlags['safe_for_warmup']),
+            'cooldown_compatible' => ! empty($safetyFlags['safe_for_cooldown']),
+            'main_workout_compatible' => ! empty($usageFlags['main_workout'])
+                || in_array($primaryCategory, ['resistance_training', 'power_explosive_training', 'circuit_training', 'hiit_cardio'], true),
+            'low_impact_compatible' => $impact !== 'high',
+        ]);
+    }
+
+    private function confidenceBucket(array $payload): string
+    {
+        $rawBucket = $this->normalizedAllowedValue($payload['confidence_bucket'] ?? null, RoutineLibraryRules::CONFIDENCE_BUCKETS, '');
+        if ($rawBucket !== '') {
+            return $rawBucket;
+        }
+
+        if (! isset($payload['confidence']) || $payload['confidence'] === '') {
+            return 'medium';
+        }
+
+        $confidence = max(0, min(1, (float) $payload['confidence']));
+        if ($confidence >= 0.8) {
+            return 'high';
+        }
+        if ($confidence >= 0.55) {
+            return 'medium';
+        }
+
+        return 'low';
+    }
+
+    private function reviewBlockers(array $payload, string $confidenceBucket, string $primaryCategory, array $usageFlags, array $safetyFlags, array $controlledArrays): array
+    {
+        $blockers = [];
+        if ($confidenceBucket === 'low') {
+            $blockers[] = 'Low AI confidence; manual review required before generation approval.';
+        }
+
+        foreach ($controlledArrays as $field => $allowed) {
+            $dropped = $this->droppedControlledValues($payload[$field] ?? [], $allowed);
+            if ($dropped !== []) {
+                $blockers[] = "{$field} contained unsupported value(s): " . implode(', ', $dropped);
+            }
+        }
+
+        if (! empty($safetyFlags['unsafe_as_warmup']) && (! empty($usageFlags['cardio_warm_up']) || ! empty($usageFlags['warm_up']))) {
+            $blockers[] = 'Exercise is marked unsafe as warm-up but still has warm-up usage enabled.';
+        }
+
+        if (in_array($primaryCategory, ['flexibility_stretching', 'post_workout_stretching'], true) && empty($usageFlags['stretching'])) {
+            $blockers[] = 'Stretching category must have stretching usage enabled.';
+        }
+
+        return array_values(array_unique($blockers));
+    }
+
     private function allowedValue($value, array $allowed, string $fallback): string
     {
         $value = strtolower($this->scalarString($value));
 
         return in_array($value, $allowed, true) ? $value : $fallback;
+    }
+
+    private function normalizedAllowedValue($value, array $allowed, string $fallback): string
+    {
+        $value = $this->normalizeControlledKey($this->scalarString($value));
+
+        return in_array($value, $allowed, true) ? $value : $fallback;
+    }
+
+    private function allowedStringArray($value, array $allowed): array
+    {
+        return array_values(array_unique(array_intersect(
+            array_map(fn ($item) => $this->normalizeControlledKey($item), $this->stringArray($value)),
+            $allowed
+        )));
+    }
+
+    private function droppedControlledValues($value, array $allowed): array
+    {
+        $raw = $this->stringArray($value);
+        $normalized = array_map(fn ($item) => $this->normalizeControlledKey($item), $raw);
+
+        return array_values(array_unique(array_filter($normalized, fn ($item) => $item !== '' && ! in_array($item, $allowed, true))));
+    }
+
+    private function integerArray($value): array
+    {
+        if (! is_array($value)) {
+            $value = [$value];
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $value), fn (int $id) => $id > 0)));
+    }
+
+    private function nullablePositiveInteger($value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $id = (int) $value;
+
+        return $id > 0 ? $id : null;
+    }
+
+    private function normalizeKey($value): string
+    {
+        $value = strtolower(trim((string) $value));
+        $value = str_replace(['&', '/', '-'], ' ', $value);
+        $value = preg_replace('/[^a-z0-9]+/', '_', $value) ?? '';
+
+        return trim($value, '_');
+    }
+
+    private function normalizeControlledKey($value): string
+    {
+        $key = $this->normalizeKey($value);
+        $aliases = [
+            'body_weight' => 'bodyweight',
+            'dumbbell' => 'dumbbells',
+            'db' => 'dumbbells',
+            'machines' => 'machine',
+            'gym_machine' => 'machine',
+            'gym_machines' => 'machine',
+            'cables' => 'cable',
+            'barbells' => 'barbell',
+            'cardio_machine' => 'cardio_machine',
+            'cardio_machines' => 'cardio_machine',
+            'band' => 'bands',
+            'resistance_band' => 'bands',
+            'resistance_bands' => 'bands',
+            'warmup' => 'warm_up',
+            'dynamic_warmup' => 'dynamic_warm_up',
+            'cooldown' => 'cool_down',
+            'post_workout_stretch' => 'post_workout_stretching',
+        ];
+
+        return $aliases[$key] ?? $key;
+    }
+
+    private function familyKey(string $value): string
+    {
+        return substr($this->normalizeKey($value), 0, 128);
     }
 
     private function scalarString($value, string $fallback = ''): string

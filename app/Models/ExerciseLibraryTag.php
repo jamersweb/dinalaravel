@@ -22,6 +22,10 @@ class ExerciseLibraryTag extends Model
         'secondary_muscle_groups',
         'body_regions',
         'exercise_type',
+        'exercise_family',
+        'movement_direction',
+        'stability_demand',
+        'variation_type',
         'movement_patterns',
         'training_styles',
         'workout_sections',
@@ -37,10 +41,16 @@ class ExerciseLibraryTag extends Model
         'difficulty',
         'injury_cautions',
         'goal_fit',
+        'compatibility_flags',
+        'regression_exercise_id',
+        'progression_exercise_id',
+        'alternative_exercise_ids',
         'usage_flags',
         'safety_flags',
         'approved_for_generation',
+        'confidence_bucket',
         'review_status',
+        'review_blockers',
         'notes',
     ];
 
@@ -58,9 +68,14 @@ class ExerciseLibraryTag extends Model
         'contraindications' => 'array',
         'injury_cautions' => 'array',
         'goal_fit' => 'array',
+        'compatibility_flags' => 'array',
+        'regression_exercise_id' => 'integer',
+        'progression_exercise_id' => 'integer',
+        'alternative_exercise_ids' => 'array',
         'usage_flags' => 'array',
         'safety_flags' => 'array',
         'approved_for_generation' => 'boolean',
+        'review_blockers' => 'array',
     ];
 
     public function exercise()

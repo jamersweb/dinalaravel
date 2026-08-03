@@ -116,7 +116,7 @@ class RoutineContentAuditService
         return collect(RoutineLibraryRules::LAUNCH_MATRIX_PROGRAMS)
             ->map(function (array $program) use ($tags) {
                 $languageReadiness = [];
-                foreach (RoutineLibraryRules::LANGUAGES as $language) {
+                foreach (RoutineLibraryRules::CONTENT_LANGUAGES as $language) {
                     $languageReadiness[$language] = $this->programReadiness($tags, $program, $language);
                 }
 
@@ -141,6 +141,7 @@ class RoutineContentAuditService
                     'status' => count($readyLanguages) >= 2
                         ? 'ready'
                         : (count($reviewableLanguages) >= 2 ? 'needs_review' : 'blocked'),
+                    'deferred_languages' => ['no_audio'],
                     'ready_languages' => $readyLanguages,
                     'reviewable_languages' => $reviewableLanguages,
                     'languages' => $languageReadiness,
@@ -246,11 +247,19 @@ class RoutineContentAuditService
         }
 
         if ($usage === 'stretching') {
-            return RoutineLibraryRules::SECTION_MINIMUM_EXERCISES['cool_down_stretching'];
+            return RoutineLibraryRules::SECTION_MINIMUM_EXERCISES['post_workout_stretching'];
+        }
+
+        if ($usage === 'warm_up') {
+            $targetMinutes = (int) ($program['target_minutes'] ?? 30);
+
+            return $targetMinutes <= 15 ? 2 : 3;
         }
 
         if ($usage === 'mobility') {
-            return 2;
+            $targetMinutes = (int) ($program['target_minutes'] ?? 30);
+
+            return $targetMinutes <= 15 ? 1 : 2;
         }
 
         if (in_array($usage, ['abs', 'obliques', 'lower_back_strength'], true) && $program['level'] !== 'beginner') {
@@ -316,7 +325,7 @@ class RoutineContentAuditService
                 || in_array($programRole, ['main_workout', 'main_compound_exercise', 'accessory_exercise', 'isolation_exercise', 'superset_exercise', 'circuit_exercise', 'hiit_interval', 'finisher', 'core'], true)
                 || in_array($type, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'power_explosive'], true),
             'warm_up' => empty($safety['unsafe_as_warmup']) && (
-                in_array($primaryCategory, ['dynamic_warm_up', 'mobility', 'warm_up_cardio'], true)
+                in_array($primaryCategory, ['dynamic_warm_up', 'mobility'], true)
                 || in_array($programRole, ['warm_up', 'dynamic_warm_up', 'activation'], true)
                 || in_array($type, ['warm_up', 'warm-up'], true)
             ),
