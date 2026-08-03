@@ -58,9 +58,22 @@
         </div>
 
         <div class="panel table-panel">
+            <div class="bulk-actions">
+                <label class="select-all">
+                    <input type="checkbox" :checked="allVisibleSelected" :disabled="proposals.length === 0" @change="toggleSelectAll($event)">
+                    <span>{{ selectedIds.length }} selected</span>
+                </label>
+                <button class="tiny-btn" :disabled="selectedIds.length === 0" @click="bulkAction('apply_approve')">Apply + approve selected</button>
+                <button class="tiny-btn" :disabled="selectedIds.length === 0" @click="bulkAction('apply_pending')">Apply pending selected</button>
+                <button class="tiny-btn reject" :disabled="selectedIds.length === 0" @click="bulkAction('remove')">Remove selected</button>
+                <button class="tiny-btn" :disabled="selectedIds.length === 0" @click="selectedProposalIds = []">Clear selection</button>
+            </div>
             <table class="table align-middle">
                 <thead>
                     <tr>
+                        <th class="select-col">
+                            <input type="checkbox" :checked="allVisibleSelected" :disabled="proposals.length === 0" @change="toggleSelectAll($event)">
+                        </th>
                         <th>Video</th>
                         <th>Current tag</th>
                         <th>Qwen proposal</th>
@@ -71,9 +84,12 @@
                 </thead>
                 <tbody>
                     <tr v-if="proposals.length === 0">
-                        <td colspan="6" class="text-center muted py-4">No AI tag proposals yet.</td>
+                        <td colspan="7" class="text-center muted py-4">No AI tag proposals yet.</td>
                     </tr>
                     <tr v-for="proposal in proposals" :key="proposal.id">
+                        <td class="select-col">
+                            <input type="checkbox" :value="proposal.id" v-model="selectedProposalIds">
+                        </td>
                         <td>
                             <div class="video-cell">
                                 <img v-if="proposal.exercise && proposal.exercise.image" :src="proposal.exercise.image" alt="">
@@ -144,6 +160,7 @@ export default {
             modalDetail: '',
             proposals: [],
             summary: {},
+            selectedProposalIds: [],
             filters: {
                 search: '',
                 language: '',
@@ -160,6 +177,14 @@ export default {
             },
             pollingTimer: null
         };
+    },
+    computed: {
+        selectedIds() {
+            return this.selectedProposalIds.map(id => Number(id)).filter(Boolean);
+        },
+        allVisibleSelected() {
+            return this.proposals.length > 0 && this.proposals.every(proposal => this.selectedIds.includes(Number(proposal.id)));
+        }
     },
     mounted() {
         this.fetchProposals();
@@ -181,6 +206,8 @@ export default {
             }).then(res => {
                 this.proposals = res.data.data?.data || [];
                 this.summary = res.data.summary || {};
+                const visibleIds = this.proposals.map(proposal => Number(proposal.id));
+                this.selectedProposalIds = this.selectedIds.filter(id => visibleIds.includes(id));
                 if (!this.filters.model) {
                     this.filters.model = res.data.options?.default_model || 'qwen2.5vl:7b';
                 }
@@ -252,6 +279,41 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+        bulkAction(action) {
+            if (this.selectedIds.length === 0) {
+                return;
+            }
+            const labels = {
+                apply_approve: 'apply and approve selected proposals',
+                apply_pending: 'apply selected proposals as pending',
+                remove: 'remove selected proposals'
+            };
+            if (!window.confirm('Bulk action: ' + labels[action] + '?')) {
+                return;
+            }
+
+            this.loading = true;
+            axios.post(config.baseApiUrl + 'routine-library/ai-video-tags/bulk', {
+                ids: this.selectedIds,
+                action
+            }, this.apiConfig).then(res => {
+                this.modalTitle = 'Bulk action complete';
+                this.modalDetail = res.data.message || 'Selected proposals updated.';
+                this.informModal = true;
+                this.selectedProposalIds = [];
+                this.fetchProposals();
+            }).catch(er => this.showError(er.response?.data?.message || er.message))
+                .finally(() => {
+                    this.loading = false;
+                });
+        },
+        toggleSelectAll(event) {
+            if (event.target.checked) {
+                this.selectedProposalIds = this.proposals.map(proposal => Number(proposal.id));
+                return;
+            }
+            this.selectedProposalIds = [];
         },
         enabledUsage(flags) {
             if (!flags) {
@@ -366,6 +428,27 @@ export default {
 }
 .table-panel {
     overflow-x: auto;
+}
+.bulk-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.select-all {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    margin: 0 8px 0 0;
+}
+.select-col {
+    width: 34px;
+}
+.tiny-btn:disabled {
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.55;
 }
 .video-cell {
     display: flex;

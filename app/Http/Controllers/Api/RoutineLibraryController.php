@@ -190,6 +190,75 @@ class RoutineLibraryController extends Controller
         }
     }
 
+    public function bulkAiVideoTagProposals(Request $request, OllamaExerciseTaggerService $service)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array|min:1|max:100',
+            'ids.*' => 'integer|exists:ai_exercise_tag_proposals,id',
+            'action' => ['required', Rule::in(['apply_approve', 'apply_pending', 'remove'])],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $ids = array_values(array_unique(array_map('intval', $request->ids)));
+        $action = $request->action;
+        $summary = [
+            'requested' => count($ids),
+            'applied' => 0,
+            'removed' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+            'errors' => [],
+        ];
+
+        $proposals = AiExerciseTagProposal::whereIn('id', $ids)->get()->keyBy('id');
+        foreach ($ids as $id) {
+            $proposal = $proposals->get($id);
+            if (! $proposal) {
+                $summary['skipped']++;
+                continue;
+            }
+
+            try {
+                if ($action === 'remove') {
+                    $service->rejectProposal($proposal);
+                    $summary['removed']++;
+                    continue;
+                }
+
+                if ($proposal->status !== 'proposed') {
+                    $summary['skipped']++;
+                    continue;
+                }
+
+                $service->applyProposal($proposal, $action === 'apply_approve');
+                $summary['applied']++;
+            } catch (\Throwable $e) {
+                $summary['failed']++;
+                if (count($summary['errors']) < 5) {
+                    $summary['errors'][] = "Proposal {$id}: ".$e->getMessage();
+                }
+            }
+        }
+
+        return response()->json([
+            'status' => $summary['failed'] === 0,
+            'message' => sprintf(
+                'Bulk action complete. Applied %d, removed %d, skipped %d, failed %d.',
+                $summary['applied'],
+                $summary['removed'],
+                $summary['skipped'],
+                $summary['failed']
+            ),
+            'data' => $summary,
+        ], $summary['failed'] === 0 ? 200 : 422);
+    }
+
     public function clearRejectedAiVideoTagProposals(OllamaExerciseTaggerService $service)
     {
         try {
