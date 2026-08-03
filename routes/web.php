@@ -112,6 +112,7 @@ Route::prefix('cms')->group(function () {
     Route::view('/consultation', 'cms');
     Route::view('/tags', 'cms');
     Route::view('/poc', 'cms');
+    Route::view('/{any}', 'cms')->where('any', '.*');
 });
 Route::prefix('user')->group(function () {
     Route::view('/login', 'cms');
