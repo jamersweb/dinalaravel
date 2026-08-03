@@ -293,14 +293,14 @@ class RoutineContentAuditService
         if ($usage === 'cardio_warm_up') {
             return empty($safety['unsafe_as_warmup'])
                 && ($safety['safe_for_warmup'] ?? true)
-                && in_array($primaryCategory, ['', 'cardiovascular_training'], true)
+                && in_array($primaryCategory, ['', 'cardiovascular_training', 'warm_up_cardio'], true)
                 && in_array($programRole, ['', 'warm_up_cardio'], true)
                 && $this->isLowImpactWarmUpCardio($type, $title);
         }
 
         if ($usage === 'stretching') {
-            return in_array($primaryCategory, ['', 'flexibility_stretching'], true)
-                && in_array($programRole, ['', 'cool_down_stretching'], true)
+            return in_array($primaryCategory, ['', 'flexibility_stretching', 'post_workout_stretching'], true)
+                && in_array($programRole, ['', 'cool_down_stretching', 'post_workout_stretching'], true)
                 && $this->isStretchingExercise($type, $title, $patterns);
         }
 
@@ -312,12 +312,12 @@ class RoutineContentAuditService
         }
 
         return match ($usage) {
-            'main_workout' => in_array($primaryCategory, ['resistance_training', 'power_explosive_training', 'balance_stability', 'corrective_exercise'], true)
-                || in_array($programRole, ['main_workout', 'finisher', 'core'], true)
+            'main_workout' => in_array($primaryCategory, ['resistance_training', 'power_explosive_training', 'balance_stability', 'corrective_exercise', 'circuit_training', 'hiit_cardio'], true)
+                || in_array($programRole, ['main_workout', 'main_compound_exercise', 'accessory_exercise', 'isolation_exercise', 'superset_exercise', 'circuit_exercise', 'hiit_interval', 'finisher', 'core'], true)
                 || in_array($type, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'power_explosive'], true),
             'warm_up' => empty($safety['unsafe_as_warmup']) && (
-                in_array($primaryCategory, ['dynamic_warm_up', 'mobility'], true)
-                || in_array($programRole, ['dynamic_warm_up', 'activation'], true)
+                in_array($primaryCategory, ['dynamic_warm_up', 'mobility', 'warm_up_cardio'], true)
+                || in_array($programRole, ['warm_up', 'dynamic_warm_up', 'activation'], true)
                 || in_array($type, ['warm_up', 'warm-up'], true)
             ),
             'mobility' => $type === 'mobility'

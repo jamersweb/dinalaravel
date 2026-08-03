@@ -44,6 +44,13 @@ class RoutineLibraryRules
         'balance_stability',
         'corrective_exercise',
         'recovery_breathing',
+        'warm_up_cardio',
+        'cool_down_cardio',
+        'steady_state_cardio',
+        'optional_additional_cardio',
+        'hiit_cardio',
+        'post_workout_stretching',
+        'circuit_training',
     ];
     public const TRAINING_ADAPTATIONS = [
         'general_fitness',
@@ -67,16 +74,44 @@ class RoutineLibraryRules
         'recovery',
     ];
     public const PROGRAM_ROLES = [
+        'warm_up',
         'warm_up_cardio',
         'dynamic_warm_up',
         'activation',
+        'lower_back_core_preparation',
         'main_workout',
+        'main_compound_exercise',
+        'accessory_exercise',
+        'isolation_exercise',
+        'superset_exercise',
+        'circuit_exercise',
+        'hiit_interval',
         'cardio',
+        'optional_cardio',
         'finisher',
         'core',
+        'cool_down',
         'cool_down_stretching',
+        'post_workout_stretching',
         'corrective',
         'recovery',
+    ];
+    public const BODY_REGIONS = [
+        'full_body',
+        'upper_body',
+        'lower_body',
+        'chest',
+        'back',
+        'shoulders',
+        'arms',
+        'glutes',
+        'quadriceps',
+        'hamstrings',
+        'calves',
+        'core',
+        'abs',
+        'obliques',
+        'lower_back',
     ];
     public const MOVEMENT_PATTERNS = [
         'squat',
@@ -440,9 +475,36 @@ class RoutineLibraryRules
             'cool_down' => 'cool_down_stretching',
             'cooldown' => 'cool_down_stretching',
             'warmup_cardio' => 'warm_up_cardio',
+            'cardio_warm_up' => 'warm_up_cardio',
+            'warm_up_cardio_training' => 'warm_up_cardio',
+            'cooldown_cardio' => 'cool_down_cardio',
+            'cool_down_cardio_training' => 'cool_down_cardio',
+            'steady_cardio' => 'steady_state_cardio',
+            'steady_state' => 'steady_state_cardio',
+            'hiit_training' => 'hiit_cardio',
+            'post_workout_stretch' => 'post_workout_stretching',
+            'post_workout_stretches' => 'post_workout_stretching',
+            'flexibility_and_stretching_post_workout' => 'post_workout_stretching',
+            'circuit' => 'circuit_training',
+            'lower_back_and_core_preparation' => 'lower_back_core_preparation',
+            'main_compound' => 'main_compound_exercise',
+            'compound_exercise' => 'main_compound_exercise',
+            'accessory' => 'accessory_exercise',
+            'isolation' => 'isolation_exercise',
+            'superset' => 'superset_exercise',
+            'circuit_exercises' => 'circuit_exercise',
+            'hiit_intervals' => 'hiit_interval',
+            'optional_additional_cardio' => 'optional_cardio',
+            'post_workout_stretch' => 'post_workout_stretching',
             'main' => 'main_workout',
         ];
-        $value = $aliases[$value] ?? $value;
+        if ($value === 'hiit') {
+            $value = in_array('hiit_cardio', $allowed, true) ? 'hiit_cardio' : 'hiit_interval';
+        } elseif ($value === 'circuit') {
+            $value = in_array('circuit_training', $allowed, true) ? 'circuit_training' : 'circuit_exercise';
+        } elseif (isset($aliases[$value])) {
+            $value = $aliases[$value];
+        }
 
         return in_array($value, $allowed, true) ? $value : $fallback;
     }

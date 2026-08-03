@@ -111,10 +111,16 @@
                         <td>
                             <div v-if="proposal.proposed_payload">
                                 <strong>{{ readableStatus(proposal.proposed_payload.primary_category || proposal.proposed_payload.exercise_type) }}</strong>
+                                <div v-if="proposal.proposed_payload.secondary_categories && proposal.proposed_payload.secondary_categories.length" class="muted small-text">
+                                    + {{ proposal.proposed_payload.secondary_categories.map(readableStatus).join(', ') }}
+                                </div>
                                 <div>{{ readableStatus(proposal.proposed_payload.training_adaptation || '-') }}</div>
                                 <div class="muted small-text">Role: {{ readableStatus(proposal.proposed_payload.program_role || '-') }}</div>
                                 <div>{{ readableEquipment(proposal.proposed_payload.equipment_category) }}</div>
                                 <div>{{ proposal.proposed_payload.muscle_group || '-' }} | {{ proposal.proposed_payload.difficulty }}</div>
+                                <div v-if="proposal.proposed_payload.body_regions && proposal.proposed_payload.body_regions.length" class="muted small-text">
+                                    Regions: {{ proposal.proposed_payload.body_regions.map(readableStatus).join(', ') }}
+                                </div>
                                 <div class="muted small-text">Confidence {{ confidence(proposal.confidence) }}</div>
                             </div>
                             <span v-else class="text-danger">{{ proposal.error_message || 'No proposal' }}</span>

@@ -67342,7 +67342,8 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       taxonomyOptions: {
         primary_categories: [],
         training_adaptations: [],
-        program_roles: []
+        program_roles: [],
+        body_regions: []
       },
       usageOptions: ['cardio_warm_up', 'warm_up', 'mobility', 'lower_back_activation', 'main_workout', 'abs', 'obliques', 'lower_back_strength', 'stretching']
     };
@@ -67377,6 +67378,22 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       },
       set: function set(value) {
         this.setArrayField('movement_patterns', value);
+      }
+    },
+    secondaryCategoriesText: {
+      get: function get() {
+        return this.arrayFieldText('secondary_categories');
+      },
+      set: function set(value) {
+        this.setArrayField('secondary_categories', value);
+      }
+    },
+    bodyRegionsText: {
+      get: function get() {
+        return this.arrayFieldText('body_regions');
+      },
+      set: function set(value) {
+        this.setArrayField('body_regions', value);
       }
     },
     trainingStylesText: {
@@ -67511,6 +67528,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
           _this5.taxonomyOptions.primary_categories = res.data.options.primary_categories || [];
           _this5.taxonomyOptions.training_adaptations = res.data.options.training_adaptations || [];
           _this5.taxonomyOptions.program_roles = res.data.options.program_roles || [];
+          _this5.taxonomyOptions.body_regions = res.data.options.body_regions || [];
         }
         _this5.selectedTag = _this5.exerciseTags.length ? _this5.normalizedTag(_this5.exerciseTags[0]) : null;
       })["catch"](function (er) {
@@ -67525,6 +67543,8 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       var copy = JSON.parse(JSON.stringify(tag));
       copy.equipment_tags = Array.isArray(copy.equipment_tags) ? copy.equipment_tags : [];
       copy.secondary_muscle_groups = Array.isArray(copy.secondary_muscle_groups) ? copy.secondary_muscle_groups : [];
+      copy.secondary_categories = Array.isArray(copy.secondary_categories) ? copy.secondary_categories : [];
+      copy.body_regions = Array.isArray(copy.body_regions) ? copy.body_regions : [];
       copy.movement_patterns = Array.isArray(copy.movement_patterns) ? copy.movement_patterns : [];
       copy.training_styles = Array.isArray(copy.training_styles) ? copy.training_styles : [];
       copy.workout_sections = Array.isArray(copy.workout_sections) ? copy.workout_sections : [];
@@ -67554,10 +67574,12 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         equipment_category: this.selectedTag.equipment_category,
         equipment_tags: this.selectedTag.equipment_tags || [],
         primary_category: this.selectedTag.primary_category || null,
+        secondary_categories: this.selectedTag.secondary_categories || [],
         training_adaptation: this.selectedTag.training_adaptation || null,
         program_role: this.selectedTag.program_role || null,
         muscle_group: this.selectedTag.muscle_group,
         secondary_muscle_groups: this.selectedTag.secondary_muscle_groups || [],
+        body_regions: this.selectedTag.body_regions || [],
         exercise_type: this.selectedTag.exercise_type,
         movement_patterns: this.selectedTag.movement_patterns || [],
         training_styles: this.selectedTag.training_styles || [],
@@ -103163,6 +103185,7 @@ var _hoisted_57 = {
   key: 0
 };
 var _hoisted_58 = {
+  key: 0,
   "class": "muted small-text"
 };
 var _hoisted_59 = {
@@ -103170,31 +103193,38 @@ var _hoisted_59 = {
 };
 var _hoisted_60 = {
   key: 1,
-  "class": "text-danger"
+  "class": "muted small-text"
 };
 var _hoisted_61 = {
-  key: 0
+  "class": "muted small-text"
 };
 var _hoisted_62 = {
+  key: 1,
+  "class": "text-danger"
+};
+var _hoisted_63 = {
+  key: 0
+};
+var _hoisted_64 = {
   key: 0,
   "class": "danger-text"
 };
-var _hoisted_63 = {
+var _hoisted_65 = {
   "class": "usage-list"
 };
-var _hoisted_64 = {
+var _hoisted_66 = {
   key: 1,
   "class": "muted small-text"
 };
-var _hoisted_65 = {
+var _hoisted_67 = {
   "class": "muted small-text"
 };
-var _hoisted_66 = {
+var _hoisted_68 = {
   "class": "text-end"
 };
-var _hoisted_67 = ["onClick"];
-var _hoisted_68 = ["onClick"];
 var _hoisted_69 = ["onClick"];
+var _hoisted_70 = ["onClick"];
+var _hoisted_71 = ["onClick"];
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_Loader = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("Loader");
   var _component_Inform = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("Inform");
@@ -103325,27 +103355,27 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       key: 0,
       src: proposal.exercise.image,
       alt: ""
-    }, null, 8 /* PROPS */, _hoisted_52)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise = proposal.exercise) === null || _proposal$exercise === void 0 ? void 0 : _proposal$exercise.title) || 'Deleted exercise'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_53, "ID " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.exercise_id) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise2 = proposal.exercise) === null || _proposal$exercise2 === void 0 ? void 0 : _proposal$exercise2.content_code) || '-'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_54, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableLanguage((_proposal$exercise3 = proposal.exercise) === null || _proposal$exercise3 === void 0 ? void 0 : _proposal$exercise3.language)) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise4 = proposal.exercise) === null || _proposal$exercise4 === void 0 ? void 0 : _proposal$exercise4.video_type) || '-'), 1 /* TEXT */)])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.current_tag_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_55, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.current_tag_payload.exercise_type)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.current_tag_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.current_tag_payload.muscle_group || '-'), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_56, "No current tag"))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_57, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.primary_category || proposal.proposed_payload.exercise_type)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.training_adaptation || '-')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_58, "Role: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.program_role || '-')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.proposed_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.muscle_group || '-') + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.difficulty), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_59, "Confidence " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.confidence(proposal.confidence)), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_60, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.error_message || 'No proposal'), 1 /* TEXT */))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_61, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.impact_level || '-') + " impact / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.intensity_level || '-') + " intensity", 1 /* TEXT */), proposal.proposed_payload.safety_flags && proposal.proposed_payload.safety_flags.unsafe_as_warmup ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_62, "Unsafe as warm-up")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_63, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.enabledUsage(proposal.proposed_payload.usage_flags).join(', ') || 'No usage flags'), 1 /* TEXT */), proposal.reasoning ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_64, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.reasoning), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+    }, null, 8 /* PROPS */, _hoisted_52)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise = proposal.exercise) === null || _proposal$exercise === void 0 ? void 0 : _proposal$exercise.title) || 'Deleted exercise'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_53, "ID " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.exercise_id) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise2 = proposal.exercise) === null || _proposal$exercise2 === void 0 ? void 0 : _proposal$exercise2.content_code) || '-'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_54, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableLanguage((_proposal$exercise3 = proposal.exercise) === null || _proposal$exercise3 === void 0 ? void 0 : _proposal$exercise3.language)) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise4 = proposal.exercise) === null || _proposal$exercise4 === void 0 ? void 0 : _proposal$exercise4.video_type) || '-'), 1 /* TEXT */)])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.current_tag_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_55, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.current_tag_payload.exercise_type)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.current_tag_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.current_tag_payload.muscle_group || '-'), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_56, "No current tag"))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_57, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.primary_category || proposal.proposed_payload.exercise_type)), 1 /* TEXT */), proposal.proposed_payload.secondary_categories && proposal.proposed_payload.secondary_categories.length ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_58, " + " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.secondary_categories.map($options.readableStatus).join(', ')), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.training_adaptation || '-')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_59, "Role: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.program_role || '-')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.proposed_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.muscle_group || '-') + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.difficulty), 1 /* TEXT */), proposal.proposed_payload.body_regions && proposal.proposed_payload.body_regions.length ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_60, " Regions: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.body_regions.map($options.readableStatus).join(', ')), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_61, "Confidence " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.confidence(proposal.confidence)), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_62, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.error_message || 'No proposal'), 1 /* TEXT */))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_63, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.impact_level || '-') + " impact / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.intensity_level || '-') + " intensity", 1 /* TEXT */), proposal.proposed_payload.safety_flags && proposal.proposed_payload.safety_flags.unsafe_as_warmup ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_64, "Unsafe as warm-up")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_65, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.enabledUsage(proposal.proposed_payload.usage_flags).join(', ') || 'No usage flags'), 1 /* TEXT */), proposal.reasoning ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_66, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.reasoning), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
       "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["status-badge", 'status-' + proposal.status])
-    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.status)), 3 /* TEXT, CLASS */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_65, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.model), 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_66, [proposal.status === 'proposed' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
+    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.status)), 3 /* TEXT, CLASS */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_67, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.model), 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_68, [proposal.status === 'proposed' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
       key: 0,
       "class": "tiny-btn",
       onClick: function onClick($event) {
         return $options.applyProposal(proposal.id, true);
       }
-    }, "Apply + approve", 8 /* PROPS */, _hoisted_67)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), proposal.status === 'proposed' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
+    }, "Apply + approve", 8 /* PROPS */, _hoisted_69)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), proposal.status === 'proposed' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
       key: 1,
       "class": "tiny-btn",
       onClick: function onClick($event) {
         return $options.applyProposal(proposal.id, false);
       }
-    }, "Apply pending", 8 /* PROPS */, _hoisted_68)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ['queued', 'processing', 'proposed', 'failed'].includes(proposal.status) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
+    }, "Apply pending", 8 /* PROPS */, _hoisted_70)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ['queued', 'processing', 'proposed', 'failed'].includes(proposal.status) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
       key: 2,
       "class": "tiny-btn reject",
       onClick: function onClick($event) {
         return $options.rejectProposal(proposal.id);
       }
-    }, "Remove", 8 /* PROPS */, _hoisted_69)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])]);
+    }, "Remove", 8 /* PROPS */, _hoisted_71)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])]);
   }), 128 /* KEYED_FRAGMENT */))])])])]);
 }
 
@@ -106236,81 +106266,93 @@ var _hoisted_197 = {
   "class": "col-6 mb-2"
 };
 var _hoisted_198 = /*#__PURE__*/_withScopeId(function () {
-  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Training styles", -1 /* HOISTED */);
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Secondary categories", -1 /* HOISTED */);
 });
 var _hoisted_199 = {
   "class": "col-6 mb-2"
 };
 var _hoisted_200 = /*#__PURE__*/_withScopeId(function () {
-  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Equipment tags", -1 /* HOISTED */);
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Body regions", -1 /* HOISTED */);
 });
 var _hoisted_201 = {
   "class": "col-6 mb-2"
 };
 var _hoisted_202 = /*#__PURE__*/_withScopeId(function () {
-  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Injury cautions", -1 /* HOISTED */);
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Training styles", -1 /* HOISTED */);
 });
 var _hoisted_203 = {
   "class": "col-6 mb-2"
 };
 var _hoisted_204 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Equipment tags", -1 /* HOISTED */);
+});
+var _hoisted_205 = {
+  "class": "col-6 mb-2"
+};
+var _hoisted_206 = /*#__PURE__*/_withScopeId(function () {
+  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Injury cautions", -1 /* HOISTED */);
+});
+var _hoisted_207 = {
+  "class": "col-6 mb-2"
+};
+var _hoisted_208 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Goal fit", -1 /* HOISTED */);
 });
-var _hoisted_205 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_209 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", null, "Notes", -1 /* HOISTED */);
 });
-var _hoisted_206 = {
+var _hoisted_210 = {
   "class": "d-flex justify-content-end flex-wrap"
 };
-var _hoisted_207 = {
+var _hoisted_211 = {
   key: 1,
   "class": "empty-editor"
 };
-var _hoisted_208 = {
+var _hoisted_212 = {
   "class": "panel routines-panel"
 };
-var _hoisted_209 = {
+var _hoisted_213 = {
   "class": "d-flex justify-content-between flex-wrap align-items-center mb-2"
 };
-var _hoisted_210 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_214 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, "Review routines", -1 /* HOISTED */);
 });
-var _hoisted_211 = {
+var _hoisted_215 = {
   "class": "d-flex align-items-center flex-wrap review-controls"
 };
-var _hoisted_212 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createStaticVNode)("<option value=\"\" data-v-7c0af65f>All</option><option value=\"pending_review\" data-v-7c0af65f>Pending Review</option><option value=\"revision\" data-v-7c0af65f>Revision</option><option value=\"approved\" data-v-7c0af65f>Approved</option><option value=\"rejected\" data-v-7c0af65f>Rejected</option>", 5);
-var _hoisted_217 = [_hoisted_212];
-var _hoisted_218 = {
+var _hoisted_216 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createStaticVNode)("<option value=\"\" data-v-7c0af65f>All</option><option value=\"pending_review\" data-v-7c0af65f>Pending Review</option><option value=\"revision\" data-v-7c0af65f>Revision</option><option value=\"approved\" data-v-7c0af65f>Approved</option><option value=\"rejected\" data-v-7c0af65f>Rejected</option>", 5);
+var _hoisted_221 = [_hoisted_216];
+var _hoisted_222 = {
   "class": "routine-table"
 };
-var _hoisted_219 = {
+var _hoisted_223 = {
   "class": "table table-sm mb-0"
 };
-var _hoisted_220 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_224 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("thead", null, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tr", null, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "ID"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Title"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Equipment"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Level"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", null, "Status"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", {
     "class": "text-end"
   }, "Exercises"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("th", {
     "class": "text-end"
   }, "Review")])], -1 /* HOISTED */);
 });
-var _hoisted_221 = {
+var _hoisted_225 = {
   key: 0
 };
-var _hoisted_222 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_226 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", {
     colspan: "7"
   }, "No routines", -1 /* HOISTED */);
 });
-var _hoisted_223 = [_hoisted_222];
-var _hoisted_224 = {
+var _hoisted_227 = [_hoisted_226];
+var _hoisted_228 = {
   "class": "text-end"
 };
-var _hoisted_225 = {
+var _hoisted_229 = {
   "class": "text-end"
 };
-var _hoisted_226 = ["onClick"];
-var _hoisted_227 = ["onClick"];
-var _hoisted_228 = ["onClick"];
+var _hoisted_230 = ["onClick"];
+var _hoisted_231 = ["onClick"];
+var _hoisted_232 = ["onClick"];
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_Loader = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("Loader");
   var _component_Inform = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("Inform");
@@ -106652,91 +106694,103 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     placeholder: "comma separated"
   }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.movementPatternsText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_197, [_hoisted_198, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
     "onUpdate:modelValue": _cache[44] || (_cache[44] = function ($event) {
+      return $options.secondaryCategoriesText = $event;
+    }),
+    "class": "form-control form-control-sm",
+    placeholder: "comma separated"
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.secondaryCategoriesText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_199, [_hoisted_200, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+    "onUpdate:modelValue": _cache[45] || (_cache[45] = function ($event) {
+      return $options.bodyRegionsText = $event;
+    }),
+    "class": "form-control form-control-sm",
+    placeholder: "comma separated"
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.bodyRegionsText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_201, [_hoisted_202, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+    "onUpdate:modelValue": _cache[46] || (_cache[46] = function ($event) {
       return $options.trainingStylesText = $event;
     }),
     "class": "form-control form-control-sm",
     placeholder: "comma separated"
-  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.trainingStylesText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_199, [_hoisted_200, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
-    "onUpdate:modelValue": _cache[45] || (_cache[45] = function ($event) {
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.trainingStylesText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_203, [_hoisted_204, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+    "onUpdate:modelValue": _cache[47] || (_cache[47] = function ($event) {
       return $options.equipmentTagsText = $event;
     }),
     "class": "form-control form-control-sm",
     placeholder: "comma separated"
-  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.equipmentTagsText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_201, [_hoisted_202, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
-    "onUpdate:modelValue": _cache[46] || (_cache[46] = function ($event) {
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.equipmentTagsText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_205, [_hoisted_206, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+    "onUpdate:modelValue": _cache[48] || (_cache[48] = function ($event) {
       return $options.injuryText = $event;
     }),
     "class": "form-control form-control-sm",
     placeholder: "comma separated"
-  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.injuryText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_203, [_hoisted_204, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
-    "onUpdate:modelValue": _cache[47] || (_cache[47] = function ($event) {
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.injuryText]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_207, [_hoisted_208, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
+    "onUpdate:modelValue": _cache[49] || (_cache[49] = function ($event) {
       return $options.goalText = $event;
     }),
     "class": "form-control form-control-sm",
     placeholder: "comma separated"
-  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.goalText]])])]), _hoisted_205, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("textarea", {
-    "onUpdate:modelValue": _cache[48] || (_cache[48] = function ($event) {
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $options.goalText]])])]), _hoisted_209, (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("textarea", {
+    "onUpdate:modelValue": _cache[50] || (_cache[50] = function ($event) {
       return $data.selectedTag.notes = $event;
     }),
     "class": "form-control form-control-sm mb-2",
     rows: "2"
-  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.selectedTag.notes]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_206, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+  }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.selectedTag.notes]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_210, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "tiny-btn revise",
-    onClick: _cache[49] || (_cache[49] = function ($event) {
+    onClick: _cache[51] || (_cache[51] = function ($event) {
       return $options.saveExerciseTag('needs_fix');
     })
   }, "Needs Fix"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "tiny-btn reject",
-    onClick: _cache[50] || (_cache[50] = function ($event) {
+    onClick: _cache[52] || (_cache[52] = function ($event) {
       return $options.saveExerciseTag('rejected');
     })
   }, "Reject"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "tiny-btn",
-    onClick: _cache[51] || (_cache[51] = function ($event) {
+    onClick: _cache[53] || (_cache[53] = function ($event) {
       return $options.saveExerciseTag('pending_review');
     })
   }, "Save Pending"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "tiny-btn approve",
-    onClick: _cache[52] || (_cache[52] = function ($event) {
+    onClick: _cache[54] || (_cache[54] = function ($event) {
       return $options.saveExerciseTag('approved');
     })
-  }, "Approve")])])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_207, "Select an exercise to review."))])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_208, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_209, [_hoisted_210, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_211, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
-    "onUpdate:modelValue": _cache[53] || (_cache[53] = function ($event) {
+  }, "Approve")])])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_211, "Select an exercise to review."))])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_212, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_213, [_hoisted_214, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_215, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
+    "onUpdate:modelValue": _cache[55] || (_cache[55] = function ($event) {
       return $data.routineStatus = $event;
     }),
-    onChange: _cache[54] || (_cache[54] = function () {
+    onChange: _cache[56] || (_cache[56] = function () {
       return $options.fetchRoutines && $options.fetchRoutines.apply($options, arguments);
     }),
     "class": "form-select form-select-sm control"
-  }, _hoisted_217, 544 /* HYDRATE_EVENTS, NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.routineStatus]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+  }, _hoisted_221, 544 /* HYDRATE_EVENTS, NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.routineStatus]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "tiny-btn approve",
-    onClick: _cache[55] || (_cache[55] = function ($event) {
+    onClick: _cache[57] || (_cache[57] = function ($event) {
       return $options.bulkReviewRoutines('approved');
     })
   }, "Approve Page"), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "tiny-btn reject",
-    onClick: _cache[56] || (_cache[56] = function ($event) {
+    onClick: _cache[58] || (_cache[58] = function ($event) {
       return $options.bulkReviewRoutines('rejected');
     })
-  }, "Reject Page")])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_218, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("table", _hoisted_219, [_hoisted_220, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tbody", null, [$data.routines.length === 0 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("tr", _hoisted_221, _hoisted_223)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.routines, function (routine) {
+  }, "Reject Page")])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_222, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("table", _hoisted_223, [_hoisted_224, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("tbody", null, [$data.routines.length === 0 ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("tr", _hoisted_225, _hoisted_227)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.routines, function (routine) {
     return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("tr", {
       key: routine.id
-    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.content_code), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.title), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(routine.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.fitness_level), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.routine_status), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_224, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.workout_exercises_count), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_225, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.content_code), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.title), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(routine.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.fitness_level), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.routine_status), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_228, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(routine.workout_exercises_count), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_229, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
       "class": "tiny-btn approve",
       onClick: function onClick($event) {
         return $options.reviewRoutine(routine.id, 'approved');
       }
-    }, "Approve", 8 /* PROPS */, _hoisted_226), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    }, "Approve", 8 /* PROPS */, _hoisted_230), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
       "class": "tiny-btn revise",
       onClick: function onClick($event) {
         return $options.reviewRoutine(routine.id, 'revision');
       }
-    }, "Revision", 8 /* PROPS */, _hoisted_227), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    }, "Revision", 8 /* PROPS */, _hoisted_231), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
       "class": "tiny-btn reject",
       onClick: function onClick($event) {
         return $options.reviewRoutine(routine.id, 'rejected');
       }
-    }, "Reject", 8 /* PROPS */, _hoisted_228)])]);
+    }, "Reject", 8 /* PROPS */, _hoisted_232)])]);
   }), 128 /* KEYED_FRAGMENT */))])])])])])]);
 }
 

@@ -400,6 +400,14 @@
                                     <input v-model="movementPatternsText" class="form-control form-control-sm" placeholder="comma separated">
                                 </div>
                                 <div class="col-6 mb-2">
+                                    <label>Secondary categories</label>
+                                    <input v-model="secondaryCategoriesText" class="form-control form-control-sm" placeholder="comma separated">
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Body regions</label>
+                                    <input v-model="bodyRegionsText" class="form-control form-control-sm" placeholder="comma separated">
+                                </div>
+                                <div class="col-6 mb-2">
                                     <label>Training styles</label>
                                     <input v-model="trainingStylesText" class="form-control form-control-sm" placeholder="comma separated">
                                 </div>
@@ -540,7 +548,8 @@ export default {
             taxonomyOptions: {
                 primary_categories: [],
                 training_adaptations: [],
-                program_roles: []
+                program_roles: [],
+                body_regions: []
             },
             usageOptions: [
                 'cardio_warm_up',
@@ -585,6 +594,22 @@ export default {
             },
             set(value) {
                 this.setArrayField('movement_patterns', value);
+            }
+        },
+        secondaryCategoriesText: {
+            get() {
+                return this.arrayFieldText('secondary_categories');
+            },
+            set(value) {
+                this.setArrayField('secondary_categories', value);
+            }
+        },
+        bodyRegionsText: {
+            get() {
+                return this.arrayFieldText('body_regions');
+            },
+            set(value) {
+                this.setArrayField('body_regions', value);
             }
         },
         trainingStylesText: {
@@ -718,6 +743,7 @@ export default {
                     this.taxonomyOptions.primary_categories = res.data.options.primary_categories || [];
                     this.taxonomyOptions.training_adaptations = res.data.options.training_adaptations || [];
                     this.taxonomyOptions.program_roles = res.data.options.program_roles || [];
+                    this.taxonomyOptions.body_regions = res.data.options.body_regions || [];
                 }
                 this.selectedTag = this.exerciseTags.length ? this.normalizedTag(this.exerciseTags[0]) : null;
             }).catch(er => this.showError(er.response?.data?.message || er.message));
@@ -729,6 +755,8 @@ export default {
             const copy = JSON.parse(JSON.stringify(tag));
             copy.equipment_tags = Array.isArray(copy.equipment_tags) ? copy.equipment_tags : [];
             copy.secondary_muscle_groups = Array.isArray(copy.secondary_muscle_groups) ? copy.secondary_muscle_groups : [];
+            copy.secondary_categories = Array.isArray(copy.secondary_categories) ? copy.secondary_categories : [];
+            copy.body_regions = Array.isArray(copy.body_regions) ? copy.body_regions : [];
             copy.movement_patterns = Array.isArray(copy.movement_patterns) ? copy.movement_patterns : [];
             copy.training_styles = Array.isArray(copy.training_styles) ? copy.training_styles : [];
             copy.workout_sections = Array.isArray(copy.workout_sections) ? copy.workout_sections : [];
@@ -757,10 +785,12 @@ export default {
                 equipment_category: this.selectedTag.equipment_category,
                 equipment_tags: this.selectedTag.equipment_tags || [],
                 primary_category: this.selectedTag.primary_category || null,
+                secondary_categories: this.selectedTag.secondary_categories || [],
                 training_adaptation: this.selectedTag.training_adaptation || null,
                 program_role: this.selectedTag.program_role || null,
                 muscle_group: this.selectedTag.muscle_group,
                 secondary_muscle_groups: this.selectedTag.secondary_muscle_groups || [],
+                body_regions: this.selectedTag.body_regions || [],
                 exercise_type: this.selectedTag.exercise_type,
                 movement_patterns: this.selectedTag.movement_patterns || [],
                 training_styles: this.selectedTag.training_styles || [],

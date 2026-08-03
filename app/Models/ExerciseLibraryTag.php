@@ -15,10 +15,12 @@ class ExerciseLibraryTag extends Model
         'equipment_category',
         'equipment_tags',
         'primary_category',
+        'secondary_categories',
         'training_adaptation',
         'program_role',
         'muscle_group',
         'secondary_muscle_groups',
+        'body_regions',
         'exercise_type',
         'movement_patterns',
         'training_styles',
@@ -44,7 +46,9 @@ class ExerciseLibraryTag extends Model
 
     protected $casts = [
         'equipment_tags' => 'array',
+        'secondary_categories' => 'array',
         'secondary_muscle_groups' => 'array',
+        'body_regions' => 'array',
         'movement_patterns' => 'array',
         'training_styles' => 'array',
         'workout_sections' => 'array',
