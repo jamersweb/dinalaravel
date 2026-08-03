@@ -251,11 +251,14 @@ class OllamaExerciseTaggerService
                 'language' => RoutineLibraryRules::LANGUAGES,
                 'equipment_category' => RoutineLibraryRules::EQUIPMENT_CATEGORIES,
                 'equipment_tags' => ['bodyweight', 'dumbbells', 'machine', 'cable', 'barbell', 'cardio_machine', 'bench', 'mat'],
+                'primary_category' => RoutineLibraryRules::PRIMARY_CATEGORIES,
+                'training_adaptation' => RoutineLibraryRules::TRAINING_ADAPTATIONS,
+                'program_role' => RoutineLibraryRules::PROGRAM_ROLES,
                 'muscle_group' => 'string',
                 'secondary_muscle_groups' => ['string'],
-                'exercise_type' => ['strength', 'main', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'cardio_warm_up', 'warm_up', 'mobility', 'stretching', 'lower_back', 'abs', 'obliques'],
+                'exercise_type' => ['resistance', 'main', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'cardio_warm_up', 'warm_up', 'mobility', 'stretching', 'activation', 'power_explosive', 'lower_back', 'abs', 'obliques'],
                 'movement_patterns' => RoutineLibraryRules::MOVEMENT_PATTERNS,
-                'training_styles' => ['strength', 'hypertrophy', 'conditioning', 'mobility', 'core', 'stretching', 'warm_up'],
+                'training_styles' => ['resistance_training', 'hypertrophy', 'muscular_endurance', 'conditioning', 'mobility', 'core', 'stretching', 'warm_up'],
                 'workout_sections' => array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS),
                 'impact_level' => RoutineLibraryRules::IMPACT_LEVELS,
                 'intensity_level' => RoutineLibraryRules::INTENSITY_LEVELS,
@@ -270,6 +273,13 @@ class OllamaExerciseTaggerService
                 'injury_cautions' => ['string'],
                 'goal_fit' => ['string'],
                 'usage_flags' => array_fill_keys(array_keys(RoutineLibraryRules::REQUIRED_AUDIT_USAGE), 'boolean'),
+                'safety_flags' => [
+                    'safe_for_warmup' => 'boolean',
+                    'safe_for_cooldown' => 'boolean',
+                    'unsafe_as_warmup' => 'boolean',
+                    'high_impact' => 'boolean',
+                    'explosive' => 'boolean',
+                ],
                 'notes' => 'string',
             ],
             'confidence' => '0_to_1',
@@ -280,17 +290,21 @@ class OllamaExerciseTaggerService
             . 'If no image is attached, classify from the exact metadata only. Never apply the same default tag to every exercise. '
             . 'Use title, current tag, equipment words, muscle words, safety words, and visible equipment/body position from the image when available. '
             . 'Return one JSON object only. Use ONLY the allowed values from the schema. '
+            . 'Choose exactly one primary_category. Use resistance_training, never strength_training, for loaded/bodyweight resistance exercises. '
+            . 'Use training_adaptation to describe why the exercise is performed: strength, hypertrophy, muscular_endurance, power, explosiveness, aerobic_conditioning, anaerobic_conditioning, mobility, flexibility, muscle_activation, movement_preparation, rehabilitation_corrective, or recovery. '
+            . 'Use program_role to say where the exercise belongs in a workout: warm_up_cardio, dynamic_warm_up, activation, main_workout, cardio, finisher, core, cool_down_stretching, corrective, or recovery. '
             . 'If a current deterministic tag exists and the title does not clearly contradict it, keep its equipment_category and language. '
             . 'Deadlift, squat, row, press, curl, bridge, lunge with dumbbell/home dumbbell evidence is not bodyweight. '
-            . 'Warm-up titles must use exercise_type warm_up or mobility, not main/strength. '
-            . 'Stretch titles must use exercise_type stretching and usage_flags.stretching=true. '
+            . 'Warm-up titles must use primary_category dynamic_warm_up or mobility and exercise_type warm_up or mobility, not resistance/main. '
+            . 'Stretch titles must use primary_category flexibility_stretching, exercise_type stretching, program_role cool_down_stretching, usage_flags.stretching=true, and safety_flags.safe_for_cooldown=true. '
             . 'Important safety rules: HIIT, jumps, high knees, burpees, sprinting, explosive drills are NOT warm-up cardio. '
+            . 'High knees, jumping, burpees, sprinting, plyometrics, explosive drills must have safety_flags.unsafe_as_warmup=true and safe_for_warmup=false. '
             . 'Warm-up cardio must be low-impact walking, marching, bike, elliptical, rower, or stepper. '
             . 'Examples: '
-            . 'Frogger rockbacks stretch => stretching | bodyweight | beginner | usage stretching. '
-            . 'Deadlift warm up => warm_up | bodyweight unless current tag says home_dumbbell | beginner | usage warm_up or lower_back_activation. '
-            . 'Sumo Deadlift with dumbbells => dumbbell | home_dumbbell | intermediate | usage main_workout. '
-            . 'SL Wall Deadlift with home dumbbell current tag => dumbbell | home_dumbbell | beginner/intermediate | usage main_workout or lower_back_strength. '
+            . 'Frogger rockbacks stretch => flexibility_stretching | flexibility | cool_down_stretching | bodyweight | beginner | usage stretching. '
+            . 'Deadlift warm up => dynamic_warm_up | movement_preparation | dynamic_warm_up | bodyweight unless current tag says home_dumbbell | beginner | usage warm_up or lower_back_activation. '
+            . 'Sumo Deadlift with dumbbells => resistance_training | hypertrophy or strength | main_workout | home_dumbbell | intermediate | usage main_workout. '
+            . 'High knee jumps => power_explosive_training | explosiveness or anaerobic_conditioning | finisher | bodyweight | advanced | high impact | unsafe_as_warmup. '
             . "Schema:\n" . json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
             . "\nExercise metadata:\n" . json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
             . "\nCurrent deterministic tag if any:\n" . json_encode($currentTagPayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -329,7 +343,11 @@ class OllamaExerciseTaggerService
         $videoVariant = $this->allowedValue($this->scalarString($payload['video_variant'] ?? null, 'explained'), RoutineLibraryRules::VIDEO_VARIANTS, 'explained');
         $exerciseType = $this->inferExerciseType($payload, $metadata, $currentTagPayload, $equipment);
         $muscleGroup = $this->inferMuscleGroup($payload, $metadata, $currentTagPayload);
-        $usageFlags = $this->usageFlags((array) ($payload['usage_flags'] ?? []), $exerciseType, $muscleGroup, $metadata);
+        $primaryCategory = $this->inferPrimaryCategory($payload, $metadata, $exerciseType, $muscleGroup);
+        $trainingAdaptation = $this->inferTrainingAdaptation($payload, $metadata, $primaryCategory, $exerciseType, $muscleGroup);
+        $safetyFlags = $this->safetyFlags($payload, $metadata, $primaryCategory, $trainingAdaptation, $exerciseType, $impact, $intensity);
+        $usageFlags = $this->usageFlags((array) ($payload['usage_flags'] ?? []), $exerciseType, $muscleGroup, $metadata, $primaryCategory, $trainingAdaptation, $safetyFlags);
+        $programRole = $this->inferProgramRole($payload, $usageFlags, $primaryCategory, $trainingAdaptation, $exerciseType, $safetyFlags);
         $workoutSections = array_values(array_intersect($this->stringArray($payload['workout_sections'] ?? []), array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS)));
         if ($workoutSections === []) {
             $workoutSections = $this->sectionsFromUsageFlags($usageFlags);
@@ -339,6 +357,9 @@ class OllamaExerciseTaggerService
             'language' => $language,
             'equipment_category' => $equipment,
             'equipment_tags' => $this->stringArray($payload['equipment_tags'] ?? []),
+            'primary_category' => $primaryCategory,
+            'training_adaptation' => $trainingAdaptation,
+            'program_role' => $programRole,
             'muscle_group' => $muscleGroup,
             'secondary_muscle_groups' => $this->stringArray($payload['secondary_muscle_groups'] ?? []),
             'exercise_type' => $exerciseType,
@@ -358,6 +379,7 @@ class OllamaExerciseTaggerService
             'injury_cautions' => $this->stringArray($payload['injury_cautions'] ?? []),
             'goal_fit' => $this->stringArray($payload['goal_fit'] ?? []),
             'usage_flags' => $usageFlags,
+            'safety_flags' => $safetyFlags,
             'approved_for_generation' => false,
             'review_status' => 'pending_review',
             'notes' => $this->nullableString($payload['notes'] ?? 'AI tag proposal from Ollama.', 1000),
@@ -415,6 +437,177 @@ class OllamaExerciseTaggerService
             ->only((new ExerciseLibraryTag())->getFillable())
             ->except(['exercise_id'])
             ->all();
+    }
+
+    private function inferPrimaryCategory(array $payload, ?array $metadata, string $exerciseType, string $muscleGroup): string
+    {
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        $raw = RoutineLibraryRules::normalizeTaxonomyValue(
+            $payload['primary_category'] ?? null,
+            RoutineLibraryRules::PRIMARY_CATEGORIES,
+            ''
+        );
+
+        if ($this->isExplosiveTitle($title)) {
+            return 'power_explosive_training';
+        }
+        if (str_contains($title, 'stretch') || $exerciseType === 'stretching') {
+            return 'flexibility_stretching';
+        }
+        if (preg_match('/\b(breath|breathing|recovery|relax|meditation)\b/', $title)) {
+            return 'recovery_breathing';
+        }
+        if (preg_match('/\b(warm up|warm-up|prep|preparation)\b/', $title) || $exerciseType === 'warm_up') {
+            return 'dynamic_warm_up';
+        }
+        if (preg_match('/\b(activation|activate|glute bridge|dead bug|bird dog)\b/', $title) || $exerciseType === 'activation') {
+            return 'muscle_activation';
+        }
+        if (str_contains($title, 'mobility') || $exerciseType === 'mobility') {
+            return 'mobility';
+        }
+        if (preg_match('/\b(balance|stability|stabilization|single leg hold)\b/', $title)) {
+            return 'balance_stability';
+        }
+        if (preg_match('/\b(corrective|rehab|prehab|posture|back care)\b/', $title)) {
+            return 'corrective_exercise';
+        }
+        if (preg_match('/\b(elliptical|treadmill|walking|walk|bike|cycling|cycle|rower|stepper|cardio)\b/', $title) || in_array($exerciseType, ['cardio', 'cardio_warm_up'], true)) {
+            return 'cardiovascular_training';
+        }
+        if ($raw !== '') {
+            return $raw;
+        }
+        if (in_array($muscleGroup, ['abs', 'obliques', 'lower back'], true)) {
+            return 'resistance_training';
+        }
+
+        return 'resistance_training';
+    }
+
+    private function inferTrainingAdaptation(array $payload, ?array $metadata, string $primaryCategory, string $exerciseType, string $muscleGroup): string
+    {
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        $raw = RoutineLibraryRules::normalizeTaxonomyValue(
+            $payload['training_adaptation'] ?? $payload['training_purpose'] ?? null,
+            RoutineLibraryRules::TRAINING_ADAPTATIONS,
+            ''
+        );
+
+        if ($this->isExplosiveTitle($title)) {
+            return str_contains($title, 'speed') ? 'speed' : 'explosiveness';
+        }
+        if (preg_match('/\b(hiit|interval|anaerobic|sprint)\b/', $title)) {
+            return 'anaerobic_conditioning';
+        }
+        if (preg_match('/\b(elliptical|treadmill|walk|walking|bike|cycling|steady|aerobic)\b/', $title)) {
+            return 'aerobic_conditioning';
+        }
+        if ($primaryCategory === 'flexibility_stretching') {
+            return 'flexibility';
+        }
+        if ($primaryCategory === 'mobility') {
+            return 'mobility';
+        }
+        if ($primaryCategory === 'dynamic_warm_up') {
+            return 'movement_preparation';
+        }
+        if ($primaryCategory === 'muscle_activation') {
+            return 'muscle_activation';
+        }
+        if ($primaryCategory === 'balance_stability') {
+            return str_contains($title, 'balance') ? 'balance' : 'stability';
+        }
+        if ($primaryCategory === 'corrective_exercise') {
+            return 'rehabilitation_corrective';
+        }
+        if ($primaryCategory === 'recovery_breathing') {
+            return 'recovery';
+        }
+        if ($raw !== '') {
+            return $raw;
+        }
+        if (in_array($muscleGroup, ['abs', 'obliques', 'lower back'], true) || in_array($exerciseType, ['abs', 'obliques', 'lower_back'], true)) {
+            return 'muscular_endurance';
+        }
+
+        return 'general_fitness';
+    }
+
+    private function inferProgramRole(array $payload, array $usageFlags, string $primaryCategory, string $trainingAdaptation, string $exerciseType, array $safetyFlags): string
+    {
+        $raw = RoutineLibraryRules::normalizeTaxonomyValue(
+            $payload['program_role'] ?? null,
+            RoutineLibraryRules::PROGRAM_ROLES,
+            ''
+        );
+
+        if ($primaryCategory === 'flexibility_stretching' || ! empty($usageFlags['stretching'])) {
+            return 'cool_down_stretching';
+        }
+        if ($primaryCategory === 'dynamic_warm_up' || ! empty($usageFlags['warm_up'])) {
+            return 'dynamic_warm_up';
+        }
+        if ($primaryCategory === 'muscle_activation' || ! empty($usageFlags['lower_back_activation'])) {
+            return 'activation';
+        }
+        if ($primaryCategory === 'mobility' || ! empty($usageFlags['mobility'])) {
+            return 'dynamic_warm_up';
+        }
+        if ($primaryCategory === 'cardiovascular_training' && ! empty($usageFlags['cardio_warm_up']) && empty($safetyFlags['unsafe_as_warmup'])) {
+            return 'warm_up_cardio';
+        }
+        if ($primaryCategory === 'cardiovascular_training') {
+            return 'cardio';
+        }
+        if ($primaryCategory === 'power_explosive_training' || in_array($trainingAdaptation, ['explosiveness', 'anaerobic_conditioning'], true)) {
+            return 'finisher';
+        }
+        if (! empty($usageFlags['abs']) || ! empty($usageFlags['obliques']) || in_array($exerciseType, ['abs', 'obliques'], true)) {
+            return 'core';
+        }
+        if ($primaryCategory === 'corrective_exercise') {
+            return 'corrective';
+        }
+        if ($primaryCategory === 'recovery_breathing') {
+            return 'recovery';
+        }
+
+        return $raw !== '' ? $raw : 'main_workout';
+    }
+
+    private function safetyFlags(array $payload, ?array $metadata, string $primaryCategory, string $trainingAdaptation, string $exerciseType, string $impact, string $intensity): array
+    {
+        $provided = is_array($payload['safety_flags'] ?? null) ? $payload['safety_flags'] : [];
+        $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        $explosive = $this->isExplosiveTitle($title) || $primaryCategory === 'power_explosive_training' || in_array($trainingAdaptation, ['power', 'explosiveness', 'speed'], true);
+        $highImpact = $impact === 'high' || $explosive || preg_match('/\b(jump|jumps|jumping|hop|burpee|plyo|plyometric|high knee|high knees|sprint|running)\b/', $title) === 1;
+        $unsafeAsWarmup = $highImpact
+            || $intensity === 'high'
+            || in_array($trainingAdaptation, ['anaerobic_conditioning', 'explosiveness', 'power', 'speed'], true)
+            || preg_match('/\b(hiit|interval|tabata|finisher|sprint|burpee|explosive)\b/', $title) === 1;
+
+        $safeForCooldown = $primaryCategory === 'flexibility_stretching'
+            || $exerciseType === 'stretching'
+            || filter_var($provided['safe_for_cooldown'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $safeForWarmup = ! $unsafeAsWarmup && (
+            in_array($primaryCategory, ['dynamic_warm_up', 'mobility', 'muscle_activation'], true)
+            || ($primaryCategory === 'cardiovascular_training' && $impact === 'low' && $intensity !== 'high')
+            || filter_var($provided['safe_for_warmup'] ?? false, FILTER_VALIDATE_BOOLEAN)
+        );
+
+        return [
+            'safe_for_warmup' => $safeForWarmup,
+            'safe_for_cooldown' => $safeForCooldown,
+            'unsafe_as_warmup' => $unsafeAsWarmup,
+            'high_impact' => $highImpact,
+            'explosive' => $explosive,
+        ];
+    }
+
+    private function isExplosiveTitle(string $title): bool
+    {
+        return preg_match('/\b(jump|jumps|jumping|hop|hops|burpee|plyo|plyometric|explosive|power|sprint|high knee|high knees|skater|tuck|climber|jacks)\b/', $title) === 1;
     }
 
     private function legacyTagIdsFromPayload(array $payload): array
@@ -541,8 +734,12 @@ class OllamaExerciseTaggerService
     {
         $candidates = [];
         $exerciseType = strtolower(str_replace([' ', '-'], '_', $this->scalarString($payload['exercise_type'] ?? null)));
+        $primaryCategory = RoutineLibraryRules::normalizeTaxonomyValue($payload['primary_category'] ?? null, RoutineLibraryRules::PRIMARY_CATEGORIES, '');
+        $trainingAdaptation = RoutineLibraryRules::normalizeTaxonomyValue($payload['training_adaptation'] ?? null, RoutineLibraryRules::TRAINING_ADAPTATIONS, '');
+        $programRole = RoutineLibraryRules::normalizeTaxonomyValue($payload['program_role'] ?? null, RoutineLibraryRules::PROGRAM_ROLES, '');
         $typeMap = [
             'strength' => 'Strength',
+            'resistance' => 'Strength',
             'dumbbell' => 'Strength',
             'gym' => 'Strength',
             'main' => 'Strength',
@@ -556,6 +753,39 @@ class OllamaExerciseTaggerService
         if (isset($typeMap[$exerciseType])) {
             $candidates[] = $typeMap[$exerciseType];
         }
+        $taxonomyMap = [
+            'resistance_training' => 'Strength',
+            'cardiovascular_training' => 'Cardio',
+            'power_explosive_training' => 'Power',
+            'mobility' => 'Mobility',
+            'dynamic_warm_up' => 'Warm-up',
+            'muscle_activation' => 'Activation',
+            'flexibility_stretching' => 'Stretching',
+            'balance_stability' => 'Balance',
+            'corrective_exercise' => 'Rehabilitation',
+            'strength' => 'Strength',
+            'power' => 'Power',
+            'explosiveness' => 'Plyometric',
+            'cardiovascular_endurance' => 'Cardio',
+            'aerobic_conditioning' => 'Cardio',
+            'anaerobic_conditioning' => 'High Intensity',
+            'mobility' => 'Mobility',
+            'flexibility' => 'Stretching',
+            'muscle_activation' => 'Activation',
+            'rehabilitation_corrective' => 'Rehabilitation',
+            'warm_up_cardio' => 'Cardio',
+            'dynamic_warm_up' => 'Warm-up',
+            'activation' => 'Activation',
+            'main_workout' => 'Strength',
+            'cardio' => 'Cardio',
+            'finisher' => 'High Intensity',
+            'cool_down_stretching' => 'Stretching',
+        ];
+        foreach ([$primaryCategory, $trainingAdaptation, $programRole] as $taxonomyValue) {
+            if (isset($taxonomyMap[$taxonomyValue])) {
+                $candidates[] = $taxonomyMap[$taxonomyValue];
+            }
+        }
 
         foreach ($this->stringArray($payload['training_styles'] ?? []) as $style) {
             $candidates[] = ucwords(str_replace('_', ' ', $style));
@@ -567,6 +797,9 @@ class OllamaExerciseTaggerService
         }
         if (! empty($flags['warm_up']) || ! empty($flags['lower_back_activation'])) {
             $candidates[] = 'Warm-up';
+            $candidates[] = 'Activation';
+        }
+        if (! empty($flags['muscle_activation'])) {
             $candidates[] = 'Activation';
         }
         if (! empty($flags['main_workout']) || ! empty($flags['lower_back_strength'])) {
@@ -655,7 +888,7 @@ class OllamaExerciseTaggerService
         return array_values(array_unique(array_filter(array_map('intval', explode(',', trim((string) $value, '[] '))))));
     }
 
-    private function usageFlags(array $flags, string $exerciseType, string $muscleGroup, ?array $metadata): array
+    private function usageFlags(array $flags, string $exerciseType, string $muscleGroup, ?array $metadata, string $primaryCategory = '', string $trainingAdaptation = '', array $safetyFlags = []): array
     {
         $normalized = [];
         foreach (array_keys(RoutineLibraryRules::REQUIRED_AUDIT_USAGE) as $usage) {
@@ -664,20 +897,28 @@ class OllamaExerciseTaggerService
 
         $title = strtolower((string) ($metadata['title'] ?? ''));
         $forced = array_fill_keys(array_keys(RoutineLibraryRules::REQUIRED_AUDIT_USAGE), false);
+        $unsafeAsWarmup = (bool) ($safetyFlags['unsafe_as_warmup'] ?? false);
 
-        if ($exerciseType === 'stretching') {
+        if ($primaryCategory === 'flexibility_stretching' || $exerciseType === 'stretching') {
             $forced['stretching'] = true;
             return $forced;
         }
-        if ($exerciseType === 'warm_up') {
+        if ($primaryCategory === 'dynamic_warm_up' || ($exerciseType === 'warm_up' && ! $unsafeAsWarmup)) {
             $forced[($muscleGroup === 'lower back' || str_contains($title, 'activation')) ? 'lower_back_activation' : 'warm_up'] = true;
             return $forced;
         }
-        if ($exerciseType === 'mobility') {
+        if ($primaryCategory === 'mobility' || $exerciseType === 'mobility') {
             $forced['mobility'] = true;
             return $forced;
         }
-        if ($exerciseType === 'cardio' || $exerciseType === 'cardio_warm_up') {
+        if ($primaryCategory === 'muscle_activation' || $trainingAdaptation === 'muscle_activation' || $exerciseType === 'activation') {
+            $forced['muscle_activation'] = true;
+            if ($muscleGroup === 'lower back') {
+                $forced['lower_back_activation'] = true;
+            }
+            return $forced;
+        }
+        if (($exerciseType === 'cardio' || $exerciseType === 'cardio_warm_up' || $primaryCategory === 'cardiovascular_training') && ! $unsafeAsWarmup) {
             $forced['cardio_warm_up'] = true;
             return $forced;
         }
@@ -694,17 +935,25 @@ class OllamaExerciseTaggerService
             return $forced;
         }
 
+        if ($unsafeAsWarmup) {
+            $normalized['cardio_warm_up'] = false;
+            $normalized['warm_up'] = false;
+            $normalized['lower_back_activation'] = false;
+        }
+
         if (in_array(true, $normalized, true)) {
             return $normalized;
         }
 
-        if ($exerciseType === 'cardio' || $exerciseType === 'cardio_warm_up') {
+        if (($exerciseType === 'cardio' || $exerciseType === 'cardio_warm_up' || $primaryCategory === 'cardiovascular_training') && ! $unsafeAsWarmup) {
             $normalized['cardio_warm_up'] = true;
-        } elseif ($exerciseType === 'warm_up') {
+        } elseif (($exerciseType === 'warm_up' || $primaryCategory === 'dynamic_warm_up') && ! $unsafeAsWarmup) {
             $normalized['warm_up'] = true;
-        } elseif ($exerciseType === 'mobility') {
+        } elseif ($exerciseType === 'mobility' || $primaryCategory === 'mobility') {
             $normalized['mobility'] = true;
-        } elseif ($exerciseType === 'stretching') {
+        } elseif ($exerciseType === 'activation' || $primaryCategory === 'muscle_activation' || $trainingAdaptation === 'muscle_activation') {
+            $normalized['muscle_activation'] = true;
+        } elseif ($exerciseType === 'stretching' || $primaryCategory === 'flexibility_stretching') {
             $normalized['stretching'] = true;
         } elseif ($muscleGroup === 'abs' || $exerciseType === 'abs') {
             $normalized['abs'] = true;
@@ -712,6 +961,8 @@ class OllamaExerciseTaggerService
             $normalized['obliques'] = true;
         } elseif ($muscleGroup === 'lower back' || $exerciseType === 'lower_back') {
             $normalized[str_contains($title, 'warm') || str_contains($title, 'activation') ? 'lower_back_activation' : 'lower_back_strength'] = true;
+        } elseif (in_array($primaryCategory, ['resistance_training', 'power_explosive_training', 'balance_stability', 'corrective_exercise'], true)) {
+            $normalized['main_workout'] = true;
         } else {
             $normalized['main_workout'] = true;
         }
@@ -756,6 +1007,9 @@ class OllamaExerciseTaggerService
         $title = strtolower($this->scalarString($metadata['title'] ?? null));
         $raw = strtolower(str_replace([' ', '-'], '_', $this->scalarString($payload['exercise_type'] ?? null)));
 
+        if ($this->isExplosiveTitle($title)) {
+            return 'power_explosive';
+        }
         if (str_contains($title, 'stretch')) {
             return 'stretching';
         }
@@ -766,12 +1020,18 @@ class OllamaExerciseTaggerService
             && ! preg_match('/\b(hiit|jump|sprint|burpee|high knee)\b/', $title)) {
             return 'cardio';
         }
-        if (in_array($raw, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'warm_up', 'mobility', 'stretching', 'lower_back', 'abs', 'obliques'], true)) {
+        if ($raw === 'strength') {
+            return 'resistance';
+        }
+        if (in_array($raw, ['main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'cardio_warm_up', 'warm_up', 'mobility', 'stretching', 'activation', 'power_explosive', 'lower_back', 'abs', 'obliques'], true)) {
             return $raw;
         }
         if ($currentTagPayload && ! empty($currentTagPayload['exercise_type'])) {
             $current = strtolower(str_replace([' ', '-'], '_', $this->scalarString($currentTagPayload['exercise_type'])));
-            if (in_array($current, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'warm_up', 'mobility', 'stretching', 'lower_back', 'abs', 'obliques'], true)) {
+            if ($current === 'strength') {
+                return 'resistance';
+            }
+            if (in_array($current, ['main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'cardio_warm_up', 'warm_up', 'mobility', 'stretching', 'activation', 'power_explosive', 'lower_back', 'abs', 'obliques'], true)) {
                 return $current;
             }
         }
@@ -823,6 +1083,7 @@ class OllamaExerciseTaggerService
             'cardio_warm_up' => 'warm_up_cardio',
             'warm_up' => 'mobility_dynamic_warm_up',
             'mobility' => 'mobility_dynamic_warm_up',
+            'muscle_activation' => 'muscle_activation',
             'lower_back_activation' => 'core_lower_back_preparation',
             'main_workout' => 'main_workout',
             'abs' => 'core_obliques',

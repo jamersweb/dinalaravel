@@ -94,7 +94,9 @@
                         </td>
                         <td>
                             <div v-if="proposal.proposed_payload">
-                                <strong>{{ readableStatus(proposal.proposed_payload.exercise_type) }}</strong>
+                                <strong>{{ readableStatus(proposal.proposed_payload.primary_category || proposal.proposed_payload.exercise_type) }}</strong>
+                                <div>{{ readableStatus(proposal.proposed_payload.training_adaptation || '-') }}</div>
+                                <div class="muted small-text">Role: {{ readableStatus(proposal.proposed_payload.program_role || '-') }}</div>
                                 <div>{{ readableEquipment(proposal.proposed_payload.equipment_category) }}</div>
                                 <div>{{ proposal.proposed_payload.muscle_group || '-' }} | {{ proposal.proposed_payload.difficulty }}</div>
                                 <div class="muted small-text">Confidence {{ confidence(proposal.confidence) }}</div>
@@ -104,6 +106,7 @@
                         <td>
                             <div v-if="proposal.proposed_payload">
                                 <div>{{ proposal.proposed_payload.impact_level || '-' }} impact / {{ proposal.proposed_payload.intensity_level || '-' }} intensity</div>
+                                <div v-if="proposal.proposed_payload.safety_flags && proposal.proposed_payload.safety_flags.unsafe_as_warmup" class="danger-text">Unsafe as warm-up</div>
                                 <div class="usage-list">{{ enabledUsage(proposal.proposed_payload.usage_flags).join(', ') || 'No usage flags' }}</div>
                                 <div v-if="proposal.reasoning" class="muted small-text">{{ proposal.reasoning }}</div>
                             </div>
@@ -341,6 +344,10 @@ export default {
 }
 .small-text {
     font-size: 12px;
+}
+.danger-text {
+    color: #b30000;
+    font-weight: 700;
 }
 .summary-row {
     justify-content: flex-start;

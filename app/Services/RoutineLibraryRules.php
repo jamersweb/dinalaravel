@@ -33,6 +33,51 @@ class RoutineLibraryRules
     public const IMPACT_LEVELS = ['low', 'moderate', 'high'];
     public const INTENSITY_LEVELS = ['low', 'moderate', 'high'];
     public const VIDEO_VARIANTS = ['explained', 'no_audio'];
+    public const PRIMARY_CATEGORIES = [
+        'resistance_training',
+        'cardiovascular_training',
+        'power_explosive_training',
+        'mobility',
+        'dynamic_warm_up',
+        'muscle_activation',
+        'flexibility_stretching',
+        'balance_stability',
+        'corrective_exercise',
+        'recovery_breathing',
+    ];
+    public const TRAINING_ADAPTATIONS = [
+        'general_fitness',
+        'strength',
+        'hypertrophy',
+        'muscular_endurance',
+        'power',
+        'explosiveness',
+        'speed',
+        'cardiovascular_endurance',
+        'anaerobic_conditioning',
+        'aerobic_conditioning',
+        'mobility',
+        'flexibility',
+        'stability',
+        'balance',
+        'coordination',
+        'muscle_activation',
+        'movement_preparation',
+        'rehabilitation_corrective',
+        'recovery',
+    ];
+    public const PROGRAM_ROLES = [
+        'warm_up_cardio',
+        'dynamic_warm_up',
+        'activation',
+        'main_workout',
+        'cardio',
+        'finisher',
+        'core',
+        'cool_down_stretching',
+        'corrective',
+        'recovery',
+    ];
     public const MOVEMENT_PATTERNS = [
         'squat',
         'hinge',
@@ -277,6 +322,7 @@ class RoutineLibraryRules
         'cardio_warm_up' => 'Cardio warm-up',
         'warm_up' => 'Warm-up',
         'mobility' => 'Mobility',
+        'muscle_activation' => 'Muscle activation',
         'lower_back_activation' => 'Lower-back activation',
         'main_workout' => 'Main workout',
         'abs' => 'Abs',
@@ -360,6 +406,45 @@ class RoutineLibraryRules
         $equipment = strtolower((string) $equipment);
 
         return in_array($equipment, self::EQUIPMENT_CATEGORIES, true) ? $equipment : 'bodyweight';
+    }
+
+    public static function normalizeTaxonomyValue($value, array $allowed, string $fallback): string
+    {
+        if (is_array($value)) {
+            $value = reset($value);
+        }
+
+        $value = strtolower(trim((string) $value));
+        $value = str_replace(['&', '/', '-'], ' ', $value);
+        $value = preg_replace('/[^a-z0-9]+/', '_', $value) ?? '';
+        $value = trim($value, '_');
+        if (in_array($value, $allowed, true)) {
+            return $value;
+        }
+
+        $aliases = [
+            'strength_training' => 'resistance_training',
+            'resistance' => 'resistance_training',
+            'strength' => 'strength',
+            'cardio' => 'cardiovascular_training',
+            'cardiovascular' => 'cardiovascular_training',
+            'power_and_explosive_training' => 'power_explosive_training',
+            'explosive_training' => 'power_explosive_training',
+            'power_training' => 'power_explosive_training',
+            'stretching' => 'flexibility_stretching',
+            'flexibility_and_stretching' => 'flexibility_stretching',
+            'warm_up' => 'dynamic_warm_up',
+            'dynamic_warmup' => 'dynamic_warm_up',
+            'rehabilitation_or_corrective' => 'rehabilitation_corrective',
+            'rehab_corrective' => 'rehabilitation_corrective',
+            'cool_down' => 'cool_down_stretching',
+            'cooldown' => 'cool_down_stretching',
+            'warmup_cardio' => 'warm_up_cardio',
+            'main' => 'main_workout',
+        ];
+        $value = $aliases[$value] ?? $value;
+
+        return in_array($value, $allowed, true) ? $value : $fallback;
     }
 
     public static function usageMatches(array $flags, string $usage): bool

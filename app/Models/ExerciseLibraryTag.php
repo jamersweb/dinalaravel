@@ -14,6 +14,9 @@ class ExerciseLibraryTag extends Model
         'language',
         'equipment_category',
         'equipment_tags',
+        'primary_category',
+        'training_adaptation',
+        'program_role',
         'muscle_group',
         'secondary_muscle_groups',
         'exercise_type',
@@ -33,6 +36,7 @@ class ExerciseLibraryTag extends Model
         'injury_cautions',
         'goal_fit',
         'usage_flags',
+        'safety_flags',
         'approved_for_generation',
         'review_status',
         'notes',
@@ -51,6 +55,7 @@ class ExerciseLibraryTag extends Model
         'injury_cautions' => 'array',
         'goal_fit' => 'array',
         'usage_flags' => 'array',
+        'safety_flags' => 'array',
         'approved_for_generation' => 'boolean',
     ];
 

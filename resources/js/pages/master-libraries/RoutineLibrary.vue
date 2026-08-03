@@ -247,7 +247,10 @@
                                             <div class="exercise-title">{{ tag.exercise ? tag.exercise.title : ('Exercise #' + tag.exercise_id) }}</div>
                                             <small>{{ tag.exercise ? tag.exercise.content_code : '' }} {{ tag.language }} / {{ readableEquipment(tag.equipment_category) }}</small>
                                         </td>
-                                        <td>{{ tag.exercise_type }}</td>
+                                        <td>
+                                            <div>{{ readableStatus(tag.primary_category || tag.exercise_type) }}</div>
+                                            <small>{{ readableStatus(tag.training_adaptation || '') }}</small>
+                                        </td>
                                         <td>{{ tag.muscle_group || '-' }}</td>
                                         <td>{{ readableStatus(tag.review_status) }}</td>
                                     </tr>
@@ -300,6 +303,27 @@
                                     </select>
                                 </div>
                                 <div class="col-6 mb-2">
+                                    <label>Primary category</label>
+                                    <select v-model="selectedTag.primary_category" class="form-select form-select-sm">
+                                        <option value="">None</option>
+                                        <option v-for="option in taxonomyOptions.primary_categories" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Training adaptation</label>
+                                    <select v-model="selectedTag.training_adaptation" class="form-select form-select-sm">
+                                        <option value="">None</option>
+                                        <option v-for="option in taxonomyOptions.training_adaptations" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Program role</label>
+                                    <select v-model="selectedTag.program_role" class="form-select form-select-sm">
+                                        <option value="">None</option>
+                                        <option v-for="option in taxonomyOptions.program_roles" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mb-2">
                                     <label>Exercise type</label>
                                     <input v-model="selectedTag.exercise_type" class="form-control form-control-sm">
                                 </div>
@@ -343,6 +367,26 @@
                                 <label v-for="usage in usageOptions" :key="usage" class="usage-option">
                                     <input type="checkbox" v-model="selectedTag.usage_flags[usage]">
                                     <span>{{ readableStatus(usage) }}</span>
+                                </label>
+                            </div>
+
+                            <label>Safety</label>
+                            <div class="usage-grid mb-2">
+                                <label class="usage-option">
+                                    <input type="checkbox" v-model="selectedTag.safety_flags.safe_for_warmup">
+                                    <span>Safe for warm-up</span>
+                                </label>
+                                <label class="usage-option">
+                                    <input type="checkbox" v-model="selectedTag.safety_flags.unsafe_as_warmup">
+                                    <span>Unsafe as warm-up</span>
+                                </label>
+                                <label class="usage-option">
+                                    <input type="checkbox" v-model="selectedTag.safety_flags.safe_for_cooldown">
+                                    <span>Safe for cooldown</span>
+                                </label>
+                                <label class="usage-option">
+                                    <input type="checkbox" v-model="selectedTag.safety_flags.high_impact">
+                                    <span>High impact</span>
                                 </label>
                             </div>
 
@@ -492,6 +536,11 @@ export default {
                 search: '',
                 review_status: 'pending_review',
                 per_page: 25
+            },
+            taxonomyOptions: {
+                primary_categories: [],
+                training_adaptations: [],
+                program_roles: []
             },
             usageOptions: [
                 'cardio_warm_up',
@@ -665,6 +714,11 @@ export default {
                 if (res.data.options && res.data.options.usage_flags) {
                     this.usageOptions = res.data.options.usage_flags;
                 }
+                if (res.data.options) {
+                    this.taxonomyOptions.primary_categories = res.data.options.primary_categories || [];
+                    this.taxonomyOptions.training_adaptations = res.data.options.training_adaptations || [];
+                    this.taxonomyOptions.program_roles = res.data.options.program_roles || [];
+                }
                 this.selectedTag = this.exerciseTags.length ? this.normalizedTag(this.exerciseTags[0]) : null;
             }).catch(er => this.showError(er.response?.data?.message || er.message));
         },
@@ -683,8 +737,12 @@ export default {
             copy.injury_cautions = Array.isArray(copy.injury_cautions) ? copy.injury_cautions : [];
             copy.goal_fit = Array.isArray(copy.goal_fit) ? copy.goal_fit : [];
             copy.usage_flags = copy.usage_flags && typeof copy.usage_flags === 'object' ? copy.usage_flags : {};
+            copy.safety_flags = copy.safety_flags && typeof copy.safety_flags === 'object' ? copy.safety_flags : {};
             this.usageOptions.forEach(key => {
                 copy.usage_flags[key] = copy.usage_flags[key] === true || copy.usage_flags[key] === 1 || copy.usage_flags[key] === 'true';
+            });
+            ['safe_for_warmup', 'safe_for_cooldown', 'unsafe_as_warmup', 'high_impact', 'explosive'].forEach(key => {
+                copy.safety_flags[key] = copy.safety_flags[key] === true || copy.safety_flags[key] === 1 || copy.safety_flags[key] === 'true';
             });
             copy.review_status = copy.review_status || (copy.approved_for_generation ? 'approved' : 'pending_review');
             return copy;
@@ -698,6 +756,9 @@ export default {
                 language: this.selectedTag.language,
                 equipment_category: this.selectedTag.equipment_category,
                 equipment_tags: this.selectedTag.equipment_tags || [],
+                primary_category: this.selectedTag.primary_category || null,
+                training_adaptation: this.selectedTag.training_adaptation || null,
+                program_role: this.selectedTag.program_role || null,
                 muscle_group: this.selectedTag.muscle_group,
                 secondary_muscle_groups: this.selectedTag.secondary_muscle_groups || [],
                 exercise_type: this.selectedTag.exercise_type,
@@ -717,6 +778,7 @@ export default {
                 injury_cautions: this.selectedTag.injury_cautions || [],
                 goal_fit: this.selectedTag.goal_fit || [],
                 usage_flags: this.selectedTag.usage_flags || {},
+                safety_flags: this.selectedTag.safety_flags || {},
                 review_status: this.selectedTag.review_status,
                 notes: this.selectedTag.notes
             }, this.apiConfig).then(res => {

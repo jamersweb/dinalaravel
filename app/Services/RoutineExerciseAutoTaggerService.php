@@ -212,6 +212,11 @@ class RoutineExerciseAutoTaggerService
 
         $muscle = $this->muscleGroup($tagIds, $exercise);
         $exerciseType = $this->exerciseType($exercise, $tagIds);
+        $primaryCategory = $this->primaryCategory($exercise, $exerciseType);
+        $trainingAdaptation = $this->trainingAdaptation($exercise, $primaryCategory, $exerciseType, $muscle);
+        $impact = $this->impactLevel($exercise, $exerciseType);
+        $intensity = $this->intensityLevel($exercise, $exerciseType);
+        $safetyFlags = $this->safetyFlags($exercise, $primaryCategory, $trainingAdaptation, $impact, $intensity);
         $usage = $this->usageFlags($exercise, $tagIds, $muscle, $exerciseType);
         if (! in_array(true, $usage, true)) {
             return $this->skip('unknown_usage');
@@ -224,14 +229,17 @@ class RoutineExerciseAutoTaggerService
                 'language' => $language,
                 'equipment_category' => $equipment,
                 'equipment_tags' => $this->equipmentTags($tagIds, $exercise, $equipment),
+                'primary_category' => $primaryCategory,
+                'training_adaptation' => $trainingAdaptation,
+                'program_role' => $this->programRole($usage, $primaryCategory, $trainingAdaptation, $exerciseType, $safetyFlags),
                 'muscle_group' => $muscle,
                 'secondary_muscle_groups' => $this->secondaryMuscleGroups($tagIds, $muscle, $exercise),
                 'exercise_type' => $exerciseType,
                 'movement_patterns' => $this->movementPatterns($exercise, $tagIds, $exerciseType),
                 'training_styles' => $this->trainingStyles($exerciseType, $muscle),
                 'workout_sections' => $this->workoutSections($usage),
-                'impact_level' => $this->impactLevel($exercise, $exerciseType),
-                'intensity_level' => $this->intensityLevel($exercise, $exerciseType),
+                'impact_level' => $impact,
+                'intensity_level' => $intensity,
                 'video_variant' => $language === 'no_audio' ? 'no_audio' : 'explained',
                 'recommended_duration_seconds' => $this->recommendedDurationSeconds($exercise, $exerciseType),
                 'recommended_repetitions' => $this->recommendedRepetitions($exerciseType),
@@ -243,6 +251,7 @@ class RoutineExerciseAutoTaggerService
                 'injury_cautions' => $this->injuryCautions($tagIds, $exercise),
                 'goal_fit' => $this->goalFit($exerciseType, $muscle),
                 'usage_flags' => $usage,
+                'safety_flags' => $safetyFlags,
                 'approved_for_generation' => $approve,
                 'review_status' => $approve ? 'approved' : 'pending_review',
                 'notes' => $approve
@@ -452,6 +461,120 @@ class RoutineExerciseAutoTaggerService
         return 'beginner';
     }
 
+    private function primaryCategory(Exercise $exercise, string $exerciseType): string
+    {
+        $title = strtolower((string) $exercise->title);
+        $type = strtolower((string) $exercise->type);
+
+        if ($this->isExplosiveTitle($title) || str_contains($type, 'hiit')) {
+            return 'power_explosive_training';
+        }
+        if ($exerciseType === 'stretching') {
+            return 'flexibility_stretching';
+        }
+        if ($exerciseType === 'mobility') {
+            return 'mobility';
+        }
+        if ($exerciseType === 'warm_up') {
+            return 'dynamic_warm_up';
+        }
+        if (str_contains($title, 'activation') || str_contains($title, 'activate')) {
+            return 'muscle_activation';
+        }
+        if ($exerciseType === 'cardio') {
+            return 'cardiovascular_training';
+        }
+        if (preg_match('/\b(balance|stability|stabilization)\b/', $title)) {
+            return 'balance_stability';
+        }
+        if (preg_match('/\b(corrective|rehab|prehab|posture|back care)\b/', $title)) {
+            return 'corrective_exercise';
+        }
+        if (preg_match('/\b(breath|breathing|recovery|meditation)\b/', $title)) {
+            return 'recovery_breathing';
+        }
+
+        return 'resistance_training';
+    }
+
+    private function trainingAdaptation(Exercise $exercise, string $primaryCategory, string $exerciseType, ?string $muscle): string
+    {
+        $title = strtolower((string) $exercise->title);
+        $type = strtolower((string) $exercise->type);
+
+        if ($this->isExplosiveTitle($title)) {
+            return str_contains($title, 'speed') ? 'speed' : 'explosiveness';
+        }
+        if (preg_match('/\b(hiit|interval|tabata|sprint)\b/', $title . ' ' . $type)) {
+            return 'anaerobic_conditioning';
+        }
+        if ($primaryCategory === 'cardiovascular_training') {
+            return 'aerobic_conditioning';
+        }
+        if ($primaryCategory === 'flexibility_stretching') {
+            return 'flexibility';
+        }
+        if ($primaryCategory === 'mobility') {
+            return 'mobility';
+        }
+        if ($primaryCategory === 'dynamic_warm_up') {
+            return 'movement_preparation';
+        }
+        if ($primaryCategory === 'muscle_activation') {
+            return 'muscle_activation';
+        }
+        if ($primaryCategory === 'balance_stability') {
+            return str_contains($title, 'balance') ? 'balance' : 'stability';
+        }
+        if ($primaryCategory === 'corrective_exercise') {
+            return 'rehabilitation_corrective';
+        }
+        if ($primaryCategory === 'recovery_breathing') {
+            return 'recovery';
+        }
+        if (in_array($muscle, ['abs', 'obliques', 'lower back'], true) || in_array($exerciseType, ['abs', 'obliques', 'lower_back'], true)) {
+            return 'muscular_endurance';
+        }
+
+        return 'general_fitness';
+    }
+
+    private function programRole(array $usage, string $primaryCategory, string $trainingAdaptation, string $exerciseType, array $safetyFlags): string
+    {
+        if (! empty($usage['stretching']) || $primaryCategory === 'flexibility_stretching') {
+            return 'cool_down_stretching';
+        }
+        if (! empty($usage['warm_up']) || $primaryCategory === 'dynamic_warm_up') {
+            return 'dynamic_warm_up';
+        }
+        if (! empty($usage['lower_back_activation']) || $primaryCategory === 'muscle_activation') {
+            return 'activation';
+        }
+        if (! empty($usage['mobility']) || $primaryCategory === 'mobility') {
+            return 'dynamic_warm_up';
+        }
+        if (! empty($usage['cardio_warm_up']) && empty($safetyFlags['unsafe_as_warmup'])) {
+            return 'warm_up_cardio';
+        }
+        if ($primaryCategory === 'cardiovascular_training') {
+            return 'cardio';
+        }
+        if ($primaryCategory === 'power_explosive_training' || in_array($trainingAdaptation, ['explosiveness', 'anaerobic_conditioning'], true)) {
+            return 'finisher';
+        }
+        if (! empty($usage['abs']) || ! empty($usage['obliques']) || in_array($exerciseType, ['abs', 'obliques'], true)) {
+            return 'core';
+        }
+        if ($primaryCategory === 'corrective_exercise') {
+            return 'corrective';
+        }
+        if ($primaryCategory === 'recovery_breathing') {
+            return 'recovery';
+        }
+
+        return 'main_workout';
+    }
+
     private function movementPatterns(Exercise $exercise, array $tagIds, string $exerciseType): array
     {
         $title = strtolower((string) $exercise->title);
@@ -516,8 +639,8 @@ class RoutineExerciseAutoTaggerService
             'warm_up' => ['mobility', 'recovery'],
             'mobility' => ['mobility', 'functional training'],
             'stretching' => ['flexibility', 'recovery'],
-            'abs', 'obliques', 'lower_back' => ['core stability', 'strength training'],
-            default => ['strength training'],
+            'abs', 'obliques', 'lower_back' => ['core stability', 'resistance training'],
+            default => ['resistance training'],
         };
 
         if (in_array($muscle, ['abs', 'obliques', 'lower back'], true)) {
@@ -533,6 +656,7 @@ class RoutineExerciseAutoTaggerService
             'cardio_warm_up' => 'cardio warm-up',
             'warm_up' => 'dynamic warm-up',
             'mobility' => 'mobility',
+            'muscle_activation' => 'muscle activation',
             'lower_back_activation' => 'lower-back activation',
             'main_workout' => 'main strength workout',
             'abs' => 'core',
@@ -555,7 +679,7 @@ class RoutineExerciseAutoTaggerService
     {
         $title = strtolower((string) $exercise->title);
 
-        if (str_contains($title, 'jump') || str_contains($title, 'hop') || str_contains($title, 'burpee')) {
+        if ($this->isExplosiveTitle($title)) {
             return 'high';
         }
         if ($exerciseType === 'cardio' || str_contains($title, 'lunge')) {
@@ -578,6 +702,31 @@ class RoutineExerciseAutoTaggerService
         }
 
         return 'low';
+    }
+
+    private function safetyFlags(Exercise $exercise, string $primaryCategory, string $trainingAdaptation, string $impact, string $intensity): array
+    {
+        $title = strtolower((string) $exercise->title);
+        $type = strtolower((string) $exercise->type);
+        $explosive = $this->isExplosiveTitle($title) || $primaryCategory === 'power_explosive_training';
+        $highImpact = $impact === 'high' || $explosive;
+        $unsafeAsWarmup = $highImpact
+            || $intensity === 'high'
+            || in_array($trainingAdaptation, ['anaerobic_conditioning', 'explosiveness', 'power', 'speed'], true)
+            || preg_match('/\b(hiit|interval|tabata|finisher|sprint|burpee|explosive)\b/', $title . ' ' . $type) === 1;
+
+        return [
+            'safe_for_warmup' => ! $unsafeAsWarmup && in_array($primaryCategory, ['cardiovascular_training', 'dynamic_warm_up', 'mobility', 'muscle_activation'], true),
+            'safe_for_cooldown' => $primaryCategory === 'flexibility_stretching',
+            'unsafe_as_warmup' => $unsafeAsWarmup,
+            'high_impact' => $highImpact,
+            'explosive' => $explosive,
+        ];
+    }
+
+    private function isExplosiveTitle(string $title): bool
+    {
+        return preg_match('/\b(jump|jumps|jumping|hop|hops|burpee|plyo|plyometric|explosive|power|sprint|high knee|high knees|skater|tuck|climber|jacks)\b/', $title) === 1;
     }
 
     private function recommendedDurationSeconds(Exercise $exercise, string $exerciseType): ?int
@@ -664,14 +813,18 @@ class RoutineExerciseAutoTaggerService
     {
         $title = strtolower((string) $exercise->title);
         $type = strtolower((string) $exercise->type);
+        $unsafeAsWarmup = $this->isExplosiveTitle($title)
+            || preg_match('/\b(hiit|interval|tabata|sprint|burpee|explosive)\b/', $title . ' ' . $type) === 1;
 
         return [
-            'cardio_warm_up' => $exerciseType === 'cardio',
-            'warm_up' => $exerciseType === 'warm_up',
+            'cardio_warm_up' => $exerciseType === 'cardio' && ! $unsafeAsWarmup,
+            'warm_up' => $exerciseType === 'warm_up' && ! $unsafeAsWarmup,
             'mobility' => $exerciseType === 'mobility' || (bool) array_intersect($tagIds, range(162, 174)),
-            'lower_back_activation' => $muscle === 'lower back'
+            'muscle_activation' => ! $unsafeAsWarmup
+                && (str_contains($title, 'activation') || str_contains($title, 'activate') || in_array($muscle, ['glutes', 'shoulders', 'upper back', 'abs'], true)),
+            'lower_back_activation' => ! $unsafeAsWarmup && $muscle === 'lower back'
                 && ($exerciseType === 'mobility' || str_contains($title, 'activation') || str_contains($title, 'warm')),
-            'main_workout' => in_array($exerciseType, ['strength', 'abs', 'obliques', 'lower_back'], true),
+            'main_workout' => in_array($exerciseType, ['strength', 'abs', 'obliques', 'lower_back'], true) || $unsafeAsWarmup,
             'abs' => $muscle === 'abs' || $exerciseType === 'abs',
             'obliques' => $muscle === 'obliques' || $exerciseType === 'obliques',
             'lower_back_strength' => $muscle === 'lower back' && in_array($exerciseType, ['strength', 'lower_back'], true),

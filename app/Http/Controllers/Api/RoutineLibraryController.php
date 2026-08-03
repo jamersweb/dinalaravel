@@ -80,6 +80,9 @@ class RoutineLibraryController extends Controller
                 'languages' => RoutineLibraryRules::CONTENT_LANGUAGES,
                 'equipment_categories' => RoutineLibraryRules::EQUIPMENT_CATEGORIES,
                 'levels' => RoutineLibraryRules::LEVELS,
+                'primary_categories' => RoutineLibraryRules::PRIMARY_CATEGORIES,
+                'training_adaptations' => RoutineLibraryRules::TRAINING_ADAPTATIONS,
+                'program_roles' => RoutineLibraryRules::PROGRAM_ROLES,
                 'proposal_statuses' => ['queued', 'processing', 'proposed', 'applied', 'rejected', 'failed'],
                 'default_model' => config('services.ollama.model', 'qwen2.5vl:7b'),
             ],
@@ -494,6 +497,9 @@ class RoutineLibraryController extends Controller
             'language' => ['required', Rule::in(RoutineLibraryRules::LANGUAGES)],
             'equipment_category' => ['required', Rule::in(RoutineLibraryRules::EQUIPMENT_CATEGORIES)],
             'equipment_tags' => 'nullable|array',
+            'primary_category' => ['nullable', Rule::in(RoutineLibraryRules::PRIMARY_CATEGORIES)],
+            'training_adaptation' => ['nullable', Rule::in(RoutineLibraryRules::TRAINING_ADAPTATIONS)],
+            'program_role' => ['nullable', Rule::in(RoutineLibraryRules::PROGRAM_ROLES)],
             'muscle_group' => 'nullable|string|max:64',
             'secondary_muscle_groups' => 'nullable|array',
             'exercise_type' => 'required|string|max:64',
@@ -513,6 +519,7 @@ class RoutineLibraryController extends Controller
             'injury_cautions' => 'nullable|array',
             'goal_fit' => 'nullable|array',
             'usage_flags' => 'nullable|array',
+            'safety_flags' => 'nullable|array',
             'approved_for_generation' => 'boolean',
             'review_status' => ['nullable', Rule::in(RoutineLibraryRules::EXERCISE_TAG_REVIEW_STATUSES)],
             'notes' => 'nullable|string',
@@ -563,6 +570,9 @@ class RoutineLibraryController extends Controller
             }])
             ->when($request->language, fn ($q, $language) => $q->where('language', $language))
             ->when($request->equipment_category, fn ($q, $equipment) => $q->where('equipment_category', $equipment))
+            ->when($request->primary_category, fn ($q, $category) => $q->where('primary_category', $category))
+            ->when($request->training_adaptation, fn ($q, $adaptation) => $q->where('training_adaptation', $adaptation))
+            ->when($request->program_role, fn ($q, $role) => $q->where('program_role', $role))
             ->when($request->difficulty, fn ($q, $difficulty) => $q->where('difficulty', $difficulty))
             ->when($request->exercise_type, fn ($q, $type) => $q->where('exercise_type', $type))
             ->when($request->impact_level, fn ($q, $impact) => $q->where('impact_level', $impact))
@@ -599,6 +609,9 @@ class RoutineLibraryController extends Controller
                 'languages' => RoutineLibraryRules::LANGUAGES,
                 'equipment_categories' => RoutineLibraryRules::EQUIPMENT_CATEGORIES,
                 'levels' => RoutineLibraryRules::LEVELS,
+                'primary_categories' => RoutineLibraryRules::PRIMARY_CATEGORIES,
+                'training_adaptations' => RoutineLibraryRules::TRAINING_ADAPTATIONS,
+                'program_roles' => RoutineLibraryRules::PROGRAM_ROLES,
                 'impact_levels' => RoutineLibraryRules::IMPACT_LEVELS,
                 'intensity_levels' => RoutineLibraryRules::INTENSITY_LEVELS,
                 'video_variants' => RoutineLibraryRules::VIDEO_VARIANTS,
@@ -623,6 +636,9 @@ class RoutineLibraryController extends Controller
             'language' => ['required', Rule::in(RoutineLibraryRules::LANGUAGES)],
             'equipment_category' => ['required', Rule::in(RoutineLibraryRules::EQUIPMENT_CATEGORIES)],
             'equipment_tags' => 'nullable|array',
+            'primary_category' => ['nullable', Rule::in(RoutineLibraryRules::PRIMARY_CATEGORIES)],
+            'training_adaptation' => ['nullable', Rule::in(RoutineLibraryRules::TRAINING_ADAPTATIONS)],
+            'program_role' => ['nullable', Rule::in(RoutineLibraryRules::PROGRAM_ROLES)],
             'muscle_group' => 'nullable|string|max:64',
             'secondary_muscle_groups' => 'nullable|array',
             'exercise_type' => 'required|string|max:64',
@@ -642,6 +658,7 @@ class RoutineLibraryController extends Controller
             'injury_cautions' => 'nullable|array',
             'goal_fit' => 'nullable|array',
             'usage_flags' => 'nullable|array',
+            'safety_flags' => 'nullable|array',
             'review_status' => ['required', Rule::in(RoutineLibraryRules::EXERCISE_TAG_REVIEW_STATUSES)],
             'notes' => 'nullable|string',
         ]);

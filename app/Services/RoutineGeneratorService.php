@@ -614,34 +614,62 @@ class RoutineGeneratorService
     private function tagMatchesUsage(ExerciseLibraryTag $tag, string $usage): bool
     {
         $flags = is_array($tag->usage_flags) ? $tag->usage_flags : [];
+        $safety = is_array($tag->safety_flags) ? $tag->safety_flags : [];
+        $primaryCategory = strtolower((string) $tag->primary_category);
+        $trainingAdaptation = strtolower((string) $tag->training_adaptation);
+        $programRole = strtolower((string) $tag->program_role);
         $type = strtolower((string) $tag->exercise_type);
         $muscle = strtolower((string) $tag->muscle_group);
         $title = strtolower((string) optional($tag->exercise)->title);
         $patterns = is_array($tag->movement_patterns) ? $tag->movement_patterns : [];
 
         if ($usage === 'cardio_warm_up') {
-            return $this->isLowImpactWarmUpCardio($type, $title);
+            return empty($safety['unsafe_as_warmup'])
+                && ($safety['safe_for_warmup'] ?? true)
+                && in_array($primaryCategory, ['', 'cardiovascular_training'], true)
+                && in_array($programRole, ['', 'warm_up_cardio'], true)
+                && $this->isLowImpactWarmUpCardio($type, $title);
         }
 
         if ($usage === 'stretching') {
-            return $this->isStretchingExercise($type, $title, $patterns);
+            return in_array($primaryCategory, ['', 'flexibility_stretching'], true)
+                && in_array($programRole, ['', 'cool_down_stretching'], true)
+                && $this->isStretchingExercise($type, $title, $patterns);
         }
 
         if (RoutineLibraryRules::usageMatches($flags, $usage)) {
+            if (in_array($usage, ['warm_up', 'lower_back_activation'], true) && ! empty($safety['unsafe_as_warmup'])) {
+                return false;
+            }
             return true;
         }
 
         return match ($usage) {
-            'main_workout' => in_array($type, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym'], true),
-            'warm_up' => in_array($type, ['warm_up', 'warm-up'], true) || str_contains($title, 'warm up'),
+            'main_workout' => in_array($primaryCategory, ['resistance_training', 'power_explosive_training', 'balance_stability', 'corrective_exercise'], true)
+                || in_array($programRole, ['main_workout', 'finisher', 'core'], true)
+                || in_array($type, ['strength', 'main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'power_explosive'], true),
+            'warm_up' => empty($safety['unsafe_as_warmup']) && (
+                in_array($primaryCategory, ['dynamic_warm_up', 'mobility'], true)
+                || in_array($programRole, ['dynamic_warm_up', 'activation'], true)
+                || in_array($type, ['warm_up', 'warm-up'], true)
+                || str_contains($title, 'warm up')
+            ),
             'mobility' => $type === 'mobility'
+                || $primaryCategory === 'mobility'
+                || $trainingAdaptation === 'mobility'
                 || str_contains($title, 'mobility')
                 || in_array('mobility', $patterns, true),
-            'muscle_activation' => in_array($type, ['warm_up', 'mobility', 'lower_back', 'abs', 'obliques'], true)
-                || in_array($muscle, ['glutes', 'shoulders', 'upper back', 'lower back', 'abs'], true),
+            'muscle_activation' => empty($safety['unsafe_as_warmup']) && (
+                $primaryCategory === 'muscle_activation'
+                || $trainingAdaptation === 'muscle_activation'
+                || $programRole === 'activation'
+                || in_array($type, ['activation', 'warm_up', 'mobility', 'lower_back', 'abs', 'obliques'], true)
+                || in_array($muscle, ['glutes', 'shoulders', 'upper back', 'lower back', 'abs'], true)
+            ),
             'abs' => $muscle === 'abs' || $type === 'abs',
             'obliques' => $muscle === 'obliques' || $type === 'obliques',
-            'lower_back_activation', 'lower_back_strength' => $muscle === 'lower back' || $type === 'lower_back',
+            'lower_back_activation' => empty($safety['unsafe_as_warmup']) && ($muscle === 'lower back' || $type === 'lower_back'),
+            'lower_back_strength' => $muscle === 'lower back' || $type === 'lower_back',
             default => false,
         };
     }
