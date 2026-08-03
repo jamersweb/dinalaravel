@@ -76,6 +76,10 @@ class RoutineExerciseAutoTaggerService
         $replace = (bool) ($options['replace'] ?? false);
         $includeNoAudio = (bool) ($options['include_no_audio'] ?? false);
         $preserveReviewStatus = (bool) ($options['preserve_review_status'] ?? false);
+        $onlyMissingMasterFields = (bool) ($options['only_missing_master_fields'] ?? false);
+        if ($onlyMissingMasterFields) {
+            $replace = true;
+        }
 
         $query = Exercise::query()
             ->select([
@@ -99,12 +103,31 @@ class RoutineExerciseAutoTaggerService
 
         if (! $replace) {
             $query->whereDoesntHave('libraryTag');
+        } elseif ($onlyMissingMasterFields) {
+            $query->whereHas('libraryTag', function ($tagQuery) {
+                $tagQuery->whereNull('primary_category')
+                    ->orWhere('primary_category', '')
+                    ->orWhereNull('training_adaptation')
+                    ->orWhere('training_adaptation', '')
+                    ->orWhereNull('program_role')
+                    ->orWhere('program_role', '')
+                    ->orWhereNull('exercise_family')
+                    ->orWhere('exercise_family', '')
+                    ->orWhereNull('movement_direction')
+                    ->orWhere('movement_direction', '')
+                    ->orWhereNull('stability_demand')
+                    ->orWhere('stability_demand', '')
+                    ->orWhereNull('variation_type')
+                    ->orWhere('variation_type', '');
+            });
         }
 
         $summary = [
             'dry_run' => $dryRun,
             'approve' => $approve,
             'replace' => $replace,
+            'preserve_review_status' => $preserveReviewStatus,
+            'only_missing_master_fields' => $onlyMissingMasterFields,
             'include_no_audio' => $includeNoAudio,
             'scanned' => 0,
             'tagged' => 0,

@@ -70,3 +70,5 @@ node_modules
 # Local generated cache/temp files
 /bootstrap/cache/*.tmp
 /storage/AuthKey_*.p8
+/storage/app/ai-training/*.jsonl
+/storage/app/ai-training/*-manifest.json
