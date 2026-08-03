@@ -128,8 +128,16 @@ class OllamaExerciseTaggerService
             throw new RuntimeException('Only proposed AI tags can be applied.');
         }
 
+        $proposedPayload = $proposal->proposed_payload;
+        if (
+            (! array_key_exists('confidence', $proposedPayload) || $proposedPayload['confidence'] === null || $proposedPayload['confidence'] === '')
+            && $proposal->confidence !== null
+        ) {
+            $proposedPayload['confidence'] = $proposal->confidence;
+        }
+
         $payload = $this->normalizePayload(
-            $proposal->proposed_payload,
+            $proposedPayload,
             is_array($proposal->source_metadata) ? $proposal->source_metadata : null,
             is_array($proposal->current_tag_payload) ? $proposal->current_tag_payload : null
         );
@@ -232,14 +240,15 @@ class OllamaExerciseTaggerService
         $raw = (string) ($response->json('response') ?? '');
         $decoded = $this->decodeJsonResponse($raw);
         $tagPayload = $decoded['tag'] ?? $decoded;
-        if (isset($decoded['confidence']) && ! isset($tagPayload['confidence'])) {
-            $tagPayload['confidence'] = $decoded['confidence'];
+        $confidence = $this->normalizedConfidence($decoded['confidence'] ?? $tagPayload['confidence'] ?? null);
+        if ($confidence !== null && ! isset($tagPayload['confidence'])) {
+            $tagPayload['confidence'] = $confidence;
         }
         $payload = $this->normalizePayload($tagPayload, $metadata, $currentTagPayload);
 
         return [
             'payload' => $payload,
-            'confidence' => isset($decoded['confidence']) ? max(0, min(1, (float) $decoded['confidence'])) : null,
+            'confidence' => $confidence,
             'reasoning' => isset($decoded['reasoning']) ? (string) $decoded['reasoning'] : null,
             'raw_response' => $raw,
         ];
@@ -1676,6 +1685,15 @@ class OllamaExerciseTaggerService
         }
 
         return max($min, min($max, (int) $value));
+    }
+
+    private function normalizedConfidence($value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return max(0, min(1, (float) $value));
     }
 
     private function nullableString($value, int $max): ?string

@@ -63,7 +63,7 @@
                     <input type="checkbox" :checked="allVisibleSelected" :disabled="proposals.length === 0" @change="toggleSelectAll($event)">
                     <span>{{ selectedIds.length }} selected</span>
                 </label>
-                <button class="tiny-btn" :disabled="selectedIds.length === 0" @click="bulkAction('apply_approve')">Apply + approve selected</button>
+                <button class="tiny-btn" :disabled="selectedIds.length === 0 || selectedHasApprovalBlockers" :title="selectedHasApprovalBlockers ? 'One or more selected proposals need manual review.' : ''" @click="bulkAction('apply_approve')">Apply + approve selected</button>
                 <button class="tiny-btn" :disabled="selectedIds.length === 0" @click="bulkAction('apply_pending')">Apply pending selected</button>
                 <button class="tiny-btn reject" :disabled="selectedIds.length === 0" @click="bulkAction('remove')">Remove selected</button>
                 <button class="tiny-btn" :disabled="selectedIds.length === 0" @click="selectedProposalIds = []">Clear selection</button>
@@ -141,8 +141,8 @@
                                 <div>{{ proposal.proposed_payload.impact_level || '-' }} impact / {{ proposal.proposed_payload.intensity_level || '-' }} intensity</div>
                                 <div v-if="proposal.proposed_payload.safety_flags && proposal.proposed_payload.safety_flags.unsafe_as_warmup" class="danger-text">Unsafe as warm-up</div>
                                 <div class="usage-list">{{ enabledUsage(proposal.proposed_payload.usage_flags).join(', ') || 'No usage flags' }}</div>
-                                <div v-if="hasReviewBlockers(proposal)" class="danger-text">
-                                    {{ proposal.proposed_payload.review_blockers.join('; ') }}
+                                <div v-if="hasApprovalBlockers(proposal)" class="danger-text">
+                                    {{ approvalBlockers(proposal).join('; ') }}
                                 </div>
                                 <div v-if="proposal.reasoning" class="muted small-text">{{ proposal.reasoning }}</div>
                             </div>
@@ -152,7 +152,7 @@
                             <div class="muted small-text">{{ proposal.model }}</div>
                         </td>
                         <td class="text-end">
-                            <button v-if="proposal.status === 'proposed'" class="tiny-btn" :disabled="hasReviewBlockers(proposal)" :title="hasReviewBlockers(proposal) ? 'Clear blockers in Exercise Tags before approving.' : ''" @click="applyProposal(proposal.id, true)">Apply + approve</button>
+                            <button v-if="proposal.status === 'proposed'" class="tiny-btn" :disabled="hasApprovalBlockers(proposal)" :title="hasApprovalBlockers(proposal) ? 'Apply pending first; this proposal needs manual review.' : ''" @click="applyProposal(proposal.id, true)">Apply + approve</button>
                             <button v-if="proposal.status === 'proposed'" class="tiny-btn" @click="applyProposal(proposal.id, false)">Apply pending</button>
                             <button v-if="['queued', 'processing', 'proposed', 'failed'].includes(proposal.status)" class="tiny-btn reject" @click="rejectProposal(proposal.id)">Remove</button>
                         </td>
@@ -201,6 +201,12 @@ export default {
     computed: {
         selectedIds() {
             return this.selectedProposalIds.map(id => Number(id)).filter(Boolean);
+        },
+        selectedProposals() {
+            return this.proposals.filter(proposal => this.selectedIds.includes(Number(proposal.id)));
+        },
+        selectedHasApprovalBlockers() {
+            return this.selectedProposals.some(proposal => this.hasApprovalBlockers(proposal));
         },
         allVisibleSelected() {
             return this.proposals.length > 0 && this.proposals.every(proposal => this.selectedIds.includes(Number(proposal.id)));
@@ -341,9 +347,26 @@ export default {
             }
             return Object.keys(flags).filter(key => flags[key]).map(this.readableStatus);
         },
-        hasReviewBlockers(proposal) {
+        hasApprovalBlockers(proposal) {
+            return this.approvalBlockers(proposal).length > 0;
+        },
+        approvalBlockers(proposal) {
             const blockers = proposal?.proposed_payload?.review_blockers;
-            return Array.isArray(blockers) && blockers.length > 0;
+            const list = Array.isArray(blockers) ? [...blockers] : [];
+            if (this.isLowConfidence(proposal)) {
+                list.push('Low AI confidence; apply pending and review manually before approval.');
+            }
+            return [...new Set(list.filter(Boolean))];
+        },
+        isLowConfidence(proposal) {
+            const bucket = proposal?.proposed_payload?.confidence_bucket;
+            if (bucket === 'low') {
+                return true;
+            }
+            if (proposal?.confidence === null || proposal?.confidence === undefined || proposal?.confidence === '') {
+                return false;
+            }
+            return Number(proposal.confidence) < 0.55;
         },
         hasActiveQueue() {
             return (Number(this.summary.queued || 0) + Number(this.summary.processing || 0)) > 0;

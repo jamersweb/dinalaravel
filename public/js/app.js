@@ -64785,6 +64785,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components_loader_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../components/loader.vue */ "./resources/js/components/loader.vue");
 /* harmony import */ var _components_inform_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../components/inform.vue */ "./resources/js/components/inform.vue");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) { n[e] = r[e]; } return n; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
@@ -64832,10 +64838,22 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         return Number(id);
       }).filter(Boolean);
     },
-    allVisibleSelected: function allVisibleSelected() {
+    selectedProposals: function selectedProposals() {
       var _this = this;
-      return this.proposals.length > 0 && this.proposals.every(function (proposal) {
+      return this.proposals.filter(function (proposal) {
         return _this.selectedIds.includes(Number(proposal.id));
+      });
+    },
+    selectedHasApprovalBlockers: function selectedHasApprovalBlockers() {
+      var _this2 = this;
+      return this.selectedProposals.some(function (proposal) {
+        return _this2.hasApprovalBlockers(proposal);
+      });
+    },
+    allVisibleSelected: function allVisibleSelected() {
+      var _this3 = this;
+      return this.proposals.length > 0 && this.proposals.every(function (proposal) {
+        return _this3.selectedIds.includes(Number(proposal.id));
       });
     }
   },
@@ -64847,7 +64865,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   },
   methods: {
     fetchProposals: function fetchProposals() {
-      var _this2 = this;
+      var _this4 = this;
       this.loading = !this.pollingTimer;
       axios__WEBPACK_IMPORTED_MODULE_0__["default"].get(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags', _objectSpread(_objectSpread({}, this.apiConfig), {}, {
         params: {
@@ -64858,28 +64876,28 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         }
       })).then(function (res) {
         var _res$data$data;
-        _this2.proposals = ((_res$data$data = res.data.data) === null || _res$data$data === void 0 ? void 0 : _res$data$data.data) || [];
-        _this2.summary = res.data.summary || {};
-        var visibleIds = _this2.proposals.map(function (proposal) {
+        _this4.proposals = ((_res$data$data = res.data.data) === null || _res$data$data === void 0 ? void 0 : _res$data$data.data) || [];
+        _this4.summary = res.data.summary || {};
+        var visibleIds = _this4.proposals.map(function (proposal) {
           return Number(proposal.id);
         });
-        _this2.selectedProposalIds = _this2.selectedIds.filter(function (id) {
+        _this4.selectedProposalIds = _this4.selectedIds.filter(function (id) {
           return visibleIds.includes(id);
         });
-        if (!_this2.filters.model) {
+        if (!_this4.filters.model) {
           var _res$data$options;
-          _this2.filters.model = ((_res$data$options = res.data.options) === null || _res$data$options === void 0 ? void 0 : _res$data$options.default_model) || 'qwen2.5vl:7b';
+          _this4.filters.model = ((_res$data$options = res.data.options) === null || _res$data$options === void 0 ? void 0 : _res$data$options.default_model) || 'qwen2.5vl:7b';
         }
-        _this2.togglePolling();
+        _this4.togglePolling();
       })["catch"](function (er) {
         var _er$response, _er$response$data;
-        return _this2.showError(((_er$response = er.response) === null || _er$response === void 0 ? void 0 : (_er$response$data = _er$response.data) === null || _er$response$data === void 0 ? void 0 : _er$response$data.message) || er.message);
+        return _this4.showError(((_er$response = er.response) === null || _er$response === void 0 ? void 0 : (_er$response$data = _er$response.data) === null || _er$response$data === void 0 ? void 0 : _er$response$data.message) || er.message);
       })["finally"](function () {
-        _this2.loading = false;
+        _this4.loading = false;
       });
     },
     generateProposals: function generateProposals() {
-      var _this3 = this;
+      var _this5 = this;
       this.loading = true;
       this.loadingText = 'Asking Ollama/Qwen to tag videos...';
       axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/generate', {
@@ -64890,69 +64908,69 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         limit: this.filters.limit,
         model: this.filters.model || undefined
       }, this.apiConfig).then(function (res) {
-        _this3.modalTitle = 'AI tagging queued';
-        _this3.modalDetail = res.data.message || 'AI proposals queued.';
-        _this3.informModal = true;
-        _this3.fetchProposals();
-        _this3.startPolling();
+        _this5.modalTitle = 'AI tagging queued';
+        _this5.modalDetail = res.data.message || 'AI proposals queued.';
+        _this5.informModal = true;
+        _this5.fetchProposals();
+        _this5.startPolling();
       })["catch"](function (er) {
         var _er$response2, _er$response2$data;
-        return _this3.showError(((_er$response2 = er.response) === null || _er$response2 === void 0 ? void 0 : (_er$response2$data = _er$response2.data) === null || _er$response2$data === void 0 ? void 0 : _er$response2$data.message) || er.message);
+        return _this5.showError(((_er$response2 = er.response) === null || _er$response2 === void 0 ? void 0 : (_er$response2$data = _er$response2.data) === null || _er$response2$data === void 0 ? void 0 : _er$response2$data.message) || er.message);
       })["finally"](function () {
-        _this3.loading = false;
-        _this3.loadingText = 'Loading...';
+        _this5.loading = false;
+        _this5.loadingText = 'Loading...';
       });
     },
     applyProposal: function applyProposal(id, approve) {
-      var _this4 = this;
+      var _this6 = this;
       this.loading = true;
       axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/' + id + '/apply', {
         approve: approve
       }, this.apiConfig).then(function (res) {
-        _this4.modalTitle = 'Applied';
-        _this4.modalDetail = res.data.message || 'AI proposal applied.';
-        _this4.informModal = true;
-        _this4.fetchProposals();
-      })["catch"](function (er) {
-        var _er$response3, _er$response3$data;
-        return _this4.showError(((_er$response3 = er.response) === null || _er$response3 === void 0 ? void 0 : (_er$response3$data = _er$response3.data) === null || _er$response3$data === void 0 ? void 0 : _er$response3$data.message) || er.message);
-      })["finally"](function () {
-        _this4.loading = false;
-      });
-    },
-    rejectProposal: function rejectProposal(id) {
-      var _this5 = this;
-      this.loading = true;
-      axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/' + id + '/reject', {}, this.apiConfig).then(function (res) {
-        _this5.modalTitle = 'Removed';
-        _this5.modalDetail = res.data.message || 'AI proposal removed.';
-        _this5.informModal = true;
-        _this5.fetchProposals();
-      })["catch"](function (er) {
-        var _er$response4, _er$response4$data;
-        return _this5.showError(((_er$response4 = er.response) === null || _er$response4 === void 0 ? void 0 : (_er$response4$data = _er$response4.data) === null || _er$response4$data === void 0 ? void 0 : _er$response4$data.message) || er.message);
-      })["finally"](function () {
-        _this5.loading = false;
-      });
-    },
-    clearRejectedProposals: function clearRejectedProposals() {
-      var _this6 = this;
-      this.loading = true;
-      axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/clear-rejected', {}, this.apiConfig).then(function (res) {
-        _this6.modalTitle = 'Cleared';
-        _this6.modalDetail = res.data.message || 'Rejected/failed proposals removed.';
+        _this6.modalTitle = 'Applied';
+        _this6.modalDetail = res.data.message || 'AI proposal applied.';
         _this6.informModal = true;
-        _this6.filters.status = 'proposed';
         _this6.fetchProposals();
       })["catch"](function (er) {
-        var _er$response5, _er$response5$data;
-        return _this6.showError(((_er$response5 = er.response) === null || _er$response5 === void 0 ? void 0 : (_er$response5$data = _er$response5.data) === null || _er$response5$data === void 0 ? void 0 : _er$response5$data.message) || er.message);
+        var _er$response3, _er$response3$data;
+        return _this6.showError(((_er$response3 = er.response) === null || _er$response3 === void 0 ? void 0 : (_er$response3$data = _er$response3.data) === null || _er$response3$data === void 0 ? void 0 : _er$response3$data.message) || er.message);
       })["finally"](function () {
         _this6.loading = false;
       });
     },
-    bulkAction: function bulkAction(action) {
+    rejectProposal: function rejectProposal(id) {
       var _this7 = this;
+      this.loading = true;
+      axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/' + id + '/reject', {}, this.apiConfig).then(function (res) {
+        _this7.modalTitle = 'Removed';
+        _this7.modalDetail = res.data.message || 'AI proposal removed.';
+        _this7.informModal = true;
+        _this7.fetchProposals();
+      })["catch"](function (er) {
+        var _er$response4, _er$response4$data;
+        return _this7.showError(((_er$response4 = er.response) === null || _er$response4 === void 0 ? void 0 : (_er$response4$data = _er$response4.data) === null || _er$response4$data === void 0 ? void 0 : _er$response4$data.message) || er.message);
+      })["finally"](function () {
+        _this7.loading = false;
+      });
+    },
+    clearRejectedProposals: function clearRejectedProposals() {
+      var _this8 = this;
+      this.loading = true;
+      axios__WEBPACK_IMPORTED_MODULE_0__["default"].post(_config__WEBPACK_IMPORTED_MODULE_1__["default"].baseApiUrl + 'routine-library/ai-video-tags/clear-rejected', {}, this.apiConfig).then(function (res) {
+        _this8.modalTitle = 'Cleared';
+        _this8.modalDetail = res.data.message || 'Rejected/failed proposals removed.';
+        _this8.informModal = true;
+        _this8.filters.status = 'proposed';
+        _this8.fetchProposals();
+      })["catch"](function (er) {
+        var _er$response5, _er$response5$data;
+        return _this8.showError(((_er$response5 = er.response) === null || _er$response5 === void 0 ? void 0 : (_er$response5$data = _er$response5.data) === null || _er$response5$data === void 0 ? void 0 : _er$response5$data.message) || er.message);
+      })["finally"](function () {
+        _this8.loading = false;
+      });
+    },
+    bulkAction: function bulkAction(action) {
+      var _this9 = this;
       if (this.selectedIds.length === 0) {
         return;
       }
@@ -64969,16 +64987,16 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         ids: this.selectedIds,
         action: action
       }, this.apiConfig).then(function (res) {
-        _this7.modalTitle = 'Bulk action complete';
-        _this7.modalDetail = res.data.message || 'Selected proposals updated.';
-        _this7.informModal = true;
-        _this7.selectedProposalIds = [];
-        _this7.fetchProposals();
+        _this9.modalTitle = 'Bulk action complete';
+        _this9.modalDetail = res.data.message || 'Selected proposals updated.';
+        _this9.informModal = true;
+        _this9.selectedProposalIds = [];
+        _this9.fetchProposals();
       })["catch"](function (er) {
         var _er$response6, _er$response6$data;
-        return _this7.showError(((_er$response6 = er.response) === null || _er$response6 === void 0 ? void 0 : (_er$response6$data = _er$response6.data) === null || _er$response6$data === void 0 ? void 0 : _er$response6$data.message) || er.message);
+        return _this9.showError(((_er$response6 = er.response) === null || _er$response6 === void 0 ? void 0 : (_er$response6$data = _er$response6.data) === null || _er$response6$data === void 0 ? void 0 : _er$response6$data.message) || er.message);
       })["finally"](function () {
-        _this7.loading = false;
+        _this9.loading = false;
       });
     },
     toggleSelectAll: function toggleSelectAll(event) {
@@ -64998,10 +65016,28 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         return flags[key];
       }).map(this.readableStatus);
     },
-    hasReviewBlockers: function hasReviewBlockers(proposal) {
+    hasApprovalBlockers: function hasApprovalBlockers(proposal) {
+      return this.approvalBlockers(proposal).length > 0;
+    },
+    approvalBlockers: function approvalBlockers(proposal) {
       var _proposal$proposed_pa;
       var blockers = proposal === null || proposal === void 0 ? void 0 : (_proposal$proposed_pa = proposal.proposed_payload) === null || _proposal$proposed_pa === void 0 ? void 0 : _proposal$proposed_pa.review_blockers;
-      return Array.isArray(blockers) && blockers.length > 0;
+      var list = Array.isArray(blockers) ? _toConsumableArray(blockers) : [];
+      if (this.isLowConfidence(proposal)) {
+        list.push('Low AI confidence; apply pending and review manually before approval.');
+      }
+      return _toConsumableArray(new Set(list.filter(Boolean)));
+    },
+    isLowConfidence: function isLowConfidence(proposal) {
+      var _proposal$proposed_pa2;
+      var bucket = proposal === null || proposal === void 0 ? void 0 : (_proposal$proposed_pa2 = proposal.proposed_payload) === null || _proposal$proposed_pa2 === void 0 ? void 0 : _proposal$proposed_pa2.confidence_bucket;
+      if (bucket === 'low') {
+        return true;
+      }
+      if ((proposal === null || proposal === void 0 ? void 0 : proposal.confidence) === null || (proposal === null || proposal === void 0 ? void 0 : proposal.confidence) === undefined || (proposal === null || proposal === void 0 ? void 0 : proposal.confidence) === '') {
+        return false;
+      }
+      return Number(proposal.confidence) < 0.55;
     },
     hasActiveQueue: function hasActiveQueue() {
       return Number(this.summary.queued || 0) + Number(this.summary.processing || 0) > 0;
@@ -65014,12 +65050,12 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       }
     },
     startPolling: function startPolling() {
-      var _this8 = this;
+      var _this0 = this;
       if (this.pollingTimer) {
         return;
       }
       this.pollingTimer = setInterval(function () {
-        _this8.fetchProposals();
+        _this0.fetchProposals();
       }, 5000);
     },
     stopPolling: function stopPolling() {
@@ -103175,7 +103211,7 @@ var _hoisted_31 = {
   "class": "select-all"
 };
 var _hoisted_32 = ["checked", "disabled"];
-var _hoisted_33 = ["disabled"];
+var _hoisted_33 = ["disabled", "title"];
 var _hoisted_34 = ["disabled"];
 var _hoisted_35 = ["disabled"];
 var _hoisted_36 = ["disabled"];
@@ -103383,7 +103419,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   }, null, 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_32), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.selectedIds.length) + " selected", 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "tiny-btn",
-    disabled: $options.selectedIds.length === 0,
+    disabled: $options.selectedIds.length === 0 || $options.selectedHasApprovalBlockers,
+    title: $options.selectedHasApprovalBlockers ? 'One or more selected proposals need manual review.' : '',
     onClick: _cache[14] || (_cache[14] = function ($event) {
       return $options.bulkAction('apply_approve');
     })
@@ -103426,13 +103463,13 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       key: 0,
       src: proposal.exercise.image,
       alt: ""
-    }, null, 8 /* PROPS */, _hoisted_52)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise = proposal.exercise) === null || _proposal$exercise === void 0 ? void 0 : _proposal$exercise.title) || 'Deleted exercise'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_53, "ID " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.exercise_id) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise2 = proposal.exercise) === null || _proposal$exercise2 === void 0 ? void 0 : _proposal$exercise2.content_code) || '-'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_54, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableLanguage((_proposal$exercise3 = proposal.exercise) === null || _proposal$exercise3 === void 0 ? void 0 : _proposal$exercise3.language)) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise4 = proposal.exercise) === null || _proposal$exercise4 === void 0 ? void 0 : _proposal$exercise4.video_type) || '-'), 1 /* TEXT */)])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.current_tag_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_55, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.current_tag_payload.exercise_type)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.current_tag_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.current_tag_payload.muscle_group || '-'), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_56, "No current tag"))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_57, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.primary_category || proposal.proposed_payload.exercise_type)), 1 /* TEXT */), proposal.proposed_payload.secondary_categories && proposal.proposed_payload.secondary_categories.length ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_58, " + " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.secondary_categories.map($options.readableStatus).join(', ')), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.training_adaptation || '-')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_59, "Role: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.program_role || '-')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.proposed_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.muscle_group || '-') + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.difficulty), 1 /* TEXT */), proposal.proposed_payload.body_regions && proposal.proposed_payload.body_regions.length ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_60, " Regions: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.body_regions.map($options.readableStatus).join(', ')), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), proposal.proposed_payload.exercise_family ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_61, " Family: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.exercise_family)), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_62, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.movement_direction || '-')) + " / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.stability_demand || '-')) + " / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.variation_type || '-')), 1 /* TEXT */), proposal.proposed_payload.confidence_bucket ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_63, " Bucket: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.confidence_bucket)), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_64, "Confidence " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.confidence(proposal.confidence)), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_65, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.error_message || 'No proposal'), 1 /* TEXT */))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_66, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.impact_level || '-') + " impact / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.intensity_level || '-') + " intensity", 1 /* TEXT */), proposal.proposed_payload.safety_flags && proposal.proposed_payload.safety_flags.unsafe_as_warmup ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_67, "Unsafe as warm-up")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_68, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.enabledUsage(proposal.proposed_payload.usage_flags).join(', ') || 'No usage flags'), 1 /* TEXT */), $options.hasReviewBlockers(proposal) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_69, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.review_blockers.join('; ')), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), proposal.reasoning ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_70, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.reasoning), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+    }, null, 8 /* PROPS */, _hoisted_52)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise = proposal.exercise) === null || _proposal$exercise === void 0 ? void 0 : _proposal$exercise.title) || 'Deleted exercise'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_53, "ID " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.exercise_id) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise2 = proposal.exercise) === null || _proposal$exercise2 === void 0 ? void 0 : _proposal$exercise2.content_code) || '-'), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_54, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableLanguage((_proposal$exercise3 = proposal.exercise) === null || _proposal$exercise3 === void 0 ? void 0 : _proposal$exercise3.language)) + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(((_proposal$exercise4 = proposal.exercise) === null || _proposal$exercise4 === void 0 ? void 0 : _proposal$exercise4.video_type) || '-'), 1 /* TEXT */)])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.current_tag_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_55, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.current_tag_payload.exercise_type)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.current_tag_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.current_tag_payload.muscle_group || '-'), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_56, "No current tag"))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_57, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.primary_category || proposal.proposed_payload.exercise_type)), 1 /* TEXT */), proposal.proposed_payload.secondary_categories && proposal.proposed_payload.secondary_categories.length ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_58, " + " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.secondary_categories.map($options.readableStatus).join(', ')), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.training_adaptation || '-')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_59, "Role: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.program_role || '-')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableEquipment(proposal.proposed_payload.equipment_category)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.muscle_group || '-') + " | " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.difficulty), 1 /* TEXT */), proposal.proposed_payload.body_regions && proposal.proposed_payload.body_regions.length ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_60, " Regions: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.body_regions.map($options.readableStatus).join(', ')), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), proposal.proposed_payload.exercise_family ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_61, " Family: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.exercise_family)), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_62, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.movement_direction || '-')) + " / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.stability_demand || '-')) + " / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.variation_type || '-')), 1 /* TEXT */), proposal.proposed_payload.confidence_bucket ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_63, " Bucket: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.proposed_payload.confidence_bucket)), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_64, "Confidence " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.confidence(proposal.confidence)), 1 /* TEXT */)])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_65, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.error_message || 'No proposal'), 1 /* TEXT */))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [proposal.proposed_payload ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_66, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.impact_level || '-') + " impact / " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.proposed_payload.intensity_level || '-') + " intensity", 1 /* TEXT */), proposal.proposed_payload.safety_flags && proposal.proposed_payload.safety_flags.unsafe_as_warmup ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_67, "Unsafe as warm-up")) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_68, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.enabledUsage(proposal.proposed_payload.usage_flags).join(', ') || 'No usage flags'), 1 /* TEXT */), $options.hasApprovalBlockers(proposal) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_69, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.approvalBlockers(proposal).join('; ')), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), proposal.reasoning ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_70, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.reasoning), 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
       "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["status-badge", 'status-' + proposal.status])
     }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.readableStatus(proposal.status)), 3 /* TEXT, CLASS */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_71, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(proposal.model), 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("td", _hoisted_72, [proposal.status === 'proposed' ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("button", {
       key: 0,
       "class": "tiny-btn",
-      disabled: $options.hasReviewBlockers(proposal),
-      title: $options.hasReviewBlockers(proposal) ? 'Clear blockers in Exercise Tags before approving.' : '',
+      disabled: $options.hasApprovalBlockers(proposal),
+      title: $options.hasApprovalBlockers(proposal) ? 'Apply pending first; this proposal needs manual review.' : '',
       onClick: function onClick($event) {
         return $options.applyProposal(proposal.id, true);
       }
