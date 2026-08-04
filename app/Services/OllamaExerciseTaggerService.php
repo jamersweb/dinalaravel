@@ -1897,15 +1897,20 @@ class OllamaExerciseTaggerService
 
     private function integerArray($value): array
     {
-        if (! is_array($value)) {
-            $value = [$value];
+        $items = [];
+        foreach ($this->flattenScalarValues($value) as $item) {
+            $id = (int) $item;
+            if ($id > 0) {
+                $items[] = $id;
+            }
         }
 
-        return array_values(array_unique(array_filter(array_map('intval', $value), fn (int $id) => $id > 0)));
+        return array_values(array_unique($items));
     }
 
     private function nullablePositiveInteger($value): ?int
     {
+        $value = $this->scalarString($value);
         if ($value === null || $value === '') {
             return null;
         }
@@ -1917,7 +1922,7 @@ class OllamaExerciseTaggerService
 
     private function normalizeKey($value): string
     {
-        $value = strtolower(trim((string) $value));
+        $value = strtolower($this->scalarString($value));
         $value = str_replace(['&', '/', '-'], ' ', $value);
         $value = preg_replace('/[^a-z0-9]+/', '_', $value) ?? '';
 
@@ -1958,10 +1963,8 @@ class OllamaExerciseTaggerService
     private function scalarString($value, string $fallback = ''): string
     {
         if (is_array($value)) {
-            foreach ($value as $item) {
-                if (is_scalar($item) && trim((string) $item) !== '') {
-                    return trim((string) $item);
-                }
+            foreach ($this->flattenScalarValues($value) as $item) {
+                return trim((string) $item);
             }
 
             return $fallback;
@@ -1976,18 +1979,36 @@ class OllamaExerciseTaggerService
 
     private function stringArray($value): array
     {
-        if (! is_array($value)) {
-            $value = [$value];
+        $items = [];
+        foreach ($this->flattenScalarValues($value) as $item) {
+            $string = strtolower(trim((string) $item));
+            if ($string !== '') {
+                $items[] = $string;
+            }
         }
 
-        return array_values(array_unique(array_filter(array_map(
-            fn ($item) => strtolower(trim((string) $item)),
-            $value
-        ))));
+        return array_values(array_unique($items));
+    }
+
+    private function flattenScalarValues($value): array
+    {
+        if (! is_array($value)) {
+            return is_scalar($value) && trim((string) $value) !== '' ? [$value] : [];
+        }
+
+        $items = [];
+        foreach ($value as $item) {
+            foreach ($this->flattenScalarValues($item) as $nested) {
+                $items[] = $nested;
+            }
+        }
+
+        return $items;
     }
 
     private function nullableInteger($value, int $min, int $max): ?int
     {
+        $value = $this->scalarString($value);
         if ($value === null || $value === '') {
             return null;
         }
@@ -1997,6 +2018,7 @@ class OllamaExerciseTaggerService
 
     private function normalizedConfidence($value): ?float
     {
+        $value = $this->scalarString($value);
         if ($value === null || $value === '') {
             return null;
         }
