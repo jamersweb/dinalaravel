@@ -242,7 +242,11 @@ class OllamaExerciseTaggerService
         }
 
         $raw = (string) ($response->json('response') ?? '');
-        $decoded = $this->decodeJsonResponse($raw);
+        try {
+            $decoded = $this->decodeJsonResponse($raw);
+        } catch (RuntimeException $e) {
+            $decoded = $this->repairJsonResponseWithOllama($baseUrl, $timeout, $model, $raw, $request['options']);
+        }
         $tagPayload = is_array($decoded['tag'] ?? null) ? $decoded['tag'] : $decoded;
         $confidence = $this->normalizedConfidence($decoded['confidence'] ?? $tagPayload['confidence'] ?? null);
         $confidence ??= $this->confidenceFromBucket($decoded['confidence_bucket'] ?? $tagPayload['confidence_bucket'] ?? null);
@@ -269,6 +273,89 @@ class OllamaExerciseTaggerService
         }
 
         return '- ' . mb_substr($body, 0, 300);
+    }
+
+    private function shortModelOutput(string $raw): string
+    {
+        $raw = trim(preg_replace('/\s+/', ' ', $raw) ?? '');
+        if ($raw === '') {
+            return '[empty]';
+        }
+
+        return mb_substr($raw, 0, 700);
+    }
+
+    private function repairJsonResponseWithOllama(string $baseUrl, int $timeout, string $model, string $raw, array $options): array
+    {
+        if (trim($raw) === '') {
+            throw new RuntimeException('Ollama response was empty.');
+        }
+
+        $repairRequest = [
+            'model' => $model,
+            'stream' => false,
+            'format' => 'json',
+            'prompt' => $this->jsonRepairPrompt($raw),
+            'options' => array_merge($options, [
+                'temperature' => 0,
+                'num_ctx' => max(4096, (int) ($options['num_ctx'] ?? 8192)),
+                'num_predict' => max(512, (int) ($options['num_predict'] ?? 1024)),
+            ]),
+        ];
+
+        $response = Http::timeout($timeout)->post($baseUrl . '/api/generate', $repairRequest);
+        if (! $response->successful()) {
+            throw new RuntimeException(
+                'Ollama response was not valid JSON and repair request failed: HTTP '
+                . $response->status()
+                . ' '
+                . $this->shortResponseBody($response->body())
+                . ' Raw output: '
+                . $this->shortModelOutput($raw)
+            );
+        }
+
+        $repairRaw = (string) ($response->json('response') ?? '');
+        try {
+            return $this->decodeJsonResponse($repairRaw);
+        } catch (RuntimeException $e) {
+            throw new RuntimeException(
+                'Ollama response was not valid JSON. Raw output: '
+                . $this->shortModelOutput($raw)
+                . ' Repair output: '
+                . $this->shortModelOutput($repairRaw)
+            );
+        }
+    }
+
+    private function jsonRepairPrompt(string $raw): string
+    {
+        $schema = [
+            'top_level' => ['tag' => 'object', 'confidence' => '0_to_1', 'reasoning' => 'short string'],
+            'allowed_tag_values' => [
+                'language' => RoutineLibraryRules::LANGUAGES,
+                'equipment_category' => RoutineLibraryRules::EQUIPMENT_CATEGORIES,
+                'primary_category' => RoutineLibraryRules::PRIMARY_CATEGORIES,
+                'training_adaptation' => RoutineLibraryRules::TRAINING_ADAPTATIONS,
+                'program_role' => RoutineLibraryRules::PROGRAM_ROLES,
+                'exercise_type' => RoutineLibraryRules::EXERCISE_TYPES,
+                'body_regions' => RoutineLibraryRules::BODY_REGIONS,
+                'workout_sections' => array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS),
+                'impact_level' => RoutineLibraryRules::IMPACT_LEVELS,
+                'intensity_level' => RoutineLibraryRules::INTENSITY_LEVELS,
+                'difficulty' => RoutineLibraryRules::LEVELS,
+                'confidence_bucket' => RoutineLibraryRules::CONFIDENCE_BUCKETS,
+            ],
+        ];
+
+        return 'Repair this malformed AI exercise-tagging response into exactly one valid JSON object. '
+            . 'Return JSON only, no markdown and no trailing text. '
+            . 'The output must have top-level keys tag, confidence, and reasoning. '
+            . 'Preserve useful tag fields from the raw response. If confidence or reasoning is missing, set confidence to 0.5 and reasoning to "Recovered from malformed model output; pending manual review." '
+            . 'Use only approved values from this compact schema where listed: '
+            . json_encode($schema, JSON_UNESCAPED_SLASHES)
+            . "\nRaw response:\n"
+            . mb_substr($raw, 0, 6000);
     }
 
     private function prompt(array $metadata, ?array $currentTagPayload): string
