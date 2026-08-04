@@ -46,6 +46,8 @@ return [
         'base_url' => env('OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
         'model' => env('OLLAMA_MODEL', 'qwen2.5vl:7b'),
         'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
+        'num_ctx' => (int) env('OLLAMA_NUM_CTX', 8192),
+        'num_predict' => (int) env('OLLAMA_NUM_PREDICT', 1024),
     ],
 
 ];

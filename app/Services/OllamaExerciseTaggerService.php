@@ -212,6 +212,8 @@ class OllamaExerciseTaggerService
     {
         $baseUrl = rtrim((string) config('services.ollama.base_url', 'http://127.0.0.1:11434'), '/');
         $timeout = (int) config('services.ollama.timeout', 120);
+        $numCtx = max(4096, (int) config('services.ollama.num_ctx', 8192));
+        $numPredict = max(256, (int) config('services.ollama.num_predict', 1024));
         $request = [
             'model' => $model,
             'stream' => false,
@@ -219,6 +221,8 @@ class OllamaExerciseTaggerService
             'prompt' => $this->prompt($metadata, $currentTagPayload),
             'options' => [
                 'temperature' => 0.1,
+                'num_ctx' => $numCtx,
+                'num_predict' => $numPredict,
             ],
         ];
 
