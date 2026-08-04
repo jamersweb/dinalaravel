@@ -239,17 +239,20 @@ class OllamaExerciseTaggerService
 
         $raw = (string) ($response->json('response') ?? '');
         $decoded = $this->decodeJsonResponse($raw);
-        $tagPayload = $decoded['tag'] ?? $decoded;
+        $tagPayload = is_array($decoded['tag'] ?? null) ? $decoded['tag'] : $decoded;
         $confidence = $this->normalizedConfidence($decoded['confidence'] ?? $tagPayload['confidence'] ?? null);
-        if ($confidence !== null && ! isset($tagPayload['confidence'])) {
+        $confidence ??= $this->confidenceFromBucket($decoded['confidence_bucket'] ?? $tagPayload['confidence_bucket'] ?? null);
+        $confidence ??= 0.5;
+        if (! isset($tagPayload['confidence'])) {
             $tagPayload['confidence'] = $confidence;
         }
         $payload = $this->normalizePayload($tagPayload, $metadata, $currentTagPayload);
+        $reasoning = trim($this->scalarString($decoded['reasoning'] ?? null));
 
         return [
             'payload' => $payload,
             'confidence' => $confidence,
-            'reasoning' => isset($decoded['reasoning']) ? (string) $decoded['reasoning'] : null,
+            'reasoning' => $reasoning !== '' ? $reasoning : 'AI-generated proposal normalized by the Dina taxonomy guardrails.',
             'raw_response' => $raw,
         ];
     }
@@ -353,19 +356,163 @@ class OllamaExerciseTaggerService
 
     private function decodeJsonResponse(string $raw): array
     {
-        $decoded = json_decode($raw, true);
-        if (is_array($decoded)) {
-            return $decoded;
+        $candidates = [$raw];
+        $balanced = $this->firstBalancedJsonObject($raw);
+        if ($balanced !== null) {
+            array_unshift($candidates, $balanced);
         }
 
         if (preg_match('/\{.*\}/s', $raw, $matches)) {
-            $decoded = json_decode($matches[0], true);
+            $candidates[] = $matches[0];
+        }
+
+        foreach (array_unique(array_filter(array_map('trim', $candidates))) as $candidate) {
+            $decoded = $this->decodeJsonCandidate($candidate);
             if (is_array($decoded)) {
                 return $decoded;
             }
         }
 
+        $recovered = $this->recoverTagObject($raw);
+        if ($recovered !== null) {
+            return $recovered;
+        }
+
         throw new RuntimeException('Ollama response was not valid JSON.');
+    }
+
+    private function decodeJsonCandidate(string $candidate): ?array
+    {
+        foreach ([$candidate, $this->escapeControlCharactersInJsonStrings($candidate)] as $variant) {
+            $decoded = json_decode($variant, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return null;
+    }
+
+    private function recoverTagObject(string $raw): ?array
+    {
+        if (! preg_match('/"tag"\s*:/', $raw, $match, PREG_OFFSET_CAPTURE)) {
+            return null;
+        }
+
+        $offset = $match[0][1] + strlen($match[0][0]);
+        $tagStart = strpos($raw, '{', $offset);
+        if ($tagStart === false) {
+            return null;
+        }
+
+        $tagJson = $this->firstBalancedJsonObject(substr($raw, $tagStart));
+        if ($tagJson === null) {
+            return null;
+        }
+
+        $tag = $this->decodeJsonCandidate($tagJson);
+        if (! is_array($tag)) {
+            return null;
+        }
+
+        $decoded = [
+            'tag' => $tag,
+            'reasoning' => 'Recovered tag object from malformed Ollama JSON; proposal requires manual review.',
+        ];
+
+        if (preg_match('/"confidence"\s*:\s*(0(?:\.\d+)?|1(?:\.0+)?)/', $raw, $confidenceMatch)) {
+            $decoded['confidence'] = (float) $confidenceMatch[1];
+        }
+
+        return $decoded;
+    }
+
+    private function firstBalancedJsonObject(string $text): ?string
+    {
+        $start = null;
+        $depth = 0;
+        $inString = false;
+        $escaped = false;
+        $length = strlen($text);
+
+        for ($index = 0; $index < $length; $index++) {
+            $char = $text[$index];
+            if ($start === null) {
+                if ($char === '{') {
+                    $start = $index;
+                    $depth = 1;
+                }
+                continue;
+            }
+
+            if ($escaped) {
+                $escaped = false;
+                continue;
+            }
+            if ($char === '\\') {
+                $escaped = true;
+                continue;
+            }
+            if ($char === '"') {
+                $inString = ! $inString;
+                continue;
+            }
+            if ($inString) {
+                continue;
+            }
+            if ($char === '{') {
+                $depth++;
+            } elseif ($char === '}') {
+                $depth--;
+                if ($depth === 0) {
+                    return substr($text, $start, $index - $start + 1);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function escapeControlCharactersInJsonStrings(string $text): string
+    {
+        $result = '';
+        $inString = false;
+        $escaped = false;
+        $length = strlen($text);
+
+        for ($index = 0; $index < $length; $index++) {
+            $char = $text[$index];
+            $ord = ord($char);
+
+            if ($escaped) {
+                $result .= $char;
+                $escaped = false;
+                continue;
+            }
+            if ($char === '\\') {
+                $result .= $char;
+                $escaped = true;
+                continue;
+            }
+            if ($char === '"') {
+                $result .= $char;
+                $inString = ! $inString;
+                continue;
+            }
+            if ($inString && $ord < 32) {
+                $result .= match ($char) {
+                    "\n" => '\\n',
+                    "\r" => '\\r',
+                    "\t" => '\\t',
+                    default => ' ',
+                };
+                continue;
+            }
+
+            $result .= $char;
+        }
+
+        return $result;
     }
 
     private function normalizePayload(array $payload, ?array $metadata = null, ?array $currentTagPayload = null): array
@@ -613,8 +760,18 @@ class OllamaExerciseTaggerService
     private function inferTrainingAdaptation(array $payload, ?array $metadata, string $primaryCategory, string $exerciseType, string $muscleGroup): string
     {
         $title = strtolower($this->scalarString($metadata['title'] ?? null));
+        $rawKey = $this->normalizeControlledKey($payload['training_adaptation'] ?? $payload['training_purpose'] ?? null);
+        $rawKey = [
+            'muscle_gain' => 'hypertrophy',
+            'muscle_growth' => 'hypertrophy',
+            'muscle_building' => 'hypertrophy',
+            'toning' => 'muscular_endurance',
+            'lower_back_strength' => 'strength',
+            'core_strength' => 'strength',
+            'core' => 'stability',
+        ][$rawKey] ?? $rawKey;
         $raw = RoutineLibraryRules::normalizeTaxonomyValue(
-            $payload['training_adaptation'] ?? $payload['training_purpose'] ?? null,
+            $rawKey,
             RoutineLibraryRules::TRAINING_ADAPTATIONS,
             ''
         );
@@ -670,8 +827,19 @@ class OllamaExerciseTaggerService
 
     private function inferProgramRole(array $payload, ?array $metadata, array $usageFlags, string $primaryCategory, string $trainingAdaptation, string $exerciseType, array $safetyFlags): string
     {
+        $rawKey = $this->normalizeControlledKey($payload['program_role'] ?? null);
+        $rawKey = [
+            'abs' => 'core',
+            'main_laying' => 'main_workout',
+            'main_strength_weps_and_weights' => 'main_workout',
+            'main_strength_reps_and_weights' => 'main_workout',
+            'main_strength_weights' => 'main_workout',
+            'lower_back_superset' => 'lower_back_core_preparation',
+            'lower_back_core_superset' => 'lower_back_core_preparation',
+            'core_lower_back_superset' => 'lower_back_core_preparation',
+        ][$rawKey] ?? $rawKey;
         $raw = RoutineLibraryRules::normalizeTaxonomyValue(
-            $payload['program_role'] ?? null,
+            $rawKey,
             RoutineLibraryRules::PROGRAM_ROLES,
             ''
         );
@@ -789,6 +957,11 @@ class OllamaExerciseTaggerService
             'back_lower' => 'lower_back',
             'upper' => 'upper_body',
             'lower' => 'lower_body',
+            'hip' => 'lower_body',
+            'hips' => 'lower_body',
+            'posterior_chain' => 'lower_body',
+            'midsection' => 'core',
+            'abdominals' => 'abs',
         ];
         $value = $aliases[$value] ?? $value;
 
@@ -1282,6 +1455,14 @@ class OllamaExerciseTaggerService
     {
         $title = strtolower($this->scalarString($metadata['title'] ?? null));
         $raw = strtolower(str_replace([' ', '-'], '_', $this->scalarString($payload['exercise_type'] ?? null)));
+        $raw = [
+            'lower' => 'resistance',
+            'lower_body' => 'resistance',
+            'upper' => 'resistance',
+            'upper_body' => 'resistance',
+            'strength' => 'resistance',
+            'strength_training' => 'resistance',
+        ][$raw] ?? $raw;
 
         if ($this->isExplosiveTitle($title)) {
             return 'power_explosive';
@@ -1295,9 +1476,6 @@ class OllamaExerciseTaggerService
         if (preg_match('/\b(elliptical|treadmill|walk|walking|bike|cycling|stepper|rower|cardio)\b/', $title)
             && ! preg_match('/\b(hiit|jump|sprint|burpee|high knee)\b/', $title)) {
             return 'cardio';
-        }
-        if ($raw === 'strength') {
-            return 'resistance';
         }
         if (in_array($raw, ['main', 'resistance', 'bodyweight', 'dumbbell', 'gym', 'cardio', 'cardio_warm_up', 'warm_up', 'mobility', 'stretching', 'activation', 'power_explosive', 'lower_back', 'abs', 'obliques'], true)) {
             return $raw;
@@ -1574,7 +1752,7 @@ class OllamaExerciseTaggerService
     private function allowedStringArray($value, array $allowed): array
     {
         return array_values(array_unique(array_intersect(
-            array_map(fn ($item) => $this->normalizeControlledKey($item), $this->stringArray($value)),
+            array_map(fn ($item) => $this->normalizeAllowedArrayValue($item, $allowed), $this->stringArray($value)),
             $allowed
         )));
     }
@@ -1582,9 +1760,48 @@ class OllamaExerciseTaggerService
     private function droppedControlledValues($value, array $allowed): array
     {
         $raw = $this->stringArray($value);
-        $normalized = array_map(fn ($item) => $this->normalizeControlledKey($item), $raw);
+        $normalized = array_map(fn ($item) => $this->normalizeAllowedArrayValue($item, $allowed), $raw);
 
         return array_values(array_unique(array_filter($normalized, fn ($item) => $item !== '' && ! in_array($item, $allowed, true))));
+    }
+
+    private function normalizeAllowedArrayValue($value, array $allowed): string
+    {
+        $key = $this->normalizeControlledKey($value);
+        if (in_array($key, $allowed, true)) {
+            return $key;
+        }
+
+        $taxonomyValue = RoutineLibraryRules::normalizeTaxonomyValue($key, $allowed, '');
+        if ($taxonomyValue !== '') {
+            return $taxonomyValue;
+        }
+
+        $aliases = [
+            'warm_up' => 'dynamic_warm_up',
+            'warmup' => 'dynamic_warm_up',
+            'dynamic_warmup' => 'dynamic_warm_up',
+            'mobility_warm_up' => 'mobility_dynamic_warm_up',
+            'post_workout' => 'post_workout_stretching',
+            'post_workout_stretch' => 'post_workout_stretching',
+            'post_workout_stretches' => 'post_workout_stretching',
+            'cooldown_stretching' => 'cool_down_stretching',
+            'cool_down_stretch' => 'cool_down_stretching',
+            'main' => 'main_workout',
+            'main_laying' => 'main_workout',
+            'main_strength_weps_and_weights' => 'main_workout',
+            'main_strength_reps_and_weights' => 'main_workout',
+            'lower_back_superset' => 'lower_back_core_superset',
+            'lower_back_core_preparation' => 'lower_back_core_superset',
+            'lower_back_and_core_preparation' => 'lower_back_core_superset',
+            'core_lower_back_superset' => 'lower_back_core_superset',
+            'abs' => 'core_obliques',
+            'obliques' => 'core_obliques',
+            'optional_cardio' => 'optional_additional_cardio',
+        ];
+        $candidate = $aliases[$key] ?? $key;
+
+        return in_array($candidate, $allowed, true) ? $candidate : $key;
     }
 
     private function integerArray($value): array
@@ -1694,6 +1911,17 @@ class OllamaExerciseTaggerService
         }
 
         return max(0, min(1, (float) $value));
+    }
+
+    private function confidenceFromBucket($value): ?float
+    {
+        $bucket = $this->normalizedAllowedValue($value, RoutineLibraryRules::CONFIDENCE_BUCKETS, '');
+
+        return [
+            'high' => 0.85,
+            'medium' => 0.7,
+            'low' => 0.4,
+        ][$bucket] ?? null;
     }
 
     private function nullableString($value, int $max): ?string
