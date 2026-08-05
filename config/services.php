@@ -48,6 +48,7 @@ return [
         'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
         'num_ctx' => (int) env('OLLAMA_NUM_CTX', 8192),
         'num_predict' => (int) env('OLLAMA_NUM_PREDICT', 1024),
+        'use_images' => filter_var(env('OLLAMA_USE_IMAGES', true), FILTER_VALIDATE_BOOLEAN),
     ],
 
 ];

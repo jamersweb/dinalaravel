@@ -226,9 +226,11 @@ class OllamaExerciseTaggerService
             ],
         ];
 
-        $images = $this->ollamaImages($metadata);
-        if ($images !== []) {
-            $request['images'] = $images;
+        if ((bool) config('services.ollama.use_images', true)) {
+            $images = $this->ollamaImages($metadata);
+            if ($images !== []) {
+                $request['images'] = $images;
+            }
         }
 
         $response = Http::timeout($timeout)->post($baseUrl . '/api/generate', $request);
