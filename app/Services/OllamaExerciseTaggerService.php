@@ -194,6 +194,25 @@ class OllamaExerciseTaggerService
         return array_values(array_diff($mergedIds, $existingIds));
     }
 
+    public function legacyMuscleTagNamesFromPayload(?array $payload): array
+    {
+        if (! is_array($payload)) {
+            return [];
+        }
+
+        $names = [];
+        foreach ($this->muscleValuesFromPayload($payload) as $muscle) {
+            foreach ($this->muscleCandidates($muscle) as $candidate) {
+                $name = $this->findLegacyTagName([$candidate], ['Main muscle', 'Muscles']);
+                if ($name !== null) {
+                    $names[] = $name;
+                }
+            }
+        }
+
+        return array_values(array_unique($names));
+    }
+
     public function rejectProposal(AiExerciseTagProposal $proposal): void
     {
         if (! in_array($proposal->status, ['queued', 'processing', 'proposed', 'failed'], true)) {
@@ -1240,11 +1259,7 @@ class OllamaExerciseTaggerService
             $this->appendLegacyTagId($ids, $this->equipmentTagCandidates($equipmentTag), ['Equipment', 'Gym Machines']);
         }
 
-        foreach ($this->muscleCandidates($this->scalarString($payload['muscle_group'] ?? null)) as $candidate) {
-            $this->appendLegacyTagId($ids, [$candidate], ['Main muscle', 'Muscles']);
-        }
-
-        foreach ($this->stringArray($payload['secondary_muscle_groups'] ?? []) as $muscle) {
+        foreach ($this->muscleValuesFromPayload($payload) as $muscle) {
             foreach ($this->muscleCandidates($muscle) as $candidate) {
                 $this->appendLegacyTagId($ids, [$candidate], ['Main muscle', 'Muscles']);
             }
@@ -1255,6 +1270,25 @@ class OllamaExerciseTaggerService
         }
 
         return array_values(array_unique(array_filter($ids)));
+    }
+
+    private function muscleValuesFromPayload(array $payload): array
+    {
+        $muscles = [];
+
+        $primary = $payload['muscle_group'] ?? null;
+        if (is_array($primary)) {
+            $muscles = array_merge($muscles, $this->stringArray($primary));
+        } else {
+            $primary = $this->scalarString($primary);
+            if ($primary !== '') {
+                $muscles[] = $primary;
+            }
+        }
+
+        $muscles = array_merge($muscles, $this->stringArray($payload['secondary_muscle_groups'] ?? []));
+
+        return array_values(array_unique(array_filter($muscles, fn ($muscle) => $muscle !== '-' && $muscle !== '')));
     }
 
     private function equipmentTagCandidates(string $equipmentTag): array
@@ -1291,28 +1325,42 @@ class OllamaExerciseTaggerService
             'abs' => ['Abs/Stomach'],
             'core' => ['Abs/Stomach'],
             'stomach' => ['Abs/Stomach'],
+            'abs stomach' => ['Abs/Stomach'],
             'obliques' => ['Obliques/Side stomach'],
             'side stomach' => ['Obliques/Side stomach'],
+            'obliques side stomach' => ['Obliques/Side stomach'],
             'lower back' => ['Back (lower)', 'Lower back'],
+            'back lower' => ['Back (lower)'],
             'upper back' => ['Back (middle)', 'Lats/wider part of the back'],
             'mid back' => ['Back (middle)'],
             'middle back' => ['Back (middle)'],
+            'back middle' => ['Back (middle)'],
             'back' => ['Back (middle)', 'Back (lower)'],
             'lats' => ['Lats/wider part of the back'],
+            'lats wider part of the back' => ['Lats/wider part of the back'],
             'bicep' => ['Bicep/Upper inner arm'],
             'biceps' => ['Bicep/Upper inner arm'],
+            'bicep upper inner arm' => ['Bicep/Upper inner arm'],
             'tricep' => ['Triceps/back part of your upper arm'],
             'triceps' => ['Triceps/back part of your upper arm'],
+            'triceps back part of your upper arm' => ['Triceps/back part of your upper arm'],
             'glute' => ['Glutes/Butt'],
             'glutes' => ['Glutes/Butt'],
             'butt' => ['Glutes/Butt'],
+            'glutes butt' => ['Glutes/Butt'],
             'hamstring' => ['Hamstrings/Back of the legs'],
             'hamstrings' => ['Hamstrings/Back of the legs'],
+            'hamstrings back of the legs' => ['Hamstrings/Back of the legs'],
             'quads' => ['Quads/Front thighs'],
             'quad' => ['Quads/Front thighs'],
+            'quadriceps' => ['Quads/Front thighs'],
             'front thighs' => ['Quads/Front thighs'],
+            'quads front thighs' => ['Quads/Front thighs'],
             'calf' => ['Calfs'],
             'calves' => ['Calfs'],
+            'chest inner' => ['Chest (inner)'],
+            'chest mid' => ['Chest (mid)'],
+            'chest upper' => ['Chest (upper)'],
             'chest' => ['Chest (mid)', 'Chest (upper)', 'Chest (inner)'],
             'shoulder' => ['Shoulder (side)', 'Shoulder (front)', 'Shoulder (rear)'],
             'shoulders' => ['Shoulder (side)', 'Shoulder (front)', 'Shoulder (rear)'],
@@ -1321,11 +1369,14 @@ class OllamaExerciseTaggerService
             'side shoulder' => ['Shoulder (side)'],
             'abductors' => ['Abductors/Hips'],
             'hips' => ['Abductors/Hips'],
+            'abductors hips' => ['Abductors/Hips'],
             'adductors' => ['Adductors/Inner thigh'],
             'inner thigh' => ['Adductors/Inner thigh'],
+            'adductors inner thigh' => ['Adductors/Inner thigh'],
             'forearms' => ['Forearms'],
             'neck' => ['Neck'],
             'traps' => ['Traps/Lower neck and upper back'],
+            'traps lower neck and upper back' => ['Traps/Lower neck and upper back'],
         ];
 
         return $map[$key] ?? [ucwords($key)];
@@ -1468,6 +1519,34 @@ class OllamaExerciseTaggerService
         return null;
     }
 
+    private function findLegacyTagName(array $names, array $types = []): ?string
+    {
+        $tags = $this->legacyExerciseTags();
+        $normalizedNames = array_values(array_filter(array_map(fn ($name) => $this->normalizeTagLookup($name), $names)));
+        $normalizedTypes = array_values(array_filter(array_map(fn ($type) => $this->normalizeTagLookup($type), $types)));
+        if ($normalizedNames === []) {
+            return null;
+        }
+
+        foreach ($normalizedNames as $name) {
+            foreach ($tags as $tag) {
+                if ($tag['normalized_name'] === $name && ($normalizedTypes === [] || in_array($tag['normalized_type'], $normalizedTypes, true))) {
+                    return $tag['name'];
+                }
+            }
+        }
+
+        foreach ($normalizedNames as $name) {
+            foreach ($tags as $tag) {
+                if ($tag['normalized_name'] === $name) {
+                    return $tag['name'];
+                }
+            }
+        }
+
+        return null;
+    }
+
     private function legacyExerciseTags(): array
     {
         if ($this->legacyExerciseTags !== null) {
@@ -1480,6 +1559,7 @@ class OllamaExerciseTaggerService
             ->get(['id', 'name', 'type'])
             ->map(fn (Tag $tag) => [
                 'id' => (int) $tag->id,
+                'name' => $tag->name,
                 'normalized_name' => $this->normalizeTagLookup($tag->name),
                 'normalized_type' => $this->normalizeTagLookup($tag->type),
             ])

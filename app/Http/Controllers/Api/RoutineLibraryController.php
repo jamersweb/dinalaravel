@@ -34,7 +34,7 @@ use Illuminate\Validation\Rule;
 
 class RoutineLibraryController extends Controller
 {
-    public function aiVideoTagProposals(Request $request)
+    public function aiVideoTagProposals(Request $request, OllamaExerciseTaggerService $ollamaExerciseTaggerService)
     {
         $query = AiExerciseTagProposal::query()
             ->with(['exercise' => function ($q) {
@@ -62,11 +62,25 @@ class RoutineLibraryController extends Controller
                 });
             });
 
+        $proposals = $query
+            ->latest('created_at')
+            ->paginate(max(10, min(100, (int) $request->get('per_page', 20))));
+
+        $proposals->getCollection()->transform(function (AiExerciseTagProposal $proposal) use ($ollamaExerciseTaggerService) {
+            foreach (['current_tag_payload', 'proposed_payload'] as $field) {
+                $payload = $proposal->{$field};
+                if (is_array($payload)) {
+                    $payload['legacy_muscle_tag_names'] = $ollamaExerciseTaggerService->legacyMuscleTagNamesFromPayload($payload);
+                    $proposal->{$field} = $payload;
+                }
+            }
+
+            return $proposal;
+        });
+
         return response()->json([
             'status' => true,
-            'data' => $query
-                ->latest('created_at')
-                ->paginate(max(10, min(100, (int) $request->get('per_page', 20)))),
+            'data' => $proposals,
             'summary' => [
                 'total' => AiExerciseTagProposal::count(),
                 'queued' => AiExerciseTagProposal::where('status', 'queued')->count(),

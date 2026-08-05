@@ -105,8 +105,8 @@
                                 <strong>{{ readableStatus(proposal.current_tag_payload.exercise_type) }}</strong>
                                 <div>{{ readableEquipment(proposal.current_tag_payload.equipment_category) }}</div>
                                 <div>{{ proposal.current_tag_payload.muscle_group || '-' }}</div>
-                                <div v-if="allMuscles(proposal.current_tag_payload).length > 1" class="muted small-text">
-                                    Muscles: {{ allMuscles(proposal.current_tag_payload).join(', ') }}
+                                <div v-if="legacyMuscleTags(proposal.current_tag_payload).length" class="muted small-text">
+                                    Tags: {{ legacyMuscleTags(proposal.current_tag_payload).join(', ') }}
                                 </div>
                             </div>
                             <span v-else class="muted">No current tag</span>
@@ -121,8 +121,8 @@
                                 <div class="muted small-text">Role: {{ readableStatus(proposal.proposed_payload.program_role || '-') }}</div>
                                 <div>{{ readableEquipment(proposal.proposed_payload.equipment_category) }}</div>
                                 <div>{{ proposal.proposed_payload.muscle_group || '-' }} | {{ proposal.proposed_payload.difficulty }}</div>
-                                <div v-if="allMuscles(proposal.proposed_payload).length" class="muted small-text">
-                                    Muscles: {{ allMuscles(proposal.proposed_payload).join(', ') }}
+                                <div v-if="legacyMuscleTags(proposal.proposed_payload).length" class="muted small-text">
+                                    Tags: {{ legacyMuscleTags(proposal.proposed_payload).join(', ') }}
                                 </div>
                                 <div v-if="proposal.proposed_payload.body_regions && proposal.proposed_payload.body_regions.length" class="muted small-text">
                                     Regions: {{ proposal.proposed_payload.body_regions.map(readableStatus).join(', ') }}
@@ -415,6 +415,46 @@ export default {
             const primary = payload?.muscle_group ? [payload.muscle_group] : [];
             const secondary = Array.isArray(payload?.secondary_muscle_groups) ? payload.secondary_muscle_groups : [];
             return [...new Set([...primary, ...secondary].filter(Boolean))];
+        },
+        legacyMuscleTags(payload) {
+            if (Array.isArray(payload?.legacy_muscle_tag_names) && payload.legacy_muscle_tag_names.length) {
+                return payload.legacy_muscle_tag_names;
+            }
+
+            const map = {
+                'abductors': ['Abductors/Hips'],
+                'abs': ['Abs/Stomach'],
+                'core': ['Abs/Stomach'],
+                'adductors': ['Adductors/Inner thigh'],
+                'lower back': ['Back (lower)'],
+                'middle back': ['Back (middle)'],
+                'mid back': ['Back (middle)'],
+                'upper back': ['Back (middle)', 'Lats/wider part of the back'],
+                'back': ['Back (middle)', 'Back (lower)'],
+                'bicep': ['Bicep/Upper inner arm'],
+                'biceps': ['Bicep/Upper inner arm'],
+                'calves': ['Calfs'],
+                'calf': ['Calfs'],
+                'chest': ['Chest (mid)', 'Chest (upper)', 'Chest (inner)'],
+                'forearms': ['Forearms'],
+                'glute': ['Glutes/Butt'],
+                'glutes': ['Glutes/Butt'],
+                'hamstring': ['Hamstrings/Back of the legs'],
+                'hamstrings': ['Hamstrings/Back of the legs'],
+                'lats': ['Lats/wider part of the back'],
+                'neck': ['Neck'],
+                'obliques': ['Obliques/Side stomach'],
+                'quad': ['Quads/Front thighs'],
+                'quads': ['Quads/Front thighs'],
+                'quadriceps': ['Quads/Front thighs'],
+                'shoulder': ['Shoulder (front)', 'Shoulder (rear)', 'Shoulder (side)'],
+                'shoulders': ['Shoulder (front)', 'Shoulder (rear)', 'Shoulder (side)'],
+                'traps': ['Traps/Lower neck and upper back'],
+                'tricep': ['Triceps/back part of your upper arm'],
+                'triceps': ['Triceps/back part of your upper arm']
+            };
+
+            return [...new Set(this.allMuscles(payload).flatMap(muscle => map[String(muscle).toLowerCase()] || [muscle]).filter(Boolean))];
         },
         readableLanguage(value) {
             const map = { en: 'English', ar: 'Arabic', no_audio: 'No audio' };
