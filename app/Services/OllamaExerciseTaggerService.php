@@ -428,6 +428,8 @@ class OllamaExerciseTaggerService
             . 'Use training_adaptation to describe why the exercise is performed: strength, hypertrophy, muscular_endurance, power, explosiveness, aerobic_conditioning, anaerobic_conditioning, mobility, flexibility, muscle_activation, movement_preparation, rehabilitation_corrective, or recovery. '
             . 'Use program_role to say where the exercise belongs in a workout: warm_up, activation, lower_back_core_preparation, main_workout, main_compound_exercise, accessory_exercise, isolation_exercise, superset_exercise, circuit_exercise, hiit_interval, optional_cardio, cool_down, post_workout_stretching, corrective, or recovery. '
             . 'Set body_regions from the body-region list and movement_patterns from the movement-pattern list so the builder can create balanced routines. '
+            . 'Set muscle_group to the strongest single representative primary muscle, but always fill secondary_muscle_groups with every other major muscle involved. Compound movements must not be reduced to one muscle. '
+            . 'Deadlift/RDL variations include glutes, hamstrings, lower back/erector spinae, and for sumo deadlifts adductors. Squat/lunge/step-up variations include quadriceps, glutes, and hamstrings, plus adductors when wide/sumo/lateral. Press/push-up variations include chest, shoulders, and triceps. Row/pull-up/pulldown variations include lats, middle back, and biceps. Combo exercise titles must include each movement muscle, for example bicep curl + front raise + tricep overhead includes biceps, shoulders, and triceps. '
             . 'Set exercise_family, movement_direction, stability_demand, and variation_type so the builder can avoid duplicate variations in one workout. '
             . 'Use only schema values for equipment_tags, exercise_type, movement_patterns, training_styles, workout_sections, movement_direction, stability_demand, variation_type, and confidence_bucket. '
             . 'If a current deterministic tag exists and the title does not clearly contradict it, keep its equipment_category and language. '
@@ -627,13 +629,14 @@ class OllamaExerciseTaggerService
         $videoVariant = $this->allowedValue($this->scalarString($payload['video_variant'] ?? null, 'explained'), RoutineLibraryRules::VIDEO_VARIANTS, 'explained');
         $exerciseType = $this->inferExerciseType($payload, $metadata, $currentTagPayload, $equipment);
         $muscleGroup = $this->inferMuscleGroup($payload, $metadata, $currentTagPayload);
+        $secondaryMuscleGroups = $this->inferSecondaryMuscleGroups($payload, $metadata, $currentTagPayload, $muscleGroup);
         $primaryCategory = $this->inferPrimaryCategory($payload, $metadata, $exerciseType, $muscleGroup);
         $secondaryCategories = $this->inferSecondaryCategories($payload, $metadata, $primaryCategory, $exerciseType);
         $trainingAdaptation = $this->inferTrainingAdaptation($payload, $metadata, $primaryCategory, $exerciseType, $muscleGroup);
         $safetyFlags = $this->safetyFlags($payload, $metadata, $primaryCategory, $trainingAdaptation, $exerciseType, $impact, $intensity);
         $usageFlags = $this->usageFlags((array) ($payload['usage_flags'] ?? []), $exerciseType, $muscleGroup, $metadata, $primaryCategory, $trainingAdaptation, $safetyFlags);
         $programRole = $this->inferProgramRole($payload, $metadata, $usageFlags, $primaryCategory, $trainingAdaptation, $exerciseType, $safetyFlags);
-        $bodyRegions = $this->inferBodyRegions($payload, $muscleGroup, $this->stringArray($payload['secondary_muscle_groups'] ?? []), $metadata);
+        $bodyRegions = $this->inferBodyRegions($payload, $muscleGroup, $secondaryMuscleGroups, $metadata);
         $equipmentTags = $this->allowedStringArray($payload['equipment_tags'] ?? [], RoutineLibraryRules::EQUIPMENT_TAGS);
         $movementPatterns = $this->allowedStringArray($payload['movement_patterns'] ?? [], RoutineLibraryRules::MOVEMENT_PATTERNS);
         $trainingStyles = $this->allowedStringArray($payload['training_styles'] ?? [], RoutineLibraryRules::TRAINING_STYLES);
@@ -670,7 +673,7 @@ class OllamaExerciseTaggerService
             'training_adaptation' => $trainingAdaptation,
             'program_role' => $programRole,
             'muscle_group' => $muscleGroup,
-            'secondary_muscle_groups' => $this->stringArray($payload['secondary_muscle_groups'] ?? []),
+            'secondary_muscle_groups' => $secondaryMuscleGroups,
             'body_regions' => $bodyRegions,
             'exercise_type' => $exerciseType,
             'exercise_family' => $exerciseFamily,
@@ -1144,6 +1147,8 @@ class OllamaExerciseTaggerService
             'obliques' => ['core', 'obliques'],
             'lower back' => ['back', 'lower_back'],
             'upper back' => ['back', 'upper_body'],
+            'middle back' => ['back', 'upper_body'],
+            'mid back' => ['back', 'upper_body'],
             'back' => ['back'],
             'lats' => ['back', 'upper_body'],
             'biceps' => ['arms', 'upper_body'],
@@ -1159,9 +1164,16 @@ class OllamaExerciseTaggerService
             'quadriceps' => ['lower_body', 'quadriceps'],
             'calves' => ['lower_body', 'calves'],
             'calf' => ['lower_body', 'calves'],
+            'adductors' => ['lower_body'],
+            'adductor' => ['lower_body'],
+            'abductors' => ['lower_body'],
+            'abductor' => ['lower_body'],
             'chest' => ['upper_body', 'chest'],
             'shoulders' => ['upper_body', 'shoulders'],
             'shoulder' => ['upper_body', 'shoulders'],
+            'forearms' => ['arms', 'upper_body'],
+            'forearm' => ['arms', 'upper_body'],
+            'traps' => ['back', 'upper_body'],
         ][$key] ?? [];
     }
 
@@ -1668,12 +1680,18 @@ class OllamaExerciseTaggerService
     private function inferMuscleGroup(array $payload, ?array $metadata, ?array $currentTagPayload): string
     {
         $title = strtolower($this->scalarString($metadata['title'] ?? null));
-        $muscle = strtolower(trim($this->scalarString($payload['muscle_group'] ?? null)));
+        $muscle = $this->normalizeMuscleName($this->scalarString($payload['muscle_group'] ?? null));
+
+        if (preg_match('/\b(sumo\s+)?(deadlift|rdl|romanian deadlift|single leg deadlift|single-leg deadlift|sl deadlift|stiff deadlift)\b/', $title)
+            && ! preg_match('/\b(lower back|back extension|hyperextension)\b/', $title)) {
+            return 'glutes';
+        }
+
         if ($muscle !== '' && $muscle !== '-') {
             return $muscle;
         }
         if ($currentTagPayload && ! empty($currentTagPayload['muscle_group'])) {
-            return strtolower($this->scalarString($currentTagPayload['muscle_group']));
+            return $this->normalizeMuscleName($this->scalarString($currentTagPayload['muscle_group']));
         }
         if (preg_match('/\b(deadlift|rdl|lower back|back extension)\b/', $title)) {
             return 'lower back';
@@ -1695,6 +1713,130 @@ class OllamaExerciseTaggerService
         }
 
         return '';
+    }
+
+    private function inferSecondaryMuscleGroups(array $payload, ?array $metadata, ?array $currentTagPayload, string $muscleGroup): array
+    {
+        $muscles = [];
+
+        foreach ($this->stringArray($payload['secondary_muscle_groups'] ?? []) as $muscle) {
+            $muscles[] = $muscle;
+        }
+
+        $payloadMuscleGroup = $payload['muscle_group'] ?? null;
+        if (is_array($payloadMuscleGroup)) {
+            foreach ($this->stringArray($payloadMuscleGroup) as $muscle) {
+                $muscles[] = $muscle;
+            }
+        }
+
+        if ($currentTagPayload) {
+            foreach ($this->stringArray($currentTagPayload['secondary_muscle_groups'] ?? []) as $muscle) {
+                $muscles[] = $muscle;
+            }
+        }
+
+        foreach ($this->musclesFromTitle(strtolower($this->scalarString($metadata['title'] ?? null))) as $muscle) {
+            $muscles[] = $muscle;
+        }
+
+        $primary = $this->normalizeMuscleName($muscleGroup);
+        $normalized = [];
+        foreach ($muscles as $muscle) {
+            $muscle = $this->normalizeMuscleName($muscle);
+            if ($muscle !== '' && $muscle !== '-' && $muscle !== $primary) {
+                $normalized[] = $muscle;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    private function musclesFromTitle(string $title): array
+    {
+        $muscles = [];
+
+        if (preg_match('/\b(curl|bicep|biceps)\b/', $title)) {
+            $muscles[] = 'biceps';
+        }
+        if (preg_match('/\b(tricep|triceps|skull crusher|overhead extension|pressdown|pushdown)\b/', $title)) {
+            $muscles[] = 'triceps';
+        }
+        if (preg_match('/\b(front raise|lateral raise|shoulder raise|rear raise|overhead press|shoulder press|arnold press|upright row)\b/', $title)) {
+            $muscles[] = 'shoulders';
+        }
+
+        if (preg_match('/\b(deadlift|rdl|romanian deadlift|stiff deadlift|single leg deadlift|single-leg deadlift|sl deadlift)\b/', $title)) {
+            array_push($muscles, 'glutes', 'hamstrings', 'lower back');
+            if (preg_match('/\b(sumo|wide stance)\b/', $title)) {
+                $muscles[] = 'adductors';
+            }
+            if (preg_match('/\b(single|single-leg|sl|split|wall)\b/', $title)) {
+                $muscles[] = 'core';
+            }
+        }
+
+        if (preg_match('/\b(squat|lunge|split squat|bulgarian|step up|step-up|pistol squat|leg press)\b/', $title)) {
+            array_push($muscles, 'quadriceps', 'glutes', 'hamstrings');
+            if (preg_match('/\b(sumo|wide|cossack|side lunge|lateral lunge|adductor)\b/', $title)) {
+                $muscles[] = 'adductors';
+            }
+        }
+
+        if (preg_match('/\b(hip thrust|glute bridge|bridge|kickback|hip extension)\b/', $title)) {
+            array_push($muscles, 'glutes', 'hamstrings');
+        }
+
+        if (preg_match('/\b(row|pulldown|pull down|pullup|pull up|lat pull|back row)\b/', $title)) {
+            array_push($muscles, 'lats', 'middle back', 'biceps');
+        }
+
+        if (preg_match('/\b(chest press|bench press|push up|pushup|floor press|incline press|decline press|fly)\b/', $title)) {
+            array_push($muscles, 'chest', 'shoulders', 'triceps');
+        }
+
+        if (preg_match('/\b(plank|crunch|dead bug|bird dog|core|oblique|twist|rotation)\b/', $title)) {
+            array_push($muscles, 'abs', 'obliques');
+            if (preg_match('/\b(plank|bird dog|dead bug)\b/', $title)) {
+                $muscles[] = 'lower back';
+            }
+        }
+
+        return array_values(array_unique($muscles));
+    }
+
+    private function normalizeMuscleName($value): string
+    {
+        $key = preg_replace('/[^a-z0-9]+/', ' ', strtolower($this->scalarString($value))) ?? '';
+        $key = trim($key);
+        if ($key === '' || $key === '-') {
+            return '';
+        }
+
+        return [
+            'bicep' => 'biceps',
+            'tricep' => 'triceps',
+            'quad' => 'quadriceps',
+            'quads' => 'quadriceps',
+            'hamstring' => 'hamstrings',
+            'glute' => 'glutes',
+            'butt' => 'glutes',
+            'calf' => 'calves',
+            'low back' => 'lower back',
+            'lowerback' => 'lower back',
+            'lower back erector spinae' => 'lower back',
+            'erector spinae' => 'lower back',
+            'erectors' => 'lower back',
+            'mid back' => 'middle back',
+            'middleback' => 'middle back',
+            'upperback' => 'upper back',
+            'lat' => 'lats',
+            'abdominals' => 'abs',
+            'abdominal' => 'abs',
+            'adductor' => 'adductors',
+            'abductor' => 'abductors',
+            'shoulder' => 'shoulders',
+        ][$key] ?? $key;
     }
 
     private function sectionsFromUsageFlags(array $usageFlags): array

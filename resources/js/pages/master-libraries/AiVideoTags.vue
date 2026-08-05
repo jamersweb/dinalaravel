@@ -105,6 +105,9 @@
                                 <strong>{{ readableStatus(proposal.current_tag_payload.exercise_type) }}</strong>
                                 <div>{{ readableEquipment(proposal.current_tag_payload.equipment_category) }}</div>
                                 <div>{{ proposal.current_tag_payload.muscle_group || '-' }}</div>
+                                <div v-if="allMuscles(proposal.current_tag_payload).length > 1" class="muted small-text">
+                                    Muscles: {{ allMuscles(proposal.current_tag_payload).join(', ') }}
+                                </div>
                             </div>
                             <span v-else class="muted">No current tag</span>
                         </td>
@@ -118,6 +121,9 @@
                                 <div class="muted small-text">Role: {{ readableStatus(proposal.proposed_payload.program_role || '-') }}</div>
                                 <div>{{ readableEquipment(proposal.proposed_payload.equipment_category) }}</div>
                                 <div>{{ proposal.proposed_payload.muscle_group || '-' }} | {{ proposal.proposed_payload.difficulty }}</div>
+                                <div v-if="allMuscles(proposal.proposed_payload).length" class="muted small-text">
+                                    Muscles: {{ allMuscles(proposal.proposed_payload).join(', ') }}
+                                </div>
                                 <div v-if="proposal.proposed_payload.body_regions && proposal.proposed_payload.body_regions.length" class="muted small-text">
                                     Regions: {{ proposal.proposed_payload.body_regions.map(readableStatus).join(', ') }}
                                 </div>
@@ -404,6 +410,11 @@ export default {
         },
         readableStatus(value) {
             return String(value || '-').replaceAll('_', ' ');
+        },
+        allMuscles(payload) {
+            const primary = payload?.muscle_group ? [payload.muscle_group] : [];
+            const secondary = Array.isArray(payload?.secondary_muscle_groups) ? payload.secondary_muscle_groups : [];
+            return [...new Set([...primary, ...secondary].filter(Boolean))];
         },
         readableLanguage(value) {
             const map = { en: 'English', ar: 'Arabic', no_audio: 'No audio' };
