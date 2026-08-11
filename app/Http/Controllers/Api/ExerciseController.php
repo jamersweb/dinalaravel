@@ -28,6 +28,8 @@ use App\Traits\ActivitiesTrait;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use stdClass;
 
 class ExerciseController extends Controller
@@ -381,6 +383,7 @@ class ExerciseController extends Controller
     {
         $validate = Validator::make($request->all(), [
             'ids' => 'required|array',
+            'ids.*' => 'integer',
         ]);
         if ($validate->fails()) {
             return response()->json([
@@ -388,15 +391,75 @@ class ExerciseController extends Controller
                 'message' => $validate->errors()->all()[0]
             ]);
         }
-        foreach ($request->ids as $id) {
-            $workout = WorkoutExercise::where('exercise_id', $id)->first();
-            if (is_null($workout)) {
-                Exercise::where('id', $id)->delete();
-            }
+
+        $ids = collect($request->ids)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No exercises selected'
+            ]);
         }
+
+        $deleted = 0;
+        $workoutReferencesRemoved = 0;
+
+        DB::transaction(function () use ($ids, &$deleted, &$workoutReferencesRemoved) {
+            $existingIds = Exercise::whereIn('id', $ids)->pluck('id');
+
+            if ($existingIds->isEmpty()) {
+                return;
+            }
+
+            $workoutExerciseIds = WorkoutExercise::whereIn('exercise_id', $existingIds)->pluck('id');
+            $workoutReferencesRemoved = $workoutExerciseIds->count();
+
+            ExerciseCompilation::whereIn('exercise_id', $existingIds)
+                ->orWhereIn('workout_exercise_id', $workoutExerciseIds)
+                ->delete();
+
+            ExercisesTracking::whereIn('exercise_id', $existingIds)->delete();
+            WorkoutExercise::whereIn('id', $workoutExerciseIds)->delete();
+
+            if (Schema::hasTable('exercise_weight_tracking')) {
+                DB::table('exercise_weight_tracking')->whereIn('exercise_id', $existingIds)->delete();
+            }
+
+            if (Schema::hasTable('ai_exercise_tag_proposals')) {
+                DB::table('ai_exercise_tag_proposals')->whereIn('exercise_id', $existingIds)->delete();
+            }
+
+            if (Schema::hasTable('exercise_library_tags')) {
+                DB::table('exercise_library_tags')->whereIn('exercise_id', $existingIds)->delete();
+
+                if (Schema::hasColumn('exercise_library_tags', 'regression_exercise_id')) {
+                    DB::table('exercise_library_tags')->whereIn('regression_exercise_id', $existingIds)->update(['regression_exercise_id' => null]);
+                }
+
+                if (Schema::hasColumn('exercise_library_tags', 'progression_exercise_id')) {
+                    DB::table('exercise_library_tags')->whereIn('progression_exercise_id', $existingIds)->update(['progression_exercise_id' => null]);
+                }
+            }
+
+            if (Schema::hasTable('user_exercise_replacements')) {
+                DB::table('user_exercise_replacements')
+                    ->whereIn('original_exercise_id', $existingIds)
+                    ->orWhereIn('alternate_exercise_id', $existingIds)
+                    ->delete();
+            }
+
+            $deleted = Exercise::whereIn('id', $existingIds)->delete();
+        });
+
         return response()->json([
             'status' => true,
-            'message' => 'Deleted! (Except those being used in workouts)'
+            'message' => $workoutReferencesRemoved > 0
+                ? "Deleted {$deleted} exercise(s) and removed {$workoutReferencesRemoved} workout reference(s)."
+                : "Deleted {$deleted} exercise(s)."
         ]);
     }
 
