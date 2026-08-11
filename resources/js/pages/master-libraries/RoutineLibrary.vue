@@ -431,23 +431,45 @@
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Movement patterns</label>
-                                    <input v-model="movementPatternsText" class="form-control form-control-sm" placeholder="comma separated">
+                                    <select v-model="selectedTag.movement_patterns" multiple class="form-select form-select-sm multi-select">
+                                        <option v-for="option in taxonomyOptions.movement_patterns" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                    <small class="multi-help">{{ selectedCount(selectedTag.movement_patterns) }}</small>
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Secondary categories</label>
-                                    <input v-model="secondaryCategoriesText" class="form-control form-control-sm" placeholder="comma separated">
+                                    <select v-model="selectedTag.secondary_categories" multiple class="form-select form-select-sm multi-select">
+                                        <option v-for="option in taxonomyOptions.primary_categories" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                    <small class="multi-help">{{ selectedCount(selectedTag.secondary_categories) }}</small>
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Body regions</label>
-                                    <input v-model="bodyRegionsText" class="form-control form-control-sm" placeholder="comma separated">
+                                    <select v-model="selectedTag.body_regions" multiple class="form-select form-select-sm multi-select">
+                                        <option v-for="option in taxonomyOptions.body_regions" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                    <small class="multi-help">{{ selectedCount(selectedTag.body_regions) }}</small>
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Training styles</label>
-                                    <input v-model="trainingStylesText" class="form-control form-control-sm" placeholder="comma separated">
+                                    <select v-model="selectedTag.training_styles" multiple class="form-select form-select-sm multi-select">
+                                        <option v-for="option in taxonomyOptions.training_styles" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                    <small class="multi-help">{{ selectedCount(selectedTag.training_styles) }}</small>
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Equipment tags</label>
-                                    <input v-model="equipmentTagsText" class="form-control form-control-sm" placeholder="comma separated">
+                                    <select v-model="selectedTag.equipment_tags" multiple class="form-select form-select-sm multi-select">
+                                        <option v-for="option in taxonomyOptions.equipment_tags" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                    <small class="multi-help">{{ selectedCount(selectedTag.equipment_tags) }}</small>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label>Workout sections</label>
+                                    <select v-model="selectedTag.workout_sections" multiple class="form-select form-select-sm multi-select">
+                                        <option v-for="option in taxonomyOptions.workout_sections" :key="option" :value="option">{{ readableStatus(option) }}</option>
+                                    </select>
+                                    <small class="multi-help">{{ selectedCount(selectedTag.workout_sections) }}</small>
                                 </div>
                                 <div class="col-6 mb-2">
                                     <label>Injury cautions</label>
@@ -595,6 +617,7 @@ export default {
                 equipment_tags: [],
                 exercise_types: [],
                 training_styles: [],
+                workout_sections: [],
                 movement_directions: [],
                 stability_demands: [],
                 variation_types: [],
@@ -809,6 +832,7 @@ export default {
                     this.taxonomyOptions.equipment_tags = res.data.options.equipment_tags || [];
                     this.taxonomyOptions.exercise_types = res.data.options.exercise_types || [];
                     this.taxonomyOptions.training_styles = res.data.options.training_styles || [];
+                    this.taxonomyOptions.workout_sections = res.data.options.workout_sections || [];
                     this.taxonomyOptions.movement_directions = res.data.options.movement_directions || [];
                     this.taxonomyOptions.stability_demands = res.data.options.stability_demands || [];
                     this.taxonomyOptions.variation_types = res.data.options.variation_types || [];
@@ -831,8 +855,11 @@ export default {
             copy.workout_sections = Array.isArray(copy.workout_sections) ? copy.workout_sections : [];
             copy.exercise_type = copy.exercise_type === 'strength' ? 'resistance' : copy.exercise_type;
             copy.equipment_tags = this.filterAllowedValues(copy.equipment_tags, this.taxonomyOptions.equipment_tags);
+            copy.secondary_categories = this.filterAllowedValues(copy.secondary_categories, this.taxonomyOptions.primary_categories);
+            copy.body_regions = this.filterAllowedValues(copy.body_regions, this.taxonomyOptions.body_regions);
             copy.movement_patterns = this.filterAllowedValues(copy.movement_patterns, this.taxonomyOptions.movement_patterns);
             copy.training_styles = this.filterAllowedValues(copy.training_styles, this.taxonomyOptions.training_styles);
+            copy.workout_sections = this.filterAllowedValues(copy.workout_sections, this.taxonomyOptions.workout_sections);
             copy.safety_notes = Array.isArray(copy.safety_notes) ? copy.safety_notes : [];
             copy.contraindications = Array.isArray(copy.contraindications) ? copy.contraindications : [];
             copy.injury_cautions = Array.isArray(copy.injury_cautions) ? copy.injury_cautions : [];
@@ -1214,6 +1241,10 @@ export default {
             }
             return (Array.isArray(values) ? values : []).filter(value => allowed.includes(value));
         },
+        selectedCount(values) {
+            const count = Array.isArray(values) ? values.length : 0;
+            return count === 1 ? '1 selected' : `${count} selected`;
+        },
         showError(message) {
             this.loading = false;
             this.modalTitle = 'Error';
@@ -1403,6 +1434,19 @@ export default {
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 3px;
+}
+
+.multi-select {
+    min-height: 78px;
+    overflow: auto;
+}
+
+.multi-help {
+    color: #777;
+    display: block;
+    font-size: 11px;
+    line-height: 1.2;
+    margin-top: 2px;
 }
 
 .media-preview {

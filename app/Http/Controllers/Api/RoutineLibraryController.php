@@ -735,6 +735,7 @@ class RoutineLibraryController extends Controller
                 'equipment_tags' => RoutineLibraryRules::EQUIPMENT_TAGS,
                 'exercise_types' => RoutineLibraryRules::EXERCISE_TYPES,
                 'training_styles' => RoutineLibraryRules::TRAINING_STYLES,
+                'workout_sections' => array_keys(RoutineLibraryRules::WORKOUT_SECTION_LABELS),
                 'movement_directions' => RoutineLibraryRules::MOVEMENT_DIRECTIONS,
                 'stability_demands' => RoutineLibraryRules::STABILITY_DEMANDS,
                 'variation_types' => RoutineLibraryRules::VARIATION_TYPES,
