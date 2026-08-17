@@ -30,7 +30,7 @@ class RoutineContentAuditService
             ->count();
 
         $coverage = $this->coverage($approved);
-        $missing = $this->missingCoverage($approved, $filters);
+        $missing = $this->missingCoverage($tags, $approved, $filters);
 
         return [
             'status' => $missing === [] ? 'ready' : 'blocked',
@@ -68,7 +68,7 @@ class RoutineContentAuditService
         return $coverage;
     }
 
-    private function missingCoverage(Collection $approved, array $filters): array
+    private function missingCoverage(Collection $tags, Collection $approved, array $filters): array
     {
         $languages = isset($filters['language'])
             ? [$filters['language']]
@@ -86,21 +86,38 @@ class RoutineContentAuditService
                 $pool = $approved
                     ->where('language', $language)
                     ->whereIn('equipment_category', $allowedEquipment);
+                $reviewablePool = $tags
+                    ->where('language', $language)
+                    ->whereIn('equipment_category', $allowedEquipment)
+                    ->reject(fn (ExerciseLibraryTag $tag) => $tag->review_status === 'rejected');
 
                 foreach (RoutineLibraryRules::REQUIRED_AUDIT_USAGE as $usage => $label) {
                     $minimum = $this->minimumForUsage($usage, ['level' => 'beginner']);
                     $usagePool = $usage === 'main_workout'
                         ? $pool->whereIn('equipment_category', $preferredEquipment)
                         : $pool;
+                    $reviewableUsagePool = $usage === 'main_workout'
+                        ? $reviewablePool->whereIn('equipment_category', $preferredEquipment)
+                        : $reviewablePool;
                     $count = $usagePool->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))->count();
 
                     if ($count < $minimum) {
+                        $reviewableCount = $reviewableUsagePool
+                            ->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))
+                            ->count();
+                        $pendingReviewCount = $reviewableUsagePool
+                            ->where('review_status', 'pending_review')
+                            ->filter(fn ($tag) => $this->tagMatchesUsage($tag, $usage))
+                            ->count();
+
                         $missing[] = [
                             'language' => $language,
                             'equipment_category' => $equipment,
                             'usage' => $usage,
                             'label' => $label,
                             'approved_count' => $count,
+                            'reviewable_count' => $reviewableCount,
+                            'pending_review_count' => $pendingReviewCount,
                             'minimum_required' => $minimum,
                         ];
                     }
@@ -301,17 +318,26 @@ class RoutineContentAuditService
         $explicitUsageMatch = RoutineLibraryRules::usageMatches($flags, $usage);
 
         if ($usage === 'cardio_warm_up') {
+            if ($explicitUsageMatch) {
+                return empty($safety['unsafe_as_warmup'])
+                    && ($safety['safe_for_warmup'] ?? true);
+            }
+
             return empty($safety['unsafe_as_warmup'])
                 && ($safety['safe_for_warmup'] ?? true)
                 && in_array($primaryCategory, ['', 'cardiovascular_training', 'warm_up_cardio'], true)
                 && in_array($programRole, ['', 'warm_up_cardio'], true)
-                && ($explicitUsageMatch || $this->isLowImpactWarmUpCardio($type, $title));
+                && $this->isLowImpactWarmUpCardio($type, $title);
         }
 
         if ($usage === 'stretching') {
+            if ($explicitUsageMatch) {
+                return true;
+            }
+
             return in_array($primaryCategory, ['', 'flexibility_stretching', 'post_workout_stretching'], true)
                 && in_array($programRole, ['', 'cool_down_stretching', 'post_workout_stretching'], true)
-                && ($explicitUsageMatch || $this->isStretchingExercise($type, $title, $patterns));
+                && $this->isStretchingExercise($type, $title, $patterns);
         }
 
         if ($explicitUsageMatch) {

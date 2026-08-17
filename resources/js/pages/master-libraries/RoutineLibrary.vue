@@ -76,7 +76,10 @@
                                         <td colspan="2">None</td>
                                     </tr>
                                     <tr v-for="item in missingContent" :key="item.language + item.equipment_category + item.usage">
-                                        <td>{{ missingContentLabel(item) }}</td>
+                                        <td>
+                                            {{ missingContentLabel(item) }}
+                                            <small v-if="missingContentDetail(item)" class="missing-detail">{{ missingContentDetail(item) }}</small>
+                                        </td>
                                         <td class="text-end">{{ item.approved_count }}/{{ item.minimum_required }}</td>
                                     </tr>
                                 </tbody>
@@ -1187,6 +1190,16 @@ export default {
             }
             return scope.length ? item.label + ' - ' + scope.join(' / ') : item.label;
         },
+        missingContentDetail(item) {
+            const parts = [];
+            if (Number.isFinite(Number(item.reviewable_count))) {
+                parts.push(`${item.reviewable_count} reviewable`);
+            }
+            if (Number(item.pending_review_count) > 0) {
+                parts.push(`${item.pending_review_count} pending`);
+            }
+            return parts.join(' / ');
+        },
         launchLanguageStatus(program, language) {
             const state = this.launchLanguage(program, language);
             if (!state) {
@@ -1393,6 +1406,13 @@ export default {
 .launch-table,
 .routine-table {
     overflow: auto;
+}
+
+.missing-detail {
+    color: #777;
+    display: block;
+    font-size: 11px;
+    line-height: 1.25;
 }
 
 .launch-panel {

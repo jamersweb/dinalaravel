@@ -831,17 +831,26 @@ class RoutineGeneratorService
         $explicitUsageMatch = RoutineLibraryRules::usageMatches($flags, $usage);
 
         if ($usage === 'cardio_warm_up') {
+            if ($explicitUsageMatch) {
+                return empty($safety['unsafe_as_warmup'])
+                    && ($safety['safe_for_warmup'] ?? true);
+            }
+
             return empty($safety['unsafe_as_warmup'])
                 && ($safety['safe_for_warmup'] ?? true)
                 && in_array($primaryCategory, ['', 'cardiovascular_training', 'warm_up_cardio'], true)
                 && in_array($programRole, ['', 'warm_up_cardio'], true)
-                && ($explicitUsageMatch || $this->isLowImpactWarmUpCardio($type, $title));
+                && $this->isLowImpactWarmUpCardio($type, $title);
         }
 
         if ($usage === 'stretching') {
+            if ($explicitUsageMatch) {
+                return true;
+            }
+
             return in_array($primaryCategory, ['', 'flexibility_stretching', 'post_workout_stretching'], true)
                 && in_array($programRole, ['', 'cool_down_stretching', 'post_workout_stretching'], true)
-                && ($explicitUsageMatch || $this->isStretchingExercise($type, $title, $patterns));
+                && $this->isStretchingExercise($type, $title, $patterns);
         }
 
         if ($usage === 'optional_cardio') {
