@@ -298,22 +298,23 @@ class RoutineContentAuditService
         $muscle = strtolower((string) $tag->muscle_group);
         $title = strtolower((string) optional($tag->exercise)->title);
         $patterns = is_array($tag->movement_patterns) ? $tag->movement_patterns : [];
+        $explicitUsageMatch = RoutineLibraryRules::usageMatches($flags, $usage);
 
         if ($usage === 'cardio_warm_up') {
             return empty($safety['unsafe_as_warmup'])
                 && ($safety['safe_for_warmup'] ?? true)
                 && in_array($primaryCategory, ['', 'cardiovascular_training', 'warm_up_cardio'], true)
                 && in_array($programRole, ['', 'warm_up_cardio'], true)
-                && $this->isLowImpactWarmUpCardio($type, $title);
+                && ($explicitUsageMatch || $this->isLowImpactWarmUpCardio($type, $title));
         }
 
         if ($usage === 'stretching') {
             return in_array($primaryCategory, ['', 'flexibility_stretching', 'post_workout_stretching'], true)
                 && in_array($programRole, ['', 'cool_down_stretching', 'post_workout_stretching'], true)
-                && $this->isStretchingExercise($type, $title, $patterns);
+                && ($explicitUsageMatch || $this->isStretchingExercise($type, $title, $patterns));
         }
 
-        if (RoutineLibraryRules::usageMatches($flags, $usage)) {
+        if ($explicitUsageMatch) {
             if (in_array($usage, ['warm_up', 'lower_back_activation'], true) && ! empty($safety['unsafe_as_warmup'])) {
                 return false;
             }
