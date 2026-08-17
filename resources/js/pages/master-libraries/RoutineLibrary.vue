@@ -52,10 +52,10 @@
                             <strong>{{ auditReport.untagged_exercises || 0 }}</strong>
                         </div>
                         <div class="sync-actions mt-3">
-                            <button class="prim_btn py-1 w-100" @click="syncExerciseTags">Sync New Exercises</button>
+                            <button class="prim_btn py-1 w-100" @click="syncExerciseTags">Refresh Exercise Tags</button>
                             <label class="sync-option">
                                 <input type="checkbox" v-model="syncOptions.replace">
-                                <span>Re-sync existing tags</span>
+                                <span>Re-sync existing routine tags</span>
                             </label>
                             <label class="sync-option">
                                 <input type="checkbox" v-model="syncOptions.approve">
@@ -605,7 +605,7 @@ export default {
                 variations_per_type: 1
             },
             syncOptions: {
-                replace: false,
+                replace: true,
                 approve: false
             },
             launchDashboard: {},
@@ -1243,8 +1243,11 @@ export default {
         syncMessage(data, fallback) {
             const summary = data?.summary || {};
             const reasons = summary.skipped_reasons || {};
+            const countText = Number.isFinite(Number(summary.scanned))
+                ? ` Scanned ${summary.scanned || 0}, tagged ${summary.tagged || 0}, skipped ${summary.skipped || 0}.`
+                : '';
             const reasonText = Object.keys(reasons).slice(0, 4).map(key => `${key}: ${reasons[key]}`).join(', ');
-            return `${fallback || 'Exercise sync complete.'}${reasonText ? ' Skipped: ' + reasonText + '.' : ''}`;
+            return `${fallback || 'Exercise sync complete.'}${countText}${reasonText ? ' Skipped: ' + reasonText + '.' : ''}`;
         },
         showLaunchErrors(program, language) {
             const state = this.launchLanguage(program, language);
