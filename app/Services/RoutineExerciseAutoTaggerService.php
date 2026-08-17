@@ -188,6 +188,53 @@ class RoutineExerciseAutoTaggerService
         return $summary;
     }
 
+    public function tagSingleExercise(Exercise $exercise, array $options = []): array
+    {
+        $approve = (bool) ($options['approve'] ?? false);
+        $dryRun = (bool) ($options['dry_run'] ?? false);
+        $preserveReviewStatus = (bool) ($options['preserve_review_status'] ?? true);
+
+        $summary = [
+            'dry_run' => $dryRun,
+            'approve' => $approve,
+            'preserve_review_status' => $preserveReviewStatus,
+            'scanned' => 1,
+            'tagged' => 0,
+            'skipped' => 0,
+            'skipped_reasons' => [],
+        ];
+
+        $classification = $this->classify($exercise, $approve);
+        if (! $classification['taggable']) {
+            $summary['skipped'] = 1;
+            $summary['skipped_reasons'][$classification['reason']] = 1;
+
+            return $summary;
+        }
+
+        $payload = $classification['payload'];
+        $summary['tagged'] = 1;
+        $summary['language'] = $payload['language'];
+        $summary['equipment_category'] = $payload['equipment_category'];
+
+        if (! $dryRun) {
+            if ($preserveReviewStatus && ! $approve) {
+                $existing = ExerciseLibraryTag::where('exercise_id', $exercise->id)->first();
+                if ($existing) {
+                    $payload['review_status'] = $existing->review_status;
+                    $payload['approved_for_generation'] = $existing->approved_for_generation;
+                }
+            }
+
+            ExerciseLibraryTag::updateOrCreate(
+                ['exercise_id' => $exercise->id],
+                $payload
+            );
+        }
+
+        return $summary;
+    }
+
     public function report(): array
     {
         return [

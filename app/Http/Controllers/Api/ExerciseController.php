@@ -24,11 +24,13 @@ use App\Models\WeeksTracking;
 use App\Models\Workout;
 use App\Models\WorkoutExercise;
 use App\Models\WorkoutsTracking;
+use App\Services\RoutineExerciseAutoTaggerService;
 use App\Traits\ActivitiesTrait;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use stdClass;
 
@@ -181,7 +183,7 @@ class ExerciseController extends Controller
         ]);
     }
 
-    public function updateExercise(Request $request)
+    public function updateExercise(Request $request, RoutineExerciseAutoTaggerService $routineTagger)
     {
         $request->merge([
             'content_code' => ContentCodeNormalizer::normalize($request->input('content_code')),
@@ -222,6 +224,14 @@ class ExerciseController extends Controller
 
         $data = Exercise::where('id', $request->id)->first();
         if ($data) {
+            $routineTagInputsBefore = $data->only([
+                'tags',
+                'type',
+                'language',
+                'video_url',
+                'video_type',
+                'video_duration',
+            ]);
             if ($request->exists('tags')) {
                 $data->tags = $request->input('tags');
             }
@@ -295,6 +305,22 @@ class ExerciseController extends Controller
                 $data->content_code = ContentCodeNormalizer::normalize($request->input('content_code'));
             }
             $data->update();
+
+            $freshExercise = $data->fresh();
+            $routineTagInputsAfter = $freshExercise->only(array_keys($routineTagInputsBefore));
+            if ($routineTagInputsBefore != $routineTagInputsAfter) {
+                try {
+                    $routineTagger->tagSingleExercise($freshExercise, [
+                        'approve' => false,
+                        'preserve_review_status' => true,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('Routine library tag refresh failed after exercise update.', [
+                        'exercise_id' => $data->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             return response()->json([
                 'status' => true,

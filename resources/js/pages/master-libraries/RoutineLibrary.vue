@@ -505,11 +505,11 @@
                             <label>Notes</label>
                             <textarea v-model="selectedTag.notes" class="form-control form-control-sm mb-2" rows="2"></textarea>
 
-                            <div class="d-flex justify-content-end flex-wrap">
-                                <button class="tiny-btn revise" @click="saveExerciseTag('needs_fix')">Needs Fix</button>
-                                <button class="tiny-btn reject" @click="saveExerciseTag('rejected')">Reject</button>
-                                <button class="tiny-btn" @click="saveExerciseTag('pending_review')">Save Pending</button>
-                                <button class="tiny-btn approve" @click="saveExerciseTag('approved')">Approve</button>
+                            <div class="tag-editor-actions">
+                                <button class="tiny-btn revise" :disabled="tagSaving" @click="saveExerciseTag('needs_fix')">Needs Fix</button>
+                                <button class="tiny-btn reject" :disabled="tagSaving" @click="saveExerciseTag('rejected')">Reject</button>
+                                <button class="tiny-btn" :disabled="tagSaving" @click="saveExerciseTag('pending_review')">Save Pending</button>
+                                <button class="tiny-btn approve" :disabled="tagSaving" @click="saveExerciseTag('approved')">{{ tagSaving ? 'Saving...' : 'Approve' }}</button>
                             </div>
                         </div>
                         <div v-else class="empty-editor">Select an exercise to review.</div>
@@ -616,6 +616,7 @@ export default {
             routineStatus: 'pending_review',
             exerciseTags: [],
             selectedTag: null,
+            tagSaving: false,
             tagSummary: {},
             tagPagination: {
                 current_page: 1,
@@ -937,6 +938,7 @@ export default {
             if (!this.selectedTag) {
                 return;
             }
+            this.tagSaving = true;
             this.selectedTag.review_status = status || this.selectedTag.review_status;
             axios.post(config.baseApiUrl + 'routine-library/exercise-tags/' + this.selectedTag.id + '/review', {
                 language: this.selectedTag.language,
@@ -980,12 +982,19 @@ export default {
                 review_blockers: this.selectedTag.review_blockers || [],
                 notes: this.selectedTag.notes
             }, this.apiConfig).then(res => {
+                this.tagSaving = false;
+                const updatedTag = this.normalizedTag(res.data.data);
+                this.selectedTag = updatedTag;
+                this.exerciseTags = this.exerciseTags.map(tag => tag.id === updatedTag.id ? updatedTag : tag);
                 this.modalTitle = 'Done';
                 this.modalDetail = res.data.message || 'Exercise tag updated';
                 this.informModal = true;
-                this.fetchExerciseTags();
                 this.fetchAudit();
-            }).catch(er => this.showError(er.response?.data?.message || er.message));
+                this.fetchLaunchDashboard();
+            }).catch(er => {
+                this.tagSaving = false;
+                this.showError(er.response?.data?.message || er.message);
+            });
         },
         bulkReviewExerciseTags(status) {
             const ids = this.exerciseTags.map(tag => tag.id);
@@ -1512,6 +1521,17 @@ export default {
 .tag-editor {
     border: 1px solid #eeeeee;
     padding: 10px;
+}
+
+.tag-editor-actions {
+    background: #fff;
+    border-top: 1px solid #eeeeee;
+    bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding-top: 8px;
+    position: sticky;
 }
 
 .tag-editor label {
