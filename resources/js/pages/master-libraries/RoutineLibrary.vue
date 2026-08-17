@@ -212,17 +212,23 @@
                         </div>
                     </div>
                     <div class="d-flex align-items-center flex-wrap review-controls">
-                        <input v-model="tagFilters.search" @keyup.enter="fetchExerciseTags" class="form-control form-control-sm tag-search" placeholder="Search exercise">
-                        <select v-model="tagFilters.review_status" @change="fetchExerciseTags" class="form-select form-select-sm control">
+                        <input v-model="tagFilters.search" @keyup.enter="fetchExerciseTagsFirstPage" class="form-control form-control-sm tag-search" placeholder="Search exercise">
+                        <select v-model="tagFilters.review_status" @change="fetchExerciseTagsFirstPage" class="form-select form-select-sm control">
                             <option value="pending_review">Pending</option>
                             <option value="needs_fix">Needs Fix</option>
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                             <option value="">All</option>
                         </select>
+                        <select v-model.number="tagFilters.per_page" @change="fetchExerciseTagsFirstPage" class="form-select form-select-sm page-size-control">
+                            <option :value="25">25</option>
+                            <option :value="50">50</option>
+                            <option :value="100">100</option>
+                            <option :value="250">250</option>
+                        </select>
                         <button class="tiny-btn approve" @click="bulkReviewExerciseTags('approved')">Approve Page</button>
                         <button class="tiny-btn reject" @click="bulkReviewExerciseTags('rejected')">Reject Page</button>
-                        <button class="prim_btn py-1" @click="fetchExerciseTags">Load</button>
+                        <button class="prim_btn py-1" @click="fetchExerciseTagsFirstPage">Load</button>
                     </div>
                 </div>
 
@@ -256,6 +262,13 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="tag-pagination">
+                            <span>{{ exerciseTagPageSummary }}</span>
+                            <div class="tag-page-actions">
+                                <button class="tiny-btn" :disabled="!canGoPreviousExerciseTagPage" @click="changeExerciseTagPage(tagPagination.current_page - 1)">Prev</button>
+                                <button class="tiny-btn" :disabled="!canGoNextExerciseTagPage" @click="changeExerciseTagPage(tagPagination.current_page + 1)">Next</button>
+                            </div>
                         </div>
                     </div>
 
@@ -603,9 +616,17 @@ export default {
             exerciseTags: [],
             selectedTag: null,
             tagSummary: {},
+            tagPagination: {
+                current_page: 1,
+                last_page: 1,
+                from: 0,
+                to: 0,
+                total: 0
+            },
             tagFilters: {
                 search: '',
                 review_status: 'pending_review',
+                page: 1,
                 per_page: 25
             },
             taxonomyOptions: {
@@ -651,6 +672,20 @@ export default {
         },
         auditStatusClass() {
             return this.auditReport.status === 'ready' ? 'badge-ready' : 'badge-blocked';
+        },
+        canGoPreviousExerciseTagPage() {
+            return (this.tagPagination.current_page || 1) > 1;
+        },
+        canGoNextExerciseTagPage() {
+            return (this.tagPagination.current_page || 1) < (this.tagPagination.last_page || 1);
+        },
+        exerciseTagPageSummary() {
+            const total = this.tagPagination.total || 0;
+            if (!total) {
+                return 'Showing 0 tags';
+            }
+
+            return `Showing ${this.tagPagination.from || 1}-${this.tagPagination.to || this.exerciseTags.length} of ${total}`;
         },
         secondaryMusclesText: {
             get() {
@@ -762,7 +797,7 @@ export default {
         reloadReviewScope() {
             this.fetchAudit();
             this.fetchRoutines();
-            this.fetchExerciseTags();
+            this.fetchExerciseTagsFirstPage();
         },
         fetchAudit() {
             this.loading = true;
@@ -802,9 +837,19 @@ export default {
                 this.routines = (res.data.data && res.data.data.data) ? res.data.data.data : [];
             }).catch(() => {});
         },
+        fetchExerciseTagsFirstPage() {
+            this.tagFilters.page = 1;
+            this.fetchExerciseTags();
+        },
+        changeExerciseTagPage(page) {
+            const lastPage = this.tagPagination.last_page || 1;
+            this.tagFilters.page = Math.max(1, Math.min(page, lastPage));
+            this.fetchExerciseTags();
+        },
         fetchExerciseTags() {
             const params = {
                 ...this.selectedFilterParams('difficulty'),
+                page: this.tagFilters.page,
                 per_page: this.tagFilters.per_page
             };
             if (this.tagFilters.search) {
@@ -818,7 +863,16 @@ export default {
                 ...this.apiConfig,
                 params
             }).then(res => {
-                this.exerciseTags = (res.data.data && res.data.data.data) ? res.data.data.data : [];
+                const page = res.data.data || {};
+                this.exerciseTags = page.data || [];
+                this.tagPagination = {
+                    current_page: page.current_page || 1,
+                    last_page: page.last_page || 1,
+                    from: page.from || 0,
+                    to: page.to || 0,
+                    total: page.total || 0
+                };
+                this.tagFilters.page = this.tagPagination.current_page;
                 this.tagSummary = res.data.summary || {};
                 if (res.data.options && res.data.options.usage_flags) {
                     this.usageOptions = res.data.options.usage_flags;
@@ -1405,6 +1459,10 @@ export default {
     width: 210px;
 }
 
+.page-size-control {
+    width: 84px;
+}
+
 .exercise-tag-table {
     border: 1px solid #eeeeee;
     max-height: 360px;
@@ -1422,6 +1480,32 @@ export default {
 .exercise-title {
     font-weight: 600;
     max-width: 360px;
+}
+
+.tag-pagination {
+    align-items: center;
+    border: 1px solid #eeeeee;
+    border-top: 0;
+    display: flex;
+    justify-content: space-between;
+    min-height: 38px;
+    padding: 6px 8px;
+}
+
+.tag-pagination span {
+    color: #555;
+    font-size: 12px;
+}
+
+.tag-page-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.tiny-btn:disabled {
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .tag-editor {
@@ -1547,6 +1631,7 @@ export default {
 
 @media (max-width: 575.98px) {
     .tag-search,
+    .page-size-control,
     .control {
         width: 100%;
     }
