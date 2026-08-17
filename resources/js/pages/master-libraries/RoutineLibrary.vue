@@ -416,7 +416,11 @@
                             <label>Usage</label>
                             <div class="usage-grid mb-2">
                                 <label v-for="usage in usageOptions" :key="usage" class="usage-option">
-                                    <input type="checkbox" v-model="selectedTag.usage_flags[usage]">
+                                    <input
+                                        type="checkbox"
+                                        :checked="usageFlagValue(usage)"
+                                        @change="setUsageFlag(usage, $event.target.checked)"
+                                    >
                                     <span>{{ readableStatus(usage) }}</span>
                                 </label>
                             </div>
@@ -424,19 +428,19 @@
                             <label>Safety</label>
                             <div class="usage-grid mb-2">
                                 <label class="usage-option">
-                                    <input type="checkbox" v-model="selectedTag.safety_flags.safe_for_warmup">
+                                    <input type="checkbox" :checked="safetyFlagValue('safe_for_warmup')" @change="setSafetyFlag('safe_for_warmup', $event.target.checked)">
                                     <span>Safe for warm-up</span>
                                 </label>
                                 <label class="usage-option">
-                                    <input type="checkbox" v-model="selectedTag.safety_flags.unsafe_as_warmup">
+                                    <input type="checkbox" :checked="safetyFlagValue('unsafe_as_warmup')" @change="setSafetyFlag('unsafe_as_warmup', $event.target.checked)">
                                     <span>Unsafe as warm-up</span>
                                 </label>
                                 <label class="usage-option">
-                                    <input type="checkbox" v-model="selectedTag.safety_flags.safe_for_cooldown">
+                                    <input type="checkbox" :checked="safetyFlagValue('safe_for_cooldown')" @change="setSafetyFlag('safe_for_cooldown', $event.target.checked)">
                                     <span>Safe for cooldown</span>
                                 </label>
                                 <label class="usage-option">
-                                    <input type="checkbox" v-model="selectedTag.safety_flags.high_impact">
+                                    <input type="checkbox" :checked="safetyFlagValue('high_impact')" @change="setSafetyFlag('high_impact', $event.target.checked)">
                                     <span>High impact</span>
                                 </label>
                             </div>
@@ -653,6 +657,7 @@ export default {
                 'cardio_warm_up',
                 'warm_up',
                 'mobility',
+                'muscle_activation',
                 'lower_back_activation',
                 'main_workout',
                 'abs',
@@ -937,6 +942,44 @@ export default {
             copy.review_status = copy.review_status || (copy.approved_for_generation ? 'approved' : 'pending_review');
             return copy;
         },
+        flagValue(flags, key) {
+            return flags && (
+                flags[key] === true
+                || flags[key] === 1
+                || flags[key] === '1'
+                || flags[key] === 'true'
+            );
+        },
+        usageFlagValue(key) {
+            return this.selectedTag ? this.flagValue(this.selectedTag.usage_flags, key) : false;
+        },
+        safetyFlagValue(key) {
+            return this.selectedTag ? this.flagValue(this.selectedTag.safety_flags, key) : false;
+        },
+        setUsageFlag(key, checked) {
+            if (!this.selectedTag) {
+                return;
+            }
+            this.selectedTag.usage_flags = {
+                ...(this.selectedTag.usage_flags || {}),
+                [key]: checked
+            };
+        },
+        setSafetyFlag(key, checked) {
+            if (!this.selectedTag) {
+                return;
+            }
+            this.selectedTag.safety_flags = {
+                ...(this.selectedTag.safety_flags || {}),
+                [key]: checked
+            };
+        },
+        normalizedFlags(flags, keys) {
+            return keys.reduce((payload, key) => {
+                payload[key] = this.flagValue(flags, key);
+                return payload;
+            }, {});
+        },
         saveExerciseTag(status) {
             if (!this.selectedTag) {
                 return;
@@ -978,8 +1021,8 @@ export default {
                 regression_exercise_id: this.selectedTag.regression_exercise_id || null,
                 progression_exercise_id: this.selectedTag.progression_exercise_id || null,
                 alternative_exercise_ids: this.selectedTag.alternative_exercise_ids || [],
-                usage_flags: this.selectedTag.usage_flags || {},
-                safety_flags: this.selectedTag.safety_flags || {},
+                usage_flags: this.normalizedFlags(this.selectedTag.usage_flags, this.usageOptions),
+                safety_flags: this.normalizedFlags(this.selectedTag.safety_flags, ['safe_for_warmup', 'safe_for_cooldown', 'unsafe_as_warmup', 'high_impact', 'explosive']),
                 confidence_bucket: this.selectedTag.confidence_bucket || null,
                 review_status: this.selectedTag.review_status,
                 review_blockers: this.selectedTag.review_blockers || [],
