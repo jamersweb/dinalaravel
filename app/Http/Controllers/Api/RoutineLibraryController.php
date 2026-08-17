@@ -711,10 +711,12 @@ class RoutineLibraryController extends Controller
             'untagged' => Exercise::doesntHave('libraryTag')->count(),
         ];
 
+        $perPage = max(10, min(500, (int) $request->get('per_page', 20)));
+
         $tags = $query
             ->orderByRaw("case review_status when 'pending_review' then 0 when 'needs_fix' then 1 when 'approved' then 2 else 3 end")
             ->latest('updated_at')
-            ->paginate((int) $request->get('per_page', 20));
+            ->paginate($perPage);
 
         return response()->json([
             'status' => true,

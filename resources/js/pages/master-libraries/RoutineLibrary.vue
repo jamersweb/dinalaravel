@@ -225,6 +225,7 @@
                             <option :value="50">50</option>
                             <option :value="100">100</option>
                             <option :value="250">250</option>
+                            <option :value="500">All</option>
                         </select>
                         <button class="tiny-btn approve" @click="bulkReviewExerciseTags('approved')">Approve Page</button>
                         <button class="tiny-btn reject" @click="bulkReviewExerciseTags('rejected')">Reject Page</button>
@@ -627,7 +628,7 @@ export default {
                 search: '',
                 review_status: 'pending_review',
                 page: 1,
-                per_page: 25
+                per_page: 500
             },
             taxonomyOptions: {
                 primary_categories: [],
