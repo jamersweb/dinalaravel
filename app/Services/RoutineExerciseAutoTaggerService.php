@@ -159,6 +159,19 @@ class RoutineExerciseAutoTaggerService
                 }
 
                 $payload = $classification['payload'];
+                $existing = $replace
+                    ? ExerciseLibraryTag::where('exercise_id', $exercise->id)->first()
+                    : null;
+
+                if ($existing) {
+                    $payload = $this->preserveExistingManualFlags($payload, $existing);
+
+                    if ($preserveReviewStatus && ! $approve) {
+                        $payload['review_status'] = $existing->review_status;
+                        $payload['approved_for_generation'] = $existing->approved_for_generation;
+                    }
+                }
+
                 $summary['tagged']++;
                 $summary['by_language'][$payload['language']] = ($summary['by_language'][$payload['language']] ?? 0) + 1;
                 $summary['by_equipment'][$payload['equipment_category']] = ($summary['by_equipment'][$payload['equipment_category']] ?? 0) + 1;
@@ -169,14 +182,6 @@ class RoutineExerciseAutoTaggerService
                 }
 
                 if (! $dryRun) {
-                    if ($replace && $preserveReviewStatus && ! $approve) {
-                        $existing = ExerciseLibraryTag::where('exercise_id', $exercise->id)->first();
-                        if ($existing) {
-                            $payload['review_status'] = $existing->review_status;
-                            $payload['approved_for_generation'] = $existing->approved_for_generation;
-                        }
-                    }
-
                     ExerciseLibraryTag::updateOrCreate(
                         ['exercise_id' => $exercise->id],
                         $payload
@@ -218,9 +223,11 @@ class RoutineExerciseAutoTaggerService
         $summary['equipment_category'] = $payload['equipment_category'];
 
         if (! $dryRun) {
-            if ($preserveReviewStatus && ! $approve) {
-                $existing = ExerciseLibraryTag::where('exercise_id', $exercise->id)->first();
-                if ($existing) {
+            $existing = ExerciseLibraryTag::where('exercise_id', $exercise->id)->first();
+            if ($existing) {
+                $payload = $this->preserveExistingManualFlags($payload, $existing);
+
+                if ($preserveReviewStatus && ! $approve) {
                     $payload['review_status'] = $existing->review_status;
                     $payload['approved_for_generation'] = $existing->approved_for_generation;
                 }
@@ -233,6 +240,32 @@ class RoutineExerciseAutoTaggerService
         }
 
         return $summary;
+    }
+
+    private function preserveExistingManualFlags(array $payload, ExerciseLibraryTag $existing): array
+    {
+        foreach (['usage_flags', 'safety_flags'] as $field) {
+            $currentFlags = is_array($payload[$field] ?? null) ? $payload[$field] : [];
+            $existingFlags = is_array($existing->{$field}) ? $existing->{$field} : [];
+
+            foreach ($existingFlags as $flag => $value) {
+                if ($this->isTruthyFlag($value)) {
+                    $currentFlags[$flag] = true;
+                }
+            }
+
+            $payload[$field] = $currentFlags;
+        }
+
+        return $payload;
+    }
+
+    private function isTruthyFlag($value): bool
+    {
+        return $value === true
+            || $value === 1
+            || $value === '1'
+            || $value === 'true';
     }
 
     public function report(): array
