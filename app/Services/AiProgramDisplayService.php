@@ -8,6 +8,17 @@ use Illuminate\Support\Collection;
 
 class AiProgramDisplayService
 {
+    public function displayScheduleForProgram(int|Program $program, ?array $weekNumbers = null): ?array
+    {
+        $aiSchedule = $this->scheduleForProgram($program, $weekNumbers);
+        if ($aiSchedule !== null) {
+            $aiSchedule['source'] = 'ai';
+            return $aiSchedule;
+        }
+
+        return $this->normalScheduleForProgram($program, $weekNumbers);
+    }
+
     public function scheduleForProgram(int|Program $program, ?array $weekNumbers = null): ?array
     {
         $program = $program instanceof Program ? $program : Program::find($program);
@@ -50,9 +61,165 @@ class AiProgramDisplayService
             'language' => $program->language,
             'level' => $program->level,
             'type' => $program->type,
+            'source' => 'ai',
             'total_weeks' => count($weeks),
             'weeks' => $weeks,
         ];
+    }
+
+    public function normalScheduleForProgram(int|Program $program, ?array $weekNumbers = null): ?array
+    {
+        $program = $program instanceof Program ? $program : Program::find($program);
+        if (! $program) {
+            return null;
+        }
+
+        $phases = $program->programPhases()
+            ->orderBy('phase_no')
+            ->orderBy('id')
+            ->with(['phaseWorkouts' => function ($query) {
+                $query->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->with(['workoutDetail.workoutExercises' => function ($exerciseQuery) {
+                        $exerciseQuery->orderBy('id')->with('exerciseDetail.libraryTag');
+                    }]);
+            }])
+            ->get();
+
+        if ($phases->isEmpty()) {
+            return null;
+        }
+
+        $weekBuckets = collect();
+        $phaseStartWeek = 1;
+
+        foreach ($phases as $phase) {
+            $rows = $phase->phaseWorkouts->values();
+            foreach ($rows as $index => $phaseWorkout) {
+                if (! $phaseWorkout->workoutDetail) {
+                    continue;
+                }
+
+                $position = $this->normalWorkoutPosition($phaseWorkout, $index, (int) $phase->weeks, $phaseStartWeek);
+                if (is_array($weekNumbers) && $weekNumbers !== [] && ! in_array($position['week_no'], array_map('intval', $weekNumbers), true)) {
+                    continue;
+                }
+
+                $weekBuckets->push([
+                    'week_no' => $position['week_no'],
+                    'day' => $this->normalDayPayload($phaseWorkout, $position, $phase),
+                ]);
+            }
+
+            $phaseStartWeek += max(1, (int) $phase->weeks);
+        }
+
+        if ($weekBuckets->isEmpty()) {
+            return null;
+        }
+
+        $weeks = $weekBuckets
+            ->groupBy('week_no')
+            ->map(fn (Collection $items, $weekNo) => [
+                'week_no' => (int) $weekNo,
+                'days' => $items
+                    ->pluck('day')
+                    ->sortBy('day_no')
+                    ->values()
+                    ->all(),
+            ])
+            ->sortBy('week_no')
+            ->values()
+            ->all();
+
+        return [
+            'program_id' => $program->id,
+            'content_code' => $program->content_code,
+            'title' => $program->title,
+            'language' => $program->language,
+            'level' => $program->level,
+            'type' => $program->type,
+            'source' => 'normal',
+            'total_weeks' => count($weeks),
+            'weeks' => $weeks,
+        ];
+    }
+
+    private function normalWorkoutPosition($phaseWorkout, int $index, int $phaseWeeks, int $phaseStartWeek): array
+    {
+        $label = trim((string) ($phaseWorkout->display_name ?: optional($phaseWorkout->workoutDetail)->title));
+        $weekNo = null;
+        $dayNo = null;
+
+        if (preg_match('/\bweek\s*(\d+)\b/i', $label, $matches)) {
+            $parsedWeek = (int) $matches[1];
+            $weekNo = $parsedWeek <= max(1, $phaseWeeks)
+                ? $phaseStartWeek + $parsedWeek - 1
+                : $parsedWeek;
+        }
+
+        if (preg_match('/\bday\s*(\d+)\b/i', $label, $matches)) {
+            $dayNo = max(1, min(7, (int) $matches[1]));
+        }
+
+        return [
+            'week_no' => $weekNo ?: $phaseStartWeek + intdiv($index, 7),
+            'day_no' => $dayNo ?: ($index % 7) + 1,
+        ];
+    }
+
+    private function normalDayPayload($phaseWorkout, array $position, $phase): array
+    {
+        $workout = $phaseWorkout->workoutDetail;
+        $title = $phaseWorkout->display_name ?: $workout->title;
+        $dayType = $this->normalDayType($title, $workout);
+        $sections = $dayType === 'workout' ? $this->sectionPayloads($workout) : [];
+
+        return [
+            'id' => 'phase-workout-' . $phaseWorkout->id,
+            'week_no' => $position['week_no'],
+            'day_no' => $position['day_no'],
+            'day_label' => 'Day ' . $position['day_no'],
+            'day_type' => $dayType,
+            'day_type_label' => $this->label($dayType),
+            'display_name' => $title,
+            'estimated_minutes' => null,
+            'training_style' => $workout->workout_type ?: $workout->category,
+            'muscle_groups' => $this->muscleGroupsFromSections($sections),
+            'progression_notes' => $phase->summary ? [
+                'focus' => $phase->name,
+                'rules' => [$phase->summary],
+            ] : [],
+            'recovery_guidance' => $dayType === 'rest' ? ['Rest day in the program schedule.'] : [],
+            'validation_errors' => [],
+            'workout' => $this->workoutPayload($workout),
+            'sections' => $sections,
+        ];
+    }
+
+    private function normalDayType(string $title, Workout $workout): string
+    {
+        $haystack = strtolower($title . ' ' . $workout->title . ' ' . $workout->workout_type);
+        if (str_contains($haystack, 'active recovery') || str_contains($haystack, 'mobility')) {
+            return 'active_recovery';
+        }
+
+        if (str_contains($haystack, 'rest')) {
+            return 'rest';
+        }
+
+        return 'workout';
+    }
+
+    private function muscleGroupsFromSections(array $sections): array
+    {
+        return collect($sections)
+            ->flatMap(fn ($section) => $section['exercises'] ?? [])
+            ->pluck('muscle_group')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function dayPayload($day): array

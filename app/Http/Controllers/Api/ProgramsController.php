@@ -237,6 +237,7 @@ class ProgramsController extends Controller
         }
 
         $program->ai_schedule = $aiProgramDisplay->scheduleForProgram($program);
+        $program->program_schedule = $aiProgramDisplay->displayScheduleForProgram($program);
         $program->is_ai_launch = $program->ai_schedule !== null;
 
         return $this->success($program);

@@ -199,18 +199,18 @@
                                     class="px-2 py-1 prim_bg mx-2 brds-1 my-1" style="height:35px;">{{ tag }}</span>
                             </div>
                         </div>
-                        <div v-if="hasAiSchedule" class="ai-schedule-panel mt-3" style="clear: both;">
+                        <div v-if="hasProgramSchedule" class="ai-schedule-panel mt-3" style="clear: both;">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                <h4 class="mb-0" style="font-size: 26px;">AI Program Schedule</h4>
+                                <h4 class="mb-0" style="font-size: 26px;">Program Schedule</h4>
                                 <div class="ai-schedule-meta">
-                                    <span>{{ programDetail.ai_schedule.total_weeks }} weeks</span>
-                                    <span>{{ readableLabel(programDetail.ai_schedule.level) }}</span>
-                                    <span>{{ readableLabel(programDetail.ai_schedule.type) }}</span>
+                                    <span>{{ displaySchedule.total_weeks }} weeks</span>
+                                    <span>{{ readableLabel(displaySchedule.level) }}</span>
+                                    <span>{{ readableLabel(displaySchedule.type) }}</span>
                                 </div>
                             </div>
                             <div class="ai-week-tabs mt-2">
                                 <button
-                                    v-for="week in programDetail.ai_schedule.weeks"
+                                    v-for="week in displaySchedule.weeks"
                                     :key="week.week_no"
                                     :class="{ active: selectedAiWeekNo === week.week_no }"
                                     @click="selectAiWeek(week.week_no)"
@@ -277,6 +277,9 @@
                                             {{ [...(exercise.safety_notes || []), ...(exercise.injury_cautions || [])].join(', ') }}
                                         </div>
                                     </div>
+                                </div>
+                                <div v-if="selectedAiDay.sections.length === 0" class="ai-empty-state mt-3">
+                                    No workout exercises are attached to this day.
                                 </div>
                             </div>
                         </div>
@@ -464,17 +467,23 @@ export default {
         this.getAllPrograms();
     },
     computed: {
+        displaySchedule() {
+            return this.programDetail?.program_schedule || this.programDetail?.ai_schedule || null;
+        },
+        hasProgramSchedule() {
+            return Array.isArray(this.displaySchedule?.weeks)
+                && this.displaySchedule.weeks.length > 0;
+        },
         hasAiSchedule() {
-            return Array.isArray(this.programDetail?.ai_schedule?.weeks)
-                && this.programDetail.ai_schedule.weeks.length > 0;
+            return this.hasProgramSchedule;
         },
         selectedAiWeek() {
-            if (!this.hasAiSchedule) {
+            if (!this.hasProgramSchedule) {
                 return null;
             }
 
-            return this.programDetail.ai_schedule.weeks.find((week) => week.week_no === this.selectedAiWeekNo)
-                || this.programDetail.ai_schedule.weeks[0];
+            return this.displaySchedule.weeks.find((week) => week.week_no === this.selectedAiWeekNo)
+                || this.displaySchedule.weeks[0];
         },
         selectedAiDay() {
             if (!this.selectedAiWeek || !Array.isArray(this.selectedAiWeek.days)) {
@@ -975,19 +984,19 @@ export default {
             });
         },
         resetAiScheduleSelection() {
-            if (!this.hasAiSchedule) {
+            if (!this.hasProgramSchedule) {
                 this.selectedAiWeekNo = null;
                 this.selectedAiDayNo = null;
                 return;
             }
 
-            const firstWeek = this.programDetail.ai_schedule.weeks[0];
+            const firstWeek = this.displaySchedule.weeks[0];
             this.selectedAiWeekNo = firstWeek.week_no;
             this.selectedAiDayNo = firstWeek.days?.[0]?.day_no || 1;
         },
         selectAiWeek(weekNo) {
             this.selectedAiWeekNo = weekNo;
-            const week = this.programDetail.ai_schedule.weeks.find((item) => item.week_no === weekNo);
+            const week = this.displaySchedule.weeks.find((item) => item.week_no === weekNo);
             this.selectedAiDayNo = week?.days?.[0]?.day_no || 1;
         },
         dayTypeClass(dayType) {
@@ -1453,6 +1462,15 @@ input:focus-visible {
     color: #8A4B00;
     font-size: 11px;
     grid-column: 2 / 4;
+}
+
+.ai-empty-state {
+    background: #F8F8F8;
+    border: 1px solid #EEEEEE;
+    border-radius: 8px;
+    color: #777;
+    font-size: 12px;
+    padding: 12px;
 }
 
 .filterBtn {
