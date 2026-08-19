@@ -15,7 +15,15 @@ class RoutineContentAuditService
 
         $tags = ExerciseLibraryTag::query()
             ->with('exercise:id,title,language,video_url,video_type')
-            ->when($language, fn ($q) => $q->where('language', $language))
+            ->when($language, function ($q) use ($language) {
+                if (in_array($language, RoutineLibraryRules::CONTENT_LANGUAGES, true)) {
+                    $q->whereIn('language', [$language, 'no_audio']);
+
+                    return;
+                }
+
+                $q->where('language', $language);
+            })
             ->when($equipment, function ($q) use ($equipment) {
                 $q->whereIn('equipment_category', RoutineLibraryRules::allowedExerciseEquipment($equipment));
             })
@@ -84,10 +92,10 @@ class RoutineContentAuditService
                 $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($equipment);
                 $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment($equipment);
                 $pool = $approved
-                    ->where('language', $language)
+                    ->filter(fn (ExerciseLibraryTag $tag) => $this->tagCanServeLanguage($tag, $language))
                     ->whereIn('equipment_category', $allowedEquipment);
                 $reviewablePool = $tags
-                    ->where('language', $language)
+                    ->filter(fn (ExerciseLibraryTag $tag) => $this->tagCanServeLanguage($tag, $language))
                     ->whereIn('equipment_category', $allowedEquipment)
                     ->reject(fn (ExerciseLibraryTag $tag) => $tag->review_status === 'rejected');
 
@@ -173,7 +181,7 @@ class RoutineContentAuditService
         $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($program['equipment_category']);
         $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment($program['equipment_category']);
         $pool = $tags
-            ->where('language', $language)
+            ->filter(fn (ExerciseLibraryTag $tag) => $this->tagCanServeLanguage($tag, $language))
             ->whereIn('equipment_category', $allowedEquipment)
             ->filter(function (ExerciseLibraryTag $tag) use ($program) {
                 return $this->levelCanServeProgram((string) $tag->difficulty, (string) $program['level']);
@@ -237,6 +245,11 @@ class RoutineContentAuditService
             'missing_content' => $missingApproved,
             'missing_reviewable_content' => $missingReviewable,
         ];
+    }
+
+    private function tagCanServeLanguage(ExerciseLibraryTag $tag, string $language): bool
+    {
+        return $tag->language === $language || $tag->language === 'no_audio';
     }
 
     private function minimumForProgramUsage(string $usage, array $program): int

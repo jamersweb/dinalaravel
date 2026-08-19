@@ -185,8 +185,11 @@ class RoutineGeneratorService
         $candidateUsedTitleKeys = $usedTitleKeys;
         $allowedEquipment = RoutineLibraryRules::allowedExerciseEquipment($filters['equipment_category']);
         $preferredEquipment = RoutineLibraryRules::preferredExerciseEquipment($filters['equipment_category']);
+        $allowedLanguages = in_array($filters['language'], RoutineLibraryRules::CONTENT_LANGUAGES, true)
+            ? [$filters['language'], 'no_audio']
+            : [$filters['language']];
         $tags = ExerciseLibraryTag::with('exercise:id,title,video_type,video_url,image,custom_thumbnail')
-            ->where('language', $filters['language'])
+            ->whereIn('language', $allowedLanguages)
             ->where('approved_for_generation', true)
             ->whereIn('equipment_category', $allowedEquipment)
             ->get()
@@ -196,6 +199,13 @@ class RoutineGeneratorService
             ->filter(fn ($tag) => $bodyRegion === null || in_array($bodyRegion, $this->bodyRegionsForTag($tag), true))
             ->unique('exercise_id')
             ->values();
+
+        $exactLanguageTags = $tags
+            ->where('language', $filters['language'])
+            ->values();
+        if ($exactLanguageTags->count() >= $count) {
+            $tags = $exactLanguageTags;
+        }
 
         if ($usage === 'main_workout') {
             $preferredTags = $tags

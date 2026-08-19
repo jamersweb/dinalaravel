@@ -334,7 +334,7 @@ class AiProgramValidatorService
                 ]);
             }
 
-            if ($program->language && $tag->language && $program->language !== $tag->language) {
+            if ($program->language && $tag->language && $tag->language !== 'no_audio' && $program->language !== $tag->language) {
                 $errors[] = array_merge($context, [
                     'code' => 'program_exercise_language_mismatch',
                     'program_language' => $program->language,

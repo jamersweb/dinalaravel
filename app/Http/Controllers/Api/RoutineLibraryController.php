@@ -325,7 +325,9 @@ class RoutineLibraryController extends Controller
         $summary = $tagger->tag([
             'approve' => $request->boolean('approve'),
             'replace' => $request->boolean('replace'),
-            'include_no_audio' => $request->boolean('include_no_audio'),
+            'include_no_audio' => $request->has('include_no_audio')
+                ? $request->boolean('include_no_audio')
+                : true,
             'preserve_review_status' => $request->boolean('preserve_review_status', true),
         ]);
 

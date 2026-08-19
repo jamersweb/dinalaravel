@@ -446,11 +446,29 @@ class RoutineLibraryRules
     public static function normalizeLanguage(?string $language): string
     {
         $language = strtolower(trim((string) $language));
-        $language = str_replace('-', '_', $language);
+        $language = str_replace(['-', ' '], '_', $language);
 
-        if (in_array($language, ['no', 'none', 'silent', 'noaudio'], true)) {
+        if (in_array($language, ['no', 'none', 'silent', 'noaudio', 'no_audio', 'no_audio_video'], true)) {
             return 'no_audio';
         }
+
+        $aliases = [
+            'eng' => 'en',
+            'english' => 'en',
+            'en_us' => 'en',
+            'en_gb' => 'en',
+            'en_uk' => 'en',
+            'us' => 'en',
+            'uk' => 'en',
+            'ara' => 'ar',
+            'arab' => 'ar',
+            'arabic' => 'ar',
+            'ar_sa' => 'ar',
+            'ar_ae' => 'ar',
+            'ar_eg' => 'ar',
+        ];
+
+        $language = $aliases[$language] ?? $language;
 
         return in_array($language, self::LANGUAGES, true) ? $language : 'en';
     }

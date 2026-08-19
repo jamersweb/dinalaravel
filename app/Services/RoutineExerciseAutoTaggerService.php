@@ -68,6 +68,7 @@ class RoutineExerciseAutoTaggerService
     private const DUMBBELL_EQUIPMENT = [33];
     private const GYM_EQUIPMENT = [25, 26, 29, 31, 32, 34, 37, 39, 40, 45, 48, 50, 51, 52, 586, 686];
     private const HOME_ACCESSORY_EQUIPMENT = [23, 24, 27, 30, 35, 36, 38, 42, 43, 44, 46, 47, 49, 177, 191, 688, 689];
+    private const NO_AUDIO_LANGUAGE_TAGS = [337];
 
     public function tag(array $options = []): array
     {
@@ -96,10 +97,6 @@ class RoutineExerciseAutoTaggerService
                 'rest_period',
             ])
             ->orderBy('id');
-
-        if (! $includeNoAudio) {
-            $query->whereIn('language', RoutineLibraryRules::CONTENT_LANGUAGES);
-        }
 
         if (! $replace) {
             $query->whereDoesntHave('libraryTag');
@@ -139,10 +136,10 @@ class RoutineExerciseAutoTaggerService
             'skipped_examples' => [],
         ];
 
-        $query->chunkById(100, function ($exercises) use ($approve, $dryRun, $replace, $preserveReviewStatus, &$summary) {
+        $query->chunkById(100, function ($exercises) use ($approve, $dryRun, $replace, $preserveReviewStatus, $includeNoAudio, &$summary) {
             foreach ($exercises as $exercise) {
                 $summary['scanned']++;
-                $classification = $this->classify($exercise, $approve);
+                $classification = $this->classify($exercise, $approve, $includeNoAudio);
 
                 if (! $classification['taggable']) {
                     $summary['skipped']++;
@@ -209,7 +206,7 @@ class RoutineExerciseAutoTaggerService
             'skipped_reasons' => [],
         ];
 
-        $classification = $this->classify($exercise, $approve);
+        $classification = $this->classify($exercise, $approve, (bool) ($options['include_no_audio'] ?? false));
         if (! $classification['taggable']) {
             $summary['skipped'] = 1;
             $summary['skipped_reasons'][$classification['reason']] = 1;
@@ -295,11 +292,12 @@ class RoutineExerciseAutoTaggerService
         ];
     }
 
-    private function classify(Exercise $exercise, bool $approve): array
+    private function classify(Exercise $exercise, bool $approve, bool $includeNoAudio = false): array
     {
-        $language = RoutineLibraryRules::normalizeLanguage($exercise->language);
-        $rawLanguage = str_replace('-', '_', strtolower(trim((string) $exercise->language)));
-        if (! in_array($rawLanguage, RoutineLibraryRules::CONTENT_LANGUAGES, true) && $language !== 'no_audio') {
+        $tagIds = $this->tagIds($exercise->tags);
+        $language = $this->contentLanguage($exercise, $tagIds, $includeNoAudio);
+
+        if (! $language) {
             return $this->skip('excluded_language');
         }
 
@@ -307,7 +305,6 @@ class RoutineExerciseAutoTaggerService
             return $this->skip('missing_video_reference');
         }
 
-        $tagIds = $this->tagIds($exercise->tags);
         $equipment = $this->equipmentCategory($tagIds, $exercise);
         if (! $equipment) {
             return $this->skip('unknown_equipment');
@@ -350,7 +347,7 @@ class RoutineExerciseAutoTaggerService
                 'workout_sections' => $this->workoutSections($usage),
                 'impact_level' => $impact,
                 'intensity_level' => $intensity,
-                'video_variant' => $language === 'no_audio' ? 'no_audio' : 'explained',
+                'video_variant' => $this->videoVariant($exercise, $tagIds),
                 'recommended_duration_seconds' => $this->recommendedDurationSeconds($exercise, $exerciseType),
                 'recommended_repetitions' => $this->recommendedRepetitions($exerciseType),
                 'recommended_sets' => $this->recommendedSets($exerciseType),
@@ -375,6 +372,26 @@ class RoutineExerciseAutoTaggerService
                     : 'Auto-tagged from existing CMS exercise tags. Review before approving for generation.',
             ],
         ];
+    }
+
+    private function contentLanguage(Exercise $exercise, array $tagIds, bool $includeNoAudio): ?string
+    {
+        $language = RoutineLibraryRules::normalizeLanguage($exercise->language);
+
+        if (in_array($language, RoutineLibraryRules::CONTENT_LANGUAGES, true)) {
+            return $language;
+        }
+
+        return $language === 'no_audio' && $includeNoAudio ? 'no_audio' : null;
+    }
+
+    private function videoVariant(Exercise $exercise, array $tagIds): string
+    {
+        $language = RoutineLibraryRules::normalizeLanguage($exercise->language);
+
+        return $language === 'no_audio' || (bool) array_intersect($tagIds, self::NO_AUDIO_LANGUAGE_TAGS)
+            ? 'no_audio'
+            : 'explained';
     }
 
     private function tagIds($raw): array

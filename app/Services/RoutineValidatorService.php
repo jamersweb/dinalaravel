@@ -174,7 +174,7 @@ class RoutineValidatorService
                 ];
             }
 
-            if ($workout->language && $tag->language && $workout->language !== $tag->language) {
+            if ($workout->language && $tag->language && $tag->language !== 'no_audio' && $workout->language !== $tag->language) {
                 $errors[] = [
                     'code' => 'language_mismatch',
                     'exercise_id' => $row->exercise_id,
