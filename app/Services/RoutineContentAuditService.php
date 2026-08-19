@@ -320,7 +320,8 @@ class RoutineContentAuditService
         if ($usage === 'cardio_warm_up') {
             if ($explicitUsageMatch) {
                 return empty($safety['unsafe_as_warmup'])
-                    && ($safety['safe_for_warmup'] ?? true);
+                    && ($safety['safe_for_warmup'] ?? true)
+                    && $this->isLowImpactWarmUpCardio($type, $title);
             }
 
             return empty($safety['unsafe_as_warmup'])
@@ -332,7 +333,7 @@ class RoutineContentAuditService
 
         if ($usage === 'stretching') {
             if ($explicitUsageMatch) {
-                return true;
+                return $this->isStretchingExercise($type, $title, $patterns);
             }
 
             return in_array($primaryCategory, ['', 'flexibility_stretching', 'post_workout_stretching'], true)
