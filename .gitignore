@@ -68,6 +68,7 @@ node_modules
 /storage/oauth-public.key
 
 # Local generated cache/temp files
+/bootstrap/cache/*.php
 /bootstrap/cache/*.tmp
 /storage/AuthKey_*.p8
 /storage/app/ai-training/*.jsonl
