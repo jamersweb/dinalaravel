@@ -1,0 +1,1 @@
+# Keeps Laravel's bootstrap/cache directory present after deploys.
