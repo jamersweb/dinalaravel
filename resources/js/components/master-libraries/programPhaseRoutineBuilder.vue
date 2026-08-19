@@ -10,6 +10,51 @@
         />
         <div class="row mt-3 g-3">
             <div class="col-xl-7">
+                <div v-if="scheduleWeeks.length" class="phase-schedule-panel mb-3">
+                    <div class="phase-schedule-header">
+                        <div>
+                            <h5 class="mb-1">Phase Schedule</h5>
+                            <p class="mb-0 h8 text-muted">{{ scheduleRoutineCount }} routines across {{ scheduleWeeks.length }} week(s)</p>
+                        </div>
+                        <span v-if="selectedScheduleDay" class="phase-schedule-pill">
+                            {{ selectedScheduleDay.sectionLabel }}
+                        </span>
+                    </div>
+                    <div class="phase-week-tabs mt-3">
+                        <button
+                            v-for="week in scheduleWeeks"
+                            :key="week.weekNo"
+                            :class="{ active: week.weekNo === activeWeekNo }"
+                            @click="selectScheduleWeek(week.weekNo)"
+                        >
+                            Week {{ week.weekNo }}
+                        </button>
+                    </div>
+                    <div v-if="selectedScheduleWeek" class="phase-day-grid mt-3">
+                        <button
+                            v-for="day in selectedScheduleWeek.days"
+                            :key="day.key"
+                            class="phase-day-card"
+                            :class="[dayTypeClass(day.dayType), { active: day.dayNo === activeDayNo }]"
+                            @click="selectScheduleDay(day)"
+                        >
+                            <span>{{ day.dayLabel }}</span>
+                            <strong>{{ day.typeLabel }}</strong>
+                            <small>{{ day.displayName }}</small>
+                            <em>{{ day.exerciseCount }} exercises</em>
+                        </button>
+                    </div>
+                    <div v-if="selectedScheduleDay" class="phase-day-detail mt-3">
+                        <div class="phase-day-media">
+                            <img :src="selectedScheduleDay.image || '/images/download1.png'" alt="">
+                        </div>
+                        <div class="phase-day-copy">
+                            <h6>{{ selectedScheduleDay.displayName }}</h6>
+                            <p class="mb-1">{{ selectedScheduleDay.workoutTitle }}</p>
+                            <span>{{ selectedScheduleDay.dayLabel }} | {{ selectedScheduleDay.typeLabel }} | {{ selectedScheduleDay.exerciseCount }} exercises</span>
+                        </div>
+                    </div>
+                </div>
                 <p class="mb-2 h8 text-muted">Drag routines into a section, reorder within a section, or change the section tag.</p>
                 <div
                     v-for="section in sections"
@@ -32,6 +77,8 @@
                             v-for="item in displayItemsForSection(section.id)"
                             :key="item.id"
                             class="shd_card p-2 m-2 position-relative reorder-card"
+                            :id="routineCardId(item)"
+                            :class="{ 'phase-routine-active': isSelectedRoutine(item) }"
                             style="width: 180px;"
                             :draggable="!item.ai_section_preview"
                             @dragstart="startPhaseWorkoutDrag(item)"
@@ -190,6 +237,8 @@ export default {
             selectedTagsForFilter: [],
             draggedLibraryWorkout: null,
             draggedPhaseWorkout: null,
+            selectedBuilderWeekNo: null,
+            selectedBuilderDayNo: null,
         };
     },
     computed: {
@@ -201,10 +250,83 @@ export default {
                 this.$emit('update:selectedDeleteIds', value);
             },
         },
+        scheduleWeeks() {
+            const weekMap = {};
+            this.orderedPhaseWorkouts().forEach((item, index) => {
+                const displayName = item.display_name || item.workout_detail?.title || 'Workout routine';
+                const title = item.workout_detail?.title || displayName;
+                const weekMatch = String(displayName).match(/\bweek\s*(\d+)/i);
+                const dayMatch = String(displayName).match(/\bday\s*(\d+)/i);
+                const sequenceDay = index + 1;
+                const weekNo = weekMatch ? Number(weekMatch[1]) : Math.floor((sequenceDay - 1) / 7) + 1;
+                const dayNo = dayMatch ? Number(dayMatch[1]) : ((sequenceDay - 1) % 7) + 1;
+                const dayType = this.dayTypeForRoutine(item);
+                const normalizedSection = this.normalizedSectionTag(item.section_tag);
+
+                if (!weekMap[weekNo]) {
+                    weekMap[weekNo] = {
+                        weekNo,
+                        days: [],
+                    };
+                }
+
+                weekMap[weekNo].days.push({
+                    key: weekNo + '-' + dayNo + '-' + item.id,
+                    weekNo,
+                    dayNo,
+                    dayLabel: 'Day ' + dayNo,
+                    typeLabel: this.readableLabel(dayType),
+                    dayType,
+                    displayName,
+                    workoutTitle: title,
+                    exerciseCount: item.section_exercise_count ?? item.workout_detail?.workout_exercises_count ?? 0,
+                    sectionLabel: this.sectionLabel(normalizedSection),
+                    image: item.workout_detail?.image,
+                    item,
+                    phaseWorkoutId: item.id,
+                    sequenceDay,
+                });
+            });
+
+            return Object.values(weekMap)
+                .sort((a, b) => a.weekNo - b.weekNo)
+                .map((week) => ({
+                    ...week,
+                    days: week.days.sort((a, b) => {
+                        const dayDiff = a.dayNo - b.dayNo;
+                        return dayDiff !== 0 ? dayDiff : a.sequenceDay - b.sequenceDay;
+                    }),
+                }));
+        },
+        selectedScheduleWeek() {
+            if (this.scheduleWeeks.length === 0) {
+                return null;
+            }
+            return this.scheduleWeeks.find((week) => week.weekNo === this.activeWeekNo) || this.scheduleWeeks[0];
+        },
+        selectedScheduleDay() {
+            if (!this.selectedScheduleWeek || this.selectedScheduleWeek.days.length === 0) {
+                return null;
+            }
+            return this.selectedScheduleWeek.days.find((day) => day.dayNo === this.activeDayNo) || this.selectedScheduleWeek.days[0];
+        },
+        activeWeekNo() {
+            return this.selectedBuilderWeekNo || this.scheduleWeeks[0]?.weekNo || null;
+        },
+        activeDayNo() {
+            return this.selectedBuilderDayNo || this.selectedScheduleWeek?.days?.[0]?.dayNo || null;
+        },
+        scheduleRoutineCount() {
+            return this.orderedPhaseWorkouts().length;
+        },
     },
     watch: {
         programLanguage() {
             this.loadWorkouts();
+        },
+        phaseWorkouts() {
+            this.selectedBuilderWeekNo = null;
+            this.selectedBuilderDayNo = null;
         },
     },
     mounted() {
@@ -285,6 +407,52 @@ export default {
             }
             const index = this.orderedPhaseWorkouts().findIndex((phaseWorkout) => phaseWorkout.id === item.id);
             return index >= 0 ? index + 1 : 1;
+        },
+        dayTypeForRoutine(item) {
+            const label = [
+                item.display_name,
+                item.workout_detail?.title,
+                item.section_tag,
+            ].filter(Boolean).join(' ').toLowerCase();
+
+            if (label.includes('rest')) {
+                return 'rest';
+            }
+            if (label.includes('recovery') || label.includes('mobility') || label.includes('stretch')) {
+                return 'active_recovery';
+            }
+            return 'workout';
+        },
+        selectScheduleWeek(weekNo) {
+            this.selectedBuilderWeekNo = weekNo;
+            const week = this.scheduleWeeks.find((item) => item.weekNo === weekNo);
+            this.selectedBuilderDayNo = week?.days?.[0]?.dayNo || null;
+        },
+        selectScheduleDay(day) {
+            this.selectedBuilderWeekNo = day.weekNo;
+            this.selectedBuilderDayNo = day.dayNo;
+            this.$nextTick(() => {
+                const card = document.getElementById(this.routineCardId(day.item));
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        },
+        dayTypeClass(dayType) {
+            return {
+                workout: 'phase-day-workout',
+                rest: 'phase-day-rest',
+                active_recovery: 'phase-day-recovery',
+            }[dayType] || 'phase-day-workout';
+        },
+        readableLabel(value) {
+            return String(value || '').replaceAll('_', ' ');
+        },
+        routineCardId(item) {
+            return 'phase-routine-card-' + String(item.id).replace(/[^a-zA-Z0-9_-]/g, '-');
+        },
+        isSelectedRoutine(item) {
+            return !item.ai_section_preview && this.selectedScheduleDay?.phaseWorkoutId === item.id;
         },
         modifyLanguage(language) {
             if (language === 'no') {
@@ -435,6 +603,146 @@ export default {
 .reorder-handle {
     cursor: grab;
 }
+.phase-schedule-panel {
+    background: #fff;
+    border: 1px solid #e7e7e7;
+    border-radius: 8px;
+    padding: 14px;
+}
+.phase-schedule-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+.phase-schedule-header h5 {
+    color: #222;
+    font-size: 22px;
+    font-weight: 600;
+}
+.phase-schedule-pill {
+    background: #f5f5f5;
+    border-radius: 6px;
+    color: #555;
+    flex: 0 0 auto;
+    font-size: 12px;
+    padding: 5px 9px;
+}
+.phase-week-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.phase-week-tabs button {
+    background: #fff;
+    border: 1px solid #d8d8d8;
+    border-radius: 6px;
+    color: #444;
+    flex: 0 0 auto;
+    font-size: 12px;
+    padding: 6px 11px;
+}
+.phase-week-tabs button.active {
+    background: #f2a18c;
+    border-color: #f2a18c;
+    color: #111;
+}
+.phase-day-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+.phase-day-card {
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    min-height: 112px;
+    padding: 8px;
+    text-align: left;
+}
+.phase-day-card span,
+.phase-day-card strong,
+.phase-day-card small,
+.phase-day-card em {
+    display: block;
+    overflow-wrap: anywhere;
+}
+.phase-day-card span {
+    color: #777;
+    font-size: 11px;
+}
+.phase-day-card strong {
+    color: #222;
+    font-size: 13px;
+    text-transform: capitalize;
+}
+.phase-day-card small {
+    color: #555;
+    font-size: 11px;
+    line-height: 1.25;
+    margin-top: 5px;
+}
+.phase-day-card em {
+    color: #777;
+    font-size: 11px;
+    font-style: normal;
+    margin-top: 5px;
+}
+.phase-day-card.active {
+    box-shadow: 0 0 0 2px #f2a18c inset;
+}
+.phase-day-workout {
+    background: #fff;
+}
+.phase-day-rest {
+    background: #f7f7f7;
+}
+.phase-day-recovery {
+    background: #eef7f2;
+}
+.phase-day-detail {
+    align-items: center;
+    border: 1px solid #eeeeee;
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+}
+.phase-day-media {
+    background: #111;
+    border-radius: 6px;
+    flex: 0 0 86px;
+    height: 66px;
+    overflow: hidden;
+}
+.phase-day-media img {
+    height: 100%;
+    object-fit: contain;
+    width: 100%;
+}
+.phase-day-copy {
+    min-width: 0;
+}
+.phase-day-copy h6,
+.phase-day-copy p,
+.phase-day-copy span {
+    display: block;
+    overflow-wrap: anywhere;
+}
+.phase-day-copy h6 {
+    color: #222;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+.phase-day-copy p,
+.phase-day-copy span {
+    color: #666;
+    font-size: 12px;
+}
+.phase-routine-active {
+    box-shadow: 0 0 0 2px #f2a18c, 0 8px 20px rgba(242, 161, 140, 0.28);
+}
 .routine-library-card {
     overflow: hidden;
 }
@@ -520,12 +828,24 @@ export default {
     text-align: center;
 }
 @media (max-width: 575.98px) {
+    .phase-schedule-header,
     .routine-library-head {
         align-items: flex-start !important;
         flex-direction: column;
     }
+    .phase-day-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .phase-day-detail {
+        align-items: flex-start;
+    }
     .routine-toolbar {
         gap: 8px;
+    }
+}
+@media (min-width: 576px) and (max-width: 1199.98px) {
+    .phase-day-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     }
 }
 </style>

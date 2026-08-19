@@ -41,6 +41,7 @@
         </div>
     </div>
     <div
+        class="program-master-layout"
         style="display: flex; border: 1px solid #e7e7e7; border-radius: 1em;overflow: hidden;width: 100%;height: calc(100vh - 124px);">
         <div class="masterpanel">
             <div
@@ -1498,6 +1499,29 @@ input:focus-visible {
 }
 
 @media (max-width: 768px) {
+    .program-master-layout {
+        flex-direction: column;
+        height: auto !important;
+        min-height: calc(100vh - 124px);
+        overflow-y: auto !important;
+    }
+
+    .masterpanel {
+        border-bottom: 1px solid rgb(228, 228, 228);
+        border-bottom-left-radius: 0;
+        border-right: 0;
+        height: auto;
+        max-height: 360px;
+        min-height: 280px;
+        width: 100%;
+    }
+
+    .masterscreen {
+        min-height: 640px;
+        overflow-y: visible;
+        width: 100%;
+    }
+
     .ai-day-grid,
     .ai-exercise-row {
         grid-template-columns: 1fr;
