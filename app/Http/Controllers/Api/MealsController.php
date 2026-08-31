@@ -39,6 +39,31 @@ class MealsController extends Controller
         return is_numeric($value) ? $value + 0 : 0;
     }
 
+    private function normalizeTagIds($tags): array
+    {
+        if (is_null($tags) || $tags === '') {
+            return [];
+        }
+
+        if (is_array($tags)) {
+            return array_values(array_filter(array_map('intval', $tags)));
+        }
+
+        $decoded = json_decode($tags, true);
+        if (is_array($decoded)) {
+            return array_values(array_filter(array_map('intval', $decoded)));
+        }
+
+        return array_values(array_filter(array_map('intval', explode(',', $tags))));
+    }
+
+    private function tagNamesFromIds(array $tagIds, array $tagsMap): array
+    {
+        return array_values(array_filter(array_map(function ($tagId) use ($tagsMap) {
+            return $tagsMap[$tagId] ?? null;
+        }, $tagIds)));
+    }
+
     function createMeal(Request $request){
         $validate = Validator::make($request->all(),[
             'name' => 'required|string',
@@ -205,12 +230,7 @@ class MealsController extends Controller
             
             $allTagIds = [];
             foreach ($meals as $meal) {
-                if (!is_null($meal->tags)) {
-                    $tagIds = json_decode($meal->tags, true);
-                    if (is_array($tagIds)) {
-                        $allTagIds = array_merge($allTagIds, $tagIds);
-                    }
-                }
+                $allTagIds = array_merge($allTagIds, $this->normalizeTagIds($meal->tags));
             }
 
             $tagsMap = [];
@@ -220,16 +240,9 @@ class MealsController extends Controller
             }
 
             foreach ($meals as $meal) {
-                if(is_null($meal->tags)) {
-                    $meal->tagNames = [];
-                    $meal->tags = [];
-                } else {
-                    $tagIds = json_decode($meal->tags, true);
-                    $meal->tags = is_array($tagIds) ? $tagIds : [];
-                    $meal->tagNames = array_filter(array_map(function($tagId) use ($tagsMap) {
-                        return $tagsMap[$tagId] ?? null;
-                    }, $meal->tags));
-                }
+                $tagIds = $this->normalizeTagIds($meal->tags);
+                $meal->tags = $tagIds;
+                $meal->tagNames = $this->tagNamesFromIds($tagIds, $tagsMap);
             }
 
             return $meals->toArray();
@@ -275,12 +288,7 @@ class MealsController extends Controller
 
             $allTagIds = [];
             foreach ($meals as $meal) {
-                if (!is_null($meal->tags)) {
-                    $tagIds = json_decode($meal->tags, true);
-                    if (is_array($tagIds)) {
-                        $allTagIds = array_merge($allTagIds, $tagIds);
-                    }
-                }
+                $allTagIds = array_merge($allTagIds, $this->normalizeTagIds($meal->tags));
             }
 
             $tagsMap = [];
@@ -300,10 +308,7 @@ class MealsController extends Controller
 
                 if ($requestType === 'all' || in_array($requestType, $suitableFor)) {
                     if (!empty($tagFilter)) {
-                        $mealTags = $meal->tags ? json_decode($meal->tags, true) : [];
-                        if (!is_array($mealTags)) {
-                            $mealTags = [];
-                        }
+                        $mealTags = $this->normalizeTagIds($meal->tags);
                         $hasMatchingTag = false;
                         foreach ($tagFilter as $tagId) {
                             $tagIdInt = (int) $tagId;
@@ -325,45 +330,13 @@ class MealsController extends Controller
                     unset($meal->file, $meal->file_type, $meal->video_thumbnail);
                     $meal->ingredients = json_decode($meal->ingredients);
 
-                    if (is_null($meal->tags)) {
-                        $meal->tagNames = [];
-                    } else {
-                        $tagIds = json_decode($meal->tags, true);
-                        $meal->tagNames = array_filter(array_map(function($tagId) use ($tagsMap) {
-                            return $tagsMap[$tagId] ?? null;
-                        }, is_array($tagIds) ? $tagIds : []));
-                    }
+                    $tagIds = $this->normalizeTagIds($meal->tags);
+                    $meal->tags = $tagIds;
+                    $meal->tagNames = $this->tagNamesFromIds($tagIds, $tagsMap);
 
                     $mealArray = JsonSanitizer::sanitize($meal->toArray());
                     $mealArray['image'] = $mealArray['image'] ?? '';
                     $returnData[] = $mealArray;
-                }
-            }
-
-            if (!empty($tagFilter) && empty($returnData)) {
-                Log::info('discoverMeals - Tag filter returned 0 meals, falling back to all meals');
-                foreach ($meals as $meal) {
-                    $this->applyMealLocaleOverlay($meal, $contentLocale);
-                    $suitableFor = json_decode($meal->suitable_for, true);
-                    if (!is_array($suitableFor)) {
-                        continue;
-                    }
-                    if ($requestType === 'all' || in_array($requestType, $suitableFor)) {
-                        $meal->image = $meal->file_type === 'image' ? ($meal->file ?? '') : ($meal->video_thumbnail ?? '');
-                        unset($meal->file, $meal->file_type, $meal->video_thumbnail);
-                        $meal->ingredients = json_decode($meal->ingredients);
-                        if (is_null($meal->tags)) {
-                            $meal->tagNames = [];
-                        } else {
-                            $tagIds = json_decode($meal->tags, true);
-                            $meal->tagNames = array_filter(array_map(function ($tagId) use ($tagsMap) {
-                                return $tagsMap[$tagId] ?? null;
-                            }, is_array($tagIds) ? $tagIds : []));
-                        }
-                        $mealArray = JsonSanitizer::sanitize($meal->toArray());
-                        $mealArray['image'] = $mealArray['image'] ?? '';
-                        $returnData[] = $mealArray;
-                    }
                 }
             }
 
@@ -384,16 +357,11 @@ class MealsController extends Controller
             $meal->nutrient = json_decode($meal->nutrient);
         }
         
-        if(is_null($meal->tags)) {
-            $meal->tagNames = [];
-        } else {
-            $tagIds = json_decode($meal->tags, true);
-            if (is_array($tagIds) && !empty($tagIds)) {
-                $meal->tagNames = Tag::whereIn('id', $tagIds)->pluck('name')->toArray();
-            } else {
-                $meal->tagNames = [];
-            }
-        }
+        $tagIds = $this->normalizeTagIds($meal->tags);
+        $meal->tags = $tagIds;
+        $meal->tagNames = empty($tagIds)
+            ? []
+            : Tag::whereIn('id', $tagIds)->pluck('name')->toArray();
         
         return $this->success($meal);
     }
