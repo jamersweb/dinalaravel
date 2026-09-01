@@ -21,7 +21,7 @@ class UserDetailFactory extends Factory
             'gender' => $this->faker->randomElement(['male', 'female', 'other']),
             'height' => $this->faker->numberBetween(150, 200) . ' cm',
             'picture' => null,
-            'subscription' => null,
+            'subscription' => 0,
             'subscription_status' => null,
         ];
     }

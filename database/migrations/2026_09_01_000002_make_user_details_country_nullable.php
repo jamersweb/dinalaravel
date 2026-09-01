@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class MakeUserDetailsPhoneNullable extends Migration
+class MakeUserDetailsCountryNullable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class MakeUserDetailsPhoneNullable extends Migration
      */
     public function up()
     {
-        $this->modifyPhoneNullable(true);
+        $this->modifyCountryNullable(true);
     }
 
     /**
@@ -23,12 +23,12 @@ class MakeUserDetailsPhoneNullable extends Migration
      */
     public function down()
     {
-        DB::table('user_details')->whereNull('phone')->update(['phone' => '']);
+        DB::table('user_details')->whereNull('country')->update(['country' => '']);
 
-        $this->modifyPhoneNullable(false);
+        $this->modifyCountryNullable(false);
     }
 
-    private function modifyPhoneNullable(bool $nullable)
+    private function modifyCountryNullable(bool $nullable)
     {
         if (!Schema::hasTable('user_details')) {
             return;
@@ -37,7 +37,7 @@ class MakeUserDetailsPhoneNullable extends Migration
         $driver = Schema::getConnection()->getDriverName();
 
         if ($driver === 'mysql') {
-            DB::statement('ALTER TABLE `user_details` MODIFY `phone` VARCHAR(255) ' . ($nullable ? 'NULL' : 'NOT NULL'));
+            DB::statement('ALTER TABLE `user_details` MODIFY `country` VARCHAR(255) ' . ($nullable ? 'NULL' : 'NOT NULL'));
         }
     }
 }

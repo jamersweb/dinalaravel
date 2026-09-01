@@ -229,7 +229,7 @@ class UserInformationController extends Controller
         $validate = Validator::make($request->all(),[
             'phone' => 'nullable|numeric',
             'DOB' => 'required',
-            'country' => 'required',
+            'country' => 'nullable|string',
             'gender' => 'required',
             'height' => 'required',
         ]);
@@ -241,7 +241,7 @@ class UserInformationController extends Controller
         }
 
         $data['DOB'] = $request->DOB;
-        $data['country'] = $request->country;
+        $data['country'] = $request->input('country') ?: null;
         $data['gender'] = $request->gender;
         $data['height'] = $request->height;
         if ($request->has('phone')) {

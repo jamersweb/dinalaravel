@@ -47,7 +47,30 @@ class AuthController extends Controller
         if (str_contains($language, '_')) {
             $language = explode('_', $language)[0] ?: 'en';
         }
-        $request->merge(['email' => $email, 'language' => $language]);
+        $fcmToken = $request->input('fcm_token');
+        $fcmToken = is_scalar($fcmToken) ? trim((string) $fcmToken) : $fcmToken;
+        if ($fcmToken === '') {
+            $fcmToken = null;
+        }
+        $firstName = $request->input('firstname');
+        $firstName = is_scalar($firstName) ? trim((string) $firstName) : '';
+        $lastName = $request->input('lastname');
+        $lastName = is_scalar($lastName) ? trim((string) $lastName) : '';
+        if ($firstName === '') {
+            $emailLocalPart = trim((string) strtok($email, '@'));
+            $firstName = $emailLocalPart !== '' ? ucwords(trim(preg_replace('/[^A-Za-z0-9]+/', ' ', $emailLocalPart))) : 'Member';
+        }
+        if ($lastName === '') {
+            $lastName = 'Account';
+        }
+
+        $request->merge([
+            'email' => $email,
+            'language' => $language,
+            'fcm_token' => $fcmToken,
+            'firstname' => $firstName,
+            'lastname' => $lastName,
+        ]);
 
         $phone = $request->input('phone');
         $phone = is_scalar($phone) ? trim((string) $phone) : $phone;
@@ -56,15 +79,22 @@ class AuthController extends Controller
         }
         $request->merge(['phone' => $phone]);
 
+        $country = $request->input('country');
+        $country = is_scalar($country) ? trim((string) $country) : $country;
+        if ($country === '') {
+            $country = null;
+        }
+        $request->merge(['country' => $country]);
+
         $validate = Validator::make($request->all(), [
             'email' => 'required|email',
-            'fcm_token' => 'required|string',
-            'firstname' => 'required|string',
+            'fcm_token' => 'nullable|string|max:4096',
+            'firstname' => 'nullable|string|max:255',
             'password' => 'required|string',
-            'lastname' => 'required|string',
+            'lastname' => 'nullable|string|max:255',
             'phone' => 'nullable|numeric',
             'DOB' => 'required|date',
-            'country' => 'required|string',
+            'country' => 'nullable|string',
             'language' => ['required', Language::activeCodeRule()],
             'gender' => 'required|in:male,female,other,ذكر,انثى,آخر'
         ]);
@@ -115,7 +145,7 @@ class AuthController extends Controller
         $user = new User();
         $user->api_token = 'xxxxxxxxxxxxx';
         $user->fcm_token = $request->fcm_token;
-        $user->name = $request->firstname;
+        $user->name = $firstName;
         $user->email = $email;
         $verificationCode = rand(1000, 9999);
         $user->email_verification_code = $verificationCode;
@@ -127,11 +157,11 @@ class AuthController extends Controller
 
         $userDetail = new UserDetail();
         $userDetail->user_id = $user->id;
-        $userDetail->name = $request->firstname;
-        $userDetail->Lastname = $request->lastname;
+        $userDetail->name = $firstName;
+        $userDetail->Lastname = $lastName;
         $userDetail->phone = $phone;
         $userDetail->DOB = $request->DOB;
-        $userDetail->country = $request->country;
+        $userDetail->country = $country;
         $userDetail->gender = $request->gender;
         $userDetail->subscription = 0;
         $userDetail->save();
@@ -161,7 +191,7 @@ class AuthController extends Controller
             $this->storeNotification($notiReciever, $notiTitle, null, $notiContent, null, $notiSource);
         }
         $data = [
-            'name' => $request->firstname,
+            'name' => $firstName,
             'verification_code' => $verificationCode,
             'email' => $email
         ];
@@ -257,11 +287,16 @@ class AuthController extends Controller
         if (str_contains($language, '_')) {
             $language = explode('_', $language)[0] ?: 'en';
         }
-        $request->merge(['language' => $language]);
+        $fcmToken = $request->input('fcm_token');
+        $fcmToken = is_scalar($fcmToken) ? trim((string) $fcmToken) : $fcmToken;
+        if ($fcmToken === '') {
+            $fcmToken = null;
+        }
+        $request->merge(['language' => $language, 'fcm_token' => $fcmToken]);
 
         $validate = Validator::make($request->all(), [
             'email' => 'required|email',
-            'fcm_token' => 'required',
+            'fcm_token' => 'nullable|string|max:4096',
             'password' => 'required',
             'language' => ['required', Language::activeCodeRule()],
         ]);
@@ -361,6 +396,7 @@ class AuthController extends Controller
                 return response()->json([
                     'status' => 1,
                     'message' => 'Login Successfully',
+                    'login_token' => $accessToken,
                     'userdata' =>  $user,
                     'answered' => $qAns
                 ]);
@@ -734,6 +770,9 @@ class AuthController extends Controller
             }
             if (Schema::hasTable('notifications')) {
                 DB::table('notifications')->where('reciever', $userId)->delete();
+            }
+            if (Schema::hasTable('group_messages')) {
+                DB::table('group_messages')->where('from', $userId)->delete();
             }
 
             // Delete user (cascades to user_details, user_settings, user_answers, chats, etc.)

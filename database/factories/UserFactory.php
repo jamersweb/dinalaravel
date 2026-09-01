@@ -23,6 +23,7 @@ class UserFactory extends Factory
             'status' => 'active',
             'api_token' => Str::random(60),
             'fcm_token' => Str::random(100),
+            'email_verified_at' => now(),
             'email_verification_code' => null,
             'code_expire_time' => null,
         ];
@@ -42,6 +43,7 @@ class UserFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'status' => 'pending',
+                'email_verified_at' => null,
                 'email_verification_code' => rand(1000, 9999),
                 'code_expire_time' => now()->addMinutes(5),
             ];
@@ -56,4 +58,3 @@ class UserFactory extends Factory
         });
     }
 }
-

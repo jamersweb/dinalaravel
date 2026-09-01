@@ -61,7 +61,10 @@ trait ApiResponse
      */
     protected function validationError($validator, $message = 'Validation failed')
     {
-        return $this->error($message, 422, $validator->errors()->toArray());
+        $errors = $validator->errors()->toArray();
+        $firstError = $validator->errors()->first();
+
+        return $this->error($firstError ?: $message, 422, $errors);
     }
 
     /**
