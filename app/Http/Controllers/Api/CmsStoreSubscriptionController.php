@@ -6,16 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\StoreSubscription;
 use App\Services\GooglePlayClient;
 use App\Services\StoreSubscriptionPricing;
+use App\Support\StoreSubscriptionProducts;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CmsStoreSubscriptionController extends Controller
 {
-    private const PRODUCT_LABELS = [
-        'fwd_basic_plan' => 'Basic',
-        'fwd_premium' => 'Premium',
-    ];
-
     public function summary()
     {
         $activeQuery = StoreSubscription::query()
@@ -106,7 +102,7 @@ class CmsStoreSubscriptionController extends Controller
 
             return [
                 'id' => $record->id,
-                'product' => self::PRODUCT_LABELS[$record->product_id] ?? $record->product_id,
+                'product' => StoreSubscriptionProducts::label($record->product_id),
                 'client' => trim((string) ($user?->name ?? 'Unknown Client')) ?: 'Unknown Client',
                 'status' => ucfirst((string) $record->status),
                 'date_added' => $this->formatDate($record->created_at),
@@ -213,7 +209,10 @@ class CmsStoreSubscriptionController extends Controller
             'platform' => $record->platform,
             'platform_label' => $record->platform === 'ios' ? 'Apple' : 'Google',
             'product_id' => $record->product_id,
-            'product_label' => self::PRODUCT_LABELS[$record->product_id] ?? $record->product_id,
+            'product_label' => StoreSubscriptionProducts::label($record->product_id),
+            'subscription_tier' => StoreSubscriptionProducts::tier($record->product_id),
+            'has_nutrition_access' => StoreSubscriptionProducts::hasNutritionAccess($record->product_id),
+            'has_private_coaching' => StoreSubscriptionProducts::hasPrivateCoaching($record->product_id),
             'base_plan_id' => $record->base_plan_id,
             'order_id' => $record->transaction_id,
             'transaction_id' => $record->transaction_id,

@@ -26,6 +26,8 @@ use App\Models\Subscription;
 use App\Models\UserAnswer;
 use App\Models\UserMealPlan;
 use App\Models\UserSub;
+use App\Models\StoreSubscription;
+use App\Support\StoreSubscriptionProducts;
 use App\Traits\ActivitiesTrait;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -818,6 +820,13 @@ class AuthController extends Controller
         $queAns = UserAnswer::where('user_id', $userId)->count();
         $proSubs = ProgramSub::where('user_id', $userId)->where('status', '!=', 'completed')->count();
         $subAccess = Subscription::where('id', UserSub::where('user_id', $userId)->where('status', 'active')->orderBy('id', 'desc')->pluck('sub_id')->first())->pluck('access_type')->first();
+        $activeStoreSubscription = StoreSubscription::where('user_id', $userId)
+            ->where('status', 'active')
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->latest('verified_at')
+            ->first();
         $tutorial = UserSetting::where('user_id', $userId)->pluck('show_tutorial')->first();
         // Check for ACTIVE meal plans, not just any meal plans
         $mealPlan = UserMealPlan::where('user_id', $userId)->where('status', 'active')->count();
@@ -836,6 +845,15 @@ class AuthController extends Controller
         $returnData->program_subscribed = $proSubs === 0 ? false : true;
         $returnData->meal_plan_selected = $mealPlan > 0 ? true : false;
         $returnData->full_access = $subAccess === 'full_access' ? true : false;
+        $returnData->subscription_product_id = $activeStoreSubscription?->product_id;
+        $returnData->subscription_label = StoreSubscriptionProducts::label($activeStoreSubscription?->product_id);
+        $returnData->subscription_tier = StoreSubscriptionProducts::tier($activeStoreSubscription?->product_id);
+        $returnData->has_nutrition_access = $activeStoreSubscription
+            ? StoreSubscriptionProducts::hasNutritionAccess($activeStoreSubscription->product_id)
+            : $returnData->subscription_active;
+        $returnData->has_private_coaching = $activeStoreSubscription
+            ? StoreSubscriptionProducts::hasPrivateCoaching($activeStoreSubscription->product_id)
+            : $returnData->full_access;
         $returnData->show_tutorial = $tutorial === 1 ? true : false;
 
         return response()->json([

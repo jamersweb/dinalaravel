@@ -9,24 +9,23 @@ use App\Models\UserDetail;
 use App\Models\UserSub;
 use App\Services\GooglePlayClient;
 use App\Services\StoreSubscriptionPricing;
+use App\Support\StoreSubscriptionProducts;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 
 class StoreSubscriptionController extends Controller
 {
-    private const BASIC_PRODUCT = 'fwd_basic_plan';
-    private const PREMIUM_PRODUCT = 'fwd_premium';
-
     public function verify(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'platform' => 'required|in:ios,android',
-            'product_id' => 'required|string|in:' . self::BASIC_PRODUCT . ',' . self::PREMIUM_PRODUCT,
+            'product_id' => ['required', 'string', Rule::in(StoreSubscriptionProducts::ids())],
             'base_plan_id' => 'nullable|string|max:128',
             'purchase_token' => 'required_if:platform,android|string|max:512',
             'receipt_data' => 'required_if:platform,ios|string',
@@ -79,7 +78,11 @@ class StoreSubscriptionController extends Controller
             'message' => 'Subscription verified.',
             'subscription_active' => true,
             'product_id' => $storeSub->product_id,
+            'product_label' => StoreSubscriptionProducts::label($storeSub->product_id),
+            'subscription_tier' => StoreSubscriptionProducts::tier($storeSub->product_id),
             'access_type' => $this->accessTypeForProduct($productId),
+            'has_nutrition_access' => StoreSubscriptionProducts::hasNutritionAccess($storeSub->product_id),
+            'has_private_coaching' => StoreSubscriptionProducts::hasPrivateCoaching($storeSub->product_id),
             'expires_at' => optional($storeSub->expires_at)->toIso8601String(),
         ]);
     }
@@ -98,7 +101,11 @@ class StoreSubscriptionController extends Controller
             'status' => (bool) $active,
             'subscription_active' => (bool) $active,
             'product_id' => $active?->product_id,
+            'product_label' => StoreSubscriptionProducts::label($active?->product_id),
+            'subscription_tier' => StoreSubscriptionProducts::tier($active?->product_id),
             'access_type' => $active ? $this->accessTypeForProduct($active->product_id) : null,
+            'has_nutrition_access' => $active ? StoreSubscriptionProducts::hasNutritionAccess($active->product_id) : false,
+            'has_private_coaching' => $active ? StoreSubscriptionProducts::hasPrivateCoaching($active->product_id) : false,
             'expires_at' => optional($active?->expires_at)->toIso8601String(),
         ]);
     }
@@ -297,7 +304,7 @@ class StoreSubscriptionController extends Controller
 
     private function accessTypeForProduct(string $productId): string
     {
-        return $productId === self::PREMIUM_PRODUCT ? 'full_access' : 'half_access';
+        return StoreSubscriptionProducts::accessType($productId);
     }
 
     private function inactiveResult(array $payload, ?string $reason = null): array
