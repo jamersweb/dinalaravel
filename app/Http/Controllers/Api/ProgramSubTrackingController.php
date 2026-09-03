@@ -718,7 +718,14 @@ class ProgramSubTrackingController extends Controller
 
     function getProgramDetail($id){
         try {
-        $programSub = ProgramSub::where('user_id',Auth::id())->where('program_id',$id)->first();
+        $programSub = ProgramSub::where('user_id',Auth::id())
+            ->where('program_id',$id)
+            ->whereIn('status', ['subscribed', 'in-progress', 'paused', 'resumed'])
+            ->orderByRaw("FIELD(status,'in-progress','resumed','paused','subscribed')")
+            ->first();
+        if(is_null($programSub)){
+            $programSub = ProgramSub::where('user_id',Auth::id())->where('program_id',$id)->first();
+        }
         if(is_null($programSub))
         return response()->json([
             'status' => false,
@@ -738,54 +745,59 @@ class ProgramSubTrackingController extends Controller
                 'content_code' => $program->content_code,
             ];
         }
+
+        if(WeekWiseProgram::where('program_sub_id',$programSub->id)->count()===0){
+            $this->generateTracking($programSub->id,$id);
+        }
         
         // BUSINESS RULE: Users can only see ONE week in advance (current week + 1 week ahead)
         $currentWeek = 1;
-        if($programSub->status=='in-progress'){
+        $status = strtolower((string) $programSub->status);
+        if($status==='in-progress' || $status==='started'){
             $startDate = $programSub->start_date ?? $programSub->subscribe_date;
             if ($startDate) {
                 $weeksPassed = Carbon::now()->diffInWeeks(Carbon::parse($startDate));
-                $currentWeek = max(1, $weeksPassed + 1);
+                $currentWeek = max(1, (int) $weeksPassed + 1);
             }
         }
-        else if($programSub->status=='paused'){
+        else if($status==='paused'){
             $startDate = $programSub->start_date ?? $programSub->subscribe_date;
             $endate = $programSub->pause_date;
             if ($startDate && $endate) {
                 $weeksPassed = Carbon::parse($endate)->diffInWeeks(Carbon::parse($startDate));
-                $currentWeek = max(1, $weeksPassed + 1);
+                $currentWeek = max(1, (int) $weeksPassed + 1);
             }
         }
-        else if($programSub->status=='resumed'){
+        else if($status==='resumed'){
             $startDate1 = $programSub->start_date ?? $programSub->subscribe_date;
             $endate1 = $programSub->pause_date;
             $startDate2 = $programSub->resume_date;
             if ($startDate1 && $endate1 && $startDate2) {
                 $weeksPassed1 = Carbon::parse($endate1)->diffInWeeks(Carbon::parse($startDate1));
                 $weeksPassed2 = Carbon::now()->diffInWeeks(Carbon::parse($startDate2));
-                $currentWeek = max(1, ($weeksPassed1 + $weeksPassed2) + 1);
+                $currentWeek = max(1, ((int) $weeksPassed1 + (int) $weeksPassed2) + 1);
             }
         }
-        else if($programSub->status=='completed'){
+        else if($status==='completed'){
             // Show all weeks for completed programs
             $programDetail = WeekWiseProgram::where('program_sub_id',$programSub->id)->get();
             $this->hydrateProgramWeeks($programDetail);
             $data = JsonSanitizer::sanitize($programDetail->toArray());
-            $aiSchedule = app(AiProgramDisplayService::class)->scheduleForProgram($program);
+            $aiSchedule = null;
+            try {
+                $aiSchedule = app(AiProgramDisplayService::class)->scheduleForProgram($program);
+            } catch (\Throwable $aiError) {
+                Log::warning('program-detail ai_schedule failed', ['program_id' => $id, 'message' => $aiError->getMessage()]);
+            }
             return response()->json([
                 'status' => true,
                 'data' => $data,
                 'program' => $programInfo,
                 'ai_schedule' => JsonSanitizer::sanitize($aiSchedule),
             ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_UNICODE);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'Start Program to Get Detail.'
-            ]);
         }
         
-        // Show only current week + 1 week ahead (max 2 weeks visible)
+        // subscribed / in-progress / paused / resumed: current week + 1 ahead
         $maxWeekToShow = $currentWeek + 1;
         
         $programDetail = WeekWiseProgram::where('program_sub_id',$programSub->id)
@@ -796,7 +808,12 @@ class ProgramSubTrackingController extends Controller
         
         $data = JsonSanitizer::sanitize($programDetail->toArray());
         $visibleWeekNumbers = $programDetail->pluck('week_no')->values()->all();
-        $aiSchedule = app(AiProgramDisplayService::class)->scheduleForProgram($program, $visibleWeekNumbers);
+        $aiSchedule = null;
+        try {
+            $aiSchedule = app(AiProgramDisplayService::class)->scheduleForProgram($program, $visibleWeekNumbers);
+        } catch (\Throwable $aiError) {
+            Log::warning('program-detail ai_schedule failed', ['program_id' => $id, 'message' => $aiError->getMessage()]);
+        }
         return response()->json([
             'status' => true,
             'data' => $data,
@@ -1133,6 +1150,7 @@ class ProgramSubTrackingController extends Controller
 
     private function hydrateWeeklyWorkout($workout): void
     {
+        try {
         $workoutDetail = Workout::where('id',$workout->workout_id)
             ->select('*')
             ->with(['workoutExercises' => function($wrkExs){
@@ -1150,7 +1168,8 @@ class ProgramSubTrackingController extends Controller
             $workoutDetail->instructions = null;
         }
         $this->localizeWorkoutWithExercises($workoutDetail);
-        $organized = json_decode(json_encode($this->organizeExercises($workoutDetail->type,$workoutDetail->workoutExercises)), true);
+        $exercises = $workoutDetail->workoutExercises ?? [];
+        $organized = json_decode(json_encode($this->organizeExercises($workoutDetail->type,$exercises)), true);
         if(!is_array($organized)){
             $organized = [];
         }
@@ -1160,6 +1179,13 @@ class ProgramSubTrackingController extends Controller
         $workout->setRelation('workoutDetail', $workoutDetail);
         $workout->workout_detail = $workoutDetail;
         unset($workout->workout_exercises);
+        } catch (\Throwable $e) {
+            Log::error('hydrateWeeklyWorkout failed', [
+                'weekly_workout_id' => $workout->id ?? null,
+                'workout_id' => $workout->workout_id ?? null,
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function localizeWorkoutWithExercises(?Workout $workout): void
@@ -1169,8 +1195,8 @@ class ProgramSubTrackingController extends Controller
         }
         $userLang = UserContentLocale::forAuthenticatedUser();
         ContentLocaleResolver::overlayWorkout($workout, $userLang);
-        foreach ($workout->workoutExercises as $we) {
-            if ($we->exerciseDetail) {
+        foreach ($workout->workoutExercises ?? [] as $we) {
+            if (is_object($we) && ($we->exerciseDetail ?? null)) {
                 ContentLocaleResolver::overlayExercise($we->exerciseDetail, $userLang);
             }
         }
