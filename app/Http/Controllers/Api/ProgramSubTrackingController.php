@@ -364,21 +364,27 @@ class ProgramSubTrackingController extends Controller
             'status' => false,
             'message' => 'You are Not Subscribed to this Program.'
         ]);
-        if($programSub->status!=='subscribed')
+        if($programSub->status==='completed')
         return response()->json([
             'status' => false,
-            'message' => 'Already Started.'
+            'message' => 'Program is Completed.'
         ]);
-        // $this->generateTracking($programSub->id,$id);
-        $programSub->status = 'in-progress';
-        $programSub->start_date = Carbon::today();
-        $programSub->update();
+        if($programSub->status==='subscribed'){
+            $programSub->status = 'in-progress';
+            $programSub->start_date = Carbon::today();
+            $programSub->update();
 
-        $notiReciever = User::where('role',2)->pluck('id')->first();
-        $notiSource = Auth::id();
-        $notiTitle = 'Program Started!';
-        $notiContent = Auth::user()->name.' just started '.Program::where('id',$id)->pluck('title')->first().' program.';
-        $this->storeNotification($notiReciever,$notiTitle,null,$notiContent,null,$notiSource);
+            $notiReciever = User::where('role',2)->pluck('id')->first();
+            if($notiReciever){
+                $notiSource = Auth::id();
+                $notiTitle = 'Program Started!';
+                $notiContent = Auth::user()->name.' just started '.Program::where('id',$id)->pluck('title')->first().' program.';
+                $this->storeNotification($notiReciever,$notiTitle,null,$notiContent,null,$notiSource);
+            }
+        }
+        if(WeekWiseProgram::where('program_sub_id',$programSub->id)->count()===0){
+            $this->generateTracking($programSub->id,$id);
+        }
         return response()->json([
             'status' => true,
             'message' => 'Program Started.'
@@ -763,37 +769,7 @@ class ProgramSubTrackingController extends Controller
         else if($programSub->status=='completed'){
             // Show all weeks for completed programs
             $programDetail = WeekWiseProgram::where('program_sub_id',$programSub->id)->get();
-            foreach ($programDetail as $week) {
-                $week->weekly_workouts = $week->weeklyWorkouts();
-                foreach ($week->weekly_workouts as $workout) {
-                    // Explicitly ensure daily_summary is included in workout detail
-                    $workout->workout_detail = Workout::where('id',$workout->workout_id)
-                        ->select('*') // Select all fields including daily_summary and description
-                        ->with(['workoutExercises' => function($wrkExs){
-                            // Ensure exercises are ordered by ID to preserve creation order
-                            // This maintains the exact layout/category structure the user created
-                            // IMPORTANT: All fields (sets, reps, rest_period) must be preserved
-                            $wrkExs->orderBy('id', 'asc')
-                                  ->with(['exerciseDetail' => function($exDetail){
-                                      // Ensure exercise title/name is always loaded
-                                      // This is critical for displaying exercise information
-                                  }]);
-                        }])->first();
-                    if(!is_null($workout->workout_detail)){
-                        // Ensure daily_summary is always present (even if null)
-                        if(!isset($workout->workout_detail->daily_summary)) {
-                            $workout->workout_detail->daily_summary = null;
-                        }
-                        // Ensure instructions is always present (even if null) - workouts use 'instructions' not 'description'
-                        if(!isset($workout->workout_detail->instructions)) {
-                            $workout->workout_detail->instructions = null;
-                        }
-                        $this->localizeWorkoutWithExercises($workout->workout_detail);
-                        $workout->workout_detail->workoutExercises = $this->organizeExercises($workout->workout_detail->type,$workout->workout_detail->workoutExercises);
-                        unset($workout->workout_exercises);
-                    }
-                }
-            }
+            $this->hydrateProgramWeeks($programDetail);
             $data = JsonSanitizer::sanitize($programDetail->toArray());
             $aiSchedule = app(AiProgramDisplayService::class)->scheduleForProgram($program);
             return response()->json([
@@ -816,38 +792,7 @@ class ProgramSubTrackingController extends Controller
             ->where('week_no', '<=', $maxWeekToShow)
             ->orderBy('week_no', 'asc')
             ->get();
-            
-        foreach ($programDetail as $week) {
-            $week->weekly_workouts = $week->weeklyWorkouts();
-            foreach ($week->weekly_workouts as $workout) {
-                // Explicitly ensure daily_summary and description are included in workout detail
-                $workout->workout_detail = Workout::where('id',$workout->workout_id)
-                    ->select('*') // Select all fields including daily_summary and description
-                    ->with(['workoutExercises' => function($wrkExs){
-                        // Ensure exercises are ordered by ID to preserve creation order
-                        // This maintains the exact layout/category structure the user created
-                        // IMPORTANT: All fields (sets, reps, rest_period) must be preserved
-                        $wrkExs->orderBy('id', 'asc')
-                              ->with(['exerciseDetail' => function($exDetail){
-                                  // Ensure exercise title/name is always loaded
-                                  // This is critical for displaying exercise information
-                              }]);
-                    }])->first();
-                if(!is_null($workout->workout_detail)){
-                    // Ensure daily_summary is always present (even if null)
-                    if(!isset($workout->workout_detail->daily_summary)) {
-                        $workout->workout_detail->daily_summary = null;
-                    }
-                    // Ensure instructions is always present (even if null) - workouts use 'instructions' not 'description'
-                    if(!isset($workout->workout_detail->instructions)) {
-                        $workout->workout_detail->instructions = null;
-                    }
-                    $this->localizeWorkoutWithExercises($workout->workout_detail);
-                    $workout->workout_detail->workoutExercises = $this->organizeExercises($workout->workout_detail->type,$workout->workout_detail->workoutExercises);
-                    unset($workout->workout_exercises);
-                }
-            }
-        }
+        $this->hydrateProgramWeeks($programDetail);
         
         $data = JsonSanitizer::sanitize($programDetail->toArray());
         $visibleWeekNumbers = $programDetail->pluck('week_no')->values()->all();
@@ -1165,44 +1110,56 @@ class ProgramSubTrackingController extends Controller
         $programDetail = WeekWiseProgram::where('program_sub_id',$programSub->id)
             ->where('week_no', '<=', $weeksToShow) // Only show visible weeks
             ->get();
-            
-        foreach ($programDetail as $week) {
-            $week->weekly_workouts = $week->weeklyWorkouts();
-            foreach ($week->weekly_workouts as $workout) {
-                // Explicitly ensure daily_summary is included in workout detail
-                $workout->workout_detail = Workout::where('id',$workout->workout_id)
-                    ->select('*') // Select all fields including daily_summary
-                    ->with(['workoutExercises' => function($wrkExs){
-                        // Ensure exercises are ordered by ID to preserve creation order
-                        // This maintains the exact layout/category structure the user created
-                        // IMPORTANT: All fields (sets, reps, rest_period) must be preserved
-                        $wrkExs->orderBy('id', 'asc')
-                              ->with(['exerciseDetail' => function($exDetail){
-                                  // Ensure exercise title/name is always loaded
-                                  // This is critical for displaying exercise information
-                              }]);
-                    }])->first();
-                if(!is_null($workout->workout_detail)){
-                    // Ensure daily_summary is always present (even if null)
-                    if(!isset($workout->workout_detail->daily_summary)) {
-                        $workout->workout_detail->daily_summary = null;
-                    }
-                    // Ensure instructions is always present (even if null) - workouts use 'instructions' not 'description'
-                    if(!isset($workout->workout_detail->instructions)) {
-                        $workout->workout_detail->instructions = null;
-                    }
-                    $this->localizeWorkoutWithExercises($workout->workout_detail);
-                    $workout->workout_detail->workoutExercises = $this->organizeExercises($workout->workout_detail->type,$workout->workout_detail->workoutExercises);
-                    unset($workout->workout_exercises);
-                }
-            }
-        }
+        $this->hydrateProgramWeeks($programDetail);
         
         return response()->json([
             'status' => true,
             'data' => $programDetail,
             'weeks_visible' => $weeksToShow
         ]);
+    }
+
+    private function hydrateProgramWeeks($programDetail): void
+    {
+        foreach ($programDetail as $week) {
+            $weeklyWorkouts = $week->weeklyWorkouts();
+            foreach ($weeklyWorkouts as $workout) {
+                $this->hydrateWeeklyWorkout($workout);
+            }
+            $week->setRelation('weeklyWorkouts', $weeklyWorkouts);
+            $week->weekly_workouts = $weeklyWorkouts;
+        }
+    }
+
+    private function hydrateWeeklyWorkout($workout): void
+    {
+        $workoutDetail = Workout::where('id',$workout->workout_id)
+            ->select('*')
+            ->with(['workoutExercises' => function($wrkExs){
+                $wrkExs->orderBy('id', 'asc')
+                      ->with(['exerciseDetail']);
+            }])->first();
+        if(is_null($workoutDetail)){
+            $workout->workout_detail = null;
+            return;
+        }
+        if(!isset($workoutDetail->daily_summary)) {
+            $workoutDetail->daily_summary = null;
+        }
+        if(!isset($workoutDetail->instructions)) {
+            $workoutDetail->instructions = null;
+        }
+        $this->localizeWorkoutWithExercises($workoutDetail);
+        $organized = json_decode(json_encode($this->organizeExercises($workoutDetail->type,$workoutDetail->workoutExercises)), true);
+        if(!is_array($organized)){
+            $organized = [];
+        }
+        $workoutDetail->unsetRelation('workoutExercises');
+        $workoutDetail->setAttribute('workoutExercises', $organized);
+        $workoutDetail->setAttribute('exs', $organized);
+        $workout->setRelation('workoutDetail', $workoutDetail);
+        $workout->workout_detail = $workoutDetail;
+        unset($workout->workout_exercises);
     }
 
     private function localizeWorkoutWithExercises(?Workout $workout): void

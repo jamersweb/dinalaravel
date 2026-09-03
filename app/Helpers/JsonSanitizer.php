@@ -22,8 +22,19 @@ class JsonSanitizer
         }
 
         if (is_object($value)) {
-            $arr = (array) $value;
-            return (object) array_map([self::class, 'sanitize'], $arr);
+            // Prefer JsonSerializable / Arrayable so Eloquent models and Collections
+            // keep nested relations (weekly workouts, exercise videos) instead of
+            // being flattened via (array) casts that drop null-byte properties.
+            if ($value instanceof \JsonSerializable) {
+                return self::sanitize($value->jsonSerialize());
+            }
+            if ($value instanceof \Illuminate\Contracts\Support\Arrayable) {
+                return self::sanitize($value->toArray());
+            }
+
+            $vars = get_object_vars($value);
+            $sanitized = array_map([self::class, 'sanitize'], $vars);
+            return $value instanceof \stdClass ? (object) $sanitized : $sanitized;
         }
 
         if (is_string($value)) {
