@@ -61,7 +61,15 @@ class Exercise extends Model
         return FileHandle::getURL($value, 4);
     }
 
-    function getAlternatesAttribute($value){
-        return json_decode($value);
+    function getAlternatesAttribute($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+        if ($value === null || $value === '') {
+            return null;
+        }
+        $decoded = json_decode($value);
+        return $decoded === null ? $value : $decoded;
     }
 }

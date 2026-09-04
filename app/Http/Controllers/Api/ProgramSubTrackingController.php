@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\JsonList;
 use App\Helpers\JsonSanitizer;
 use App\Http\Controllers\Controller;
 use App\Models\AutomatedMessage;
@@ -11,6 +12,7 @@ use App\Models\ExerciseCompilation;
 use App\Models\Message;
 use App\Models\Program;
 use App\Models\ProgramPhase;
+use App\Models\Tag;
 use App\Models\ProgramPhaseWorkout;
 use App\Models\ProgramSub;
 use App\Models\ProgramSubTracking;
@@ -358,7 +360,7 @@ class ProgramSubTrackingController extends Controller
     }
 
     function startProgram($id){
-        $programSub = ProgramSub::where('user_id',Auth::id())->where('program_id',$id)->first();
+        $programSub = $this->resolveActiveProgramSub((int) $id);
         if(is_null($programSub))
         return response()->json([
             'status' => false,
@@ -607,6 +609,13 @@ class ProgramSubTrackingController extends Controller
         ]);
         $proSub = ProgramSub::where('user_id',$userId)->where('id',$request->program_sub_id)->first();
         if($proSub){
+            if($proSub->status==='subscribed'){
+                $proSub->status = 'in-progress';
+                if(empty($proSub->start_date)){
+                    $proSub->start_date = Carbon::today();
+                }
+                $proSub->save();
+            }
             if(!($proSub->status==='in-progress' || $proSub->status==='resumed'))
             return response()->json([
                 'status' => false,
@@ -718,14 +727,7 @@ class ProgramSubTrackingController extends Controller
 
     function getProgramDetail($id){
         try {
-        $programSub = ProgramSub::where('user_id',Auth::id())
-            ->where('program_id',$id)
-            ->whereIn('status', ['subscribed', 'in-progress', 'paused', 'resumed'])
-            ->orderByRaw("FIELD(status,'in-progress','resumed','paused','subscribed')")
-            ->first();
-        if(is_null($programSub)){
-            $programSub = ProgramSub::where('user_id',Auth::id())->where('program_id',$id)->first();
-        }
+        $programSub = $this->resolveActiveProgramSub((int) $id);
         if(is_null($programSub))
         return response()->json([
             'status' => false,
@@ -1169,6 +1171,7 @@ class ProgramSubTrackingController extends Controller
         }
         $this->localizeWorkoutWithExercises($workoutDetail);
         $exercises = $workoutDetail->workoutExercises ?? [];
+        $this->attachExerciseTagNames($exercises);
         $organized = json_decode(json_encode($this->organizeExercises($workoutDetail->type,$exercises)), true);
         if(!is_array($organized)){
             $organized = [];
@@ -1188,6 +1191,24 @@ class ProgramSubTrackingController extends Controller
         }
     }
 
+    private function resolveActiveProgramSub(int $programId): ?ProgramSub
+    {
+        $userId = Auth::id();
+        $preferred = ProgramSub::where('user_id', $userId)
+            ->where('program_id', $programId)
+            ->whereIn('status', ['subscribed', 'in-progress', 'paused', 'resumed'])
+            ->orderByRaw("FIELD(status,'in-progress','resumed','paused','subscribed')")
+            ->orderByDesc('id')
+            ->first();
+        if ($preferred) {
+            return $preferred;
+        }
+        return ProgramSub::where('user_id', $userId)
+            ->where('program_id', $programId)
+            ->orderByDesc('id')
+            ->first();
+    }
+
     private function localizeWorkoutWithExercises(?Workout $workout): void
     {
         if (is_null($workout)) {
@@ -1200,5 +1221,51 @@ class ProgramSubTrackingController extends Controller
                 ContentLocaleResolver::overlayExercise($we->exerciseDetail, $userLang);
             }
         }
+    }
+
+    private function attachExerciseTagNames($exercises): void
+    {
+        if ($exercises instanceof \Illuminate\Support\Collection) {
+            $exercises = $exercises->all();
+        }
+        if (!is_array($exercises) || $exercises === []) {
+            return;
+        }
+
+        $idsByIndex = [];
+        foreach ($exercises as $i => $exercise) {
+            $detail = is_object($exercise) ? ($exercise->exerciseDetail ?? null) : null;
+            if (!$detail) {
+                continue;
+            }
+            $ids = $this->exerciseTagIds($detail->tags ?? null);
+            $detail->tags = $ids;
+            $idsByIndex[$i] = $ids;
+        }
+
+        $allIds = [];
+        foreach ($idsByIndex as $ids) {
+            $allIds = array_merge($allIds, $ids);
+        }
+        $allIds = array_values(array_unique(array_filter($allIds)));
+        $namesById = $allIds === []
+            ? []
+            : Tag::whereIn('id', $allIds)->pluck('name', 'id')->toArray();
+
+        foreach ($exercises as $i => $exercise) {
+            $detail = is_object($exercise) ? ($exercise->exerciseDetail ?? null) : null;
+            if (!$detail) {
+                continue;
+            }
+            $detail->tagNames = array_values(array_filter(array_map(
+                static fn ($id) => $namesById[$id] ?? null,
+                $idsByIndex[$i] ?? []
+            )));
+        }
+    }
+
+    private function exerciseTagIds($raw): array
+    {
+        return JsonList::ids($raw);
     }
 }

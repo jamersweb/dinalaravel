@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Concerns\ResolvesUserLanguage;
 use App\Http\Controllers\Controller;
+use App\Helpers\JsonList;
 use App\Support\ContentCodeNormalizer;
 use App\Support\ContentLocaleResolver;
 use App\Models\Achievement;
@@ -344,12 +345,11 @@ class ExerciseController extends Controller
             $exercises = Exercise::orderBy('id', 'desc')->get(['id', 'content_code', 'title', 'tags', 'language', 'image', 'video_url', 'video_type', 'custom_thumbnail']);
         }
         foreach ($exercises as $item) {
-            if (is_null($item->tags))
-                $item->tagNames = [];
-            else {
-                $item->tags = json_decode($item->tags);
-                $item->tagNames = Tag::whereIn('id', $item->tags)->pluck('name')->toArray();
-            }
+            $tagIds = JsonList::ids($item->tags);
+            $item->tags = $tagIds;
+            $item->tagNames = $tagIds === []
+                ? []
+                : Tag::whereIn('id', $tagIds)->pluck('name')->toArray();
         }
         return response()->json([
             'status' => true,
@@ -390,12 +390,11 @@ class ExerciseController extends Controller
                 'message' => 'Invalid Id'
             ]);
         ContentLocaleResolver::overlayExercise($ex, $this->currentUserLanguage());
-        if (is_null($ex->tags))
-            $ex->tagNames = [];
-        else {
-            $ex->tags = json_decode($ex->tags);
-            $ex->tagNames = Tag::whereIn('id', $ex->tags)->pluck('name')->toArray();
-        }
+        $tagIds = JsonList::ids($ex->tags);
+        $ex->tags = $tagIds;
+        $ex->tagNames = $tagIds === []
+            ? []
+            : Tag::whereIn('id', $tagIds)->pluck('name')->toArray();
         if (is_null($ex->alternates))
             $ex->altNames = [];
         else
@@ -656,16 +655,13 @@ class ExerciseController extends Controller
         }
         foreach ($request->exercise_ids as $exerciseId) {
             $exercise = Exercise::find($exerciseId);
-            if (is_null($exercise->tags)) {
-                $exercise->tags = json_encode($request->tag_ids);
-            } else {
-                $tagsArray = json_decode($exercise->tags);
-                foreach ($request->tag_ids as $tagId) {
-                    if (!in_array($tagId, $tagsArray))
-                        array_push($tagsArray, $tagId);
+            $tagsArray = JsonList::ids($exercise->tags);
+            foreach ($request->tag_ids as $tagId) {
+                if (!in_array((int) $tagId, $tagsArray, true)) {
+                    $tagsArray[] = (int) $tagId;
                 }
-                $exercise->tags = json_encode($tagsArray);
             }
+            $exercise->tags = json_encode($tagsArray);
             $exercise->update();
         }
         return response()->json([
@@ -697,21 +693,12 @@ class ExerciseController extends Controller
             ->get();
         
         foreach($alternates as $alt) {
-            // Add tag names for display
-            if(!is_null($alt->tags)) {
-                $tags = json_decode($alt->tags);
-                $alt->tagNames = Tag::whereIn('id', $tags)->pluck('name')->toArray();
-            } else {
-                $alt->tagNames = [];
-            }
-            
-            // Ensure video_url and image are accessible via accessors (they're already handled by the model)
-            // The model's getVideoUrlAttribute and getImageAttribute will automatically format URLs
-            
-            // Ensure alternates field is decoded for consistency
-            if(!is_null($alt->alternates)) {
-                $alt->alternates = json_decode($alt->alternates);
-            }
+            $tagIds = JsonList::ids($alt->tags);
+            $alt->tags = $tagIds;
+            $alt->tagNames = $tagIds === []
+                ? []
+                : Tag::whereIn('id', $tagIds)->pluck('name')->toArray();
+            $alt->alternates = JsonList::ids($alt->alternates);
         }
         
         return response()->json([
